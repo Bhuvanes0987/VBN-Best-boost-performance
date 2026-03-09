@@ -1,0 +1,176 @@
+<p-button label="Add Question" icon="pi pi-plus" styleClass="bg-orange-500 border-none" (click)="openDrawer()">
+</p-button>
+
+
+<div class="mt-6 bg-white rounded-xl shadow">
+
+    <p-table [value]="questions">
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th>ID</th>
+                <th>Question</th>
+                <th>Type</th>
+                <th>Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-q>
+
+            <tr>
+
+                <td>{{q.id}}</td>
+
+                <td>{{q.question_text}}</td>
+
+                <td>{{q.question_type}}</td>
+
+                <td class="flex gap-2">
+
+                    <p-button icon="pi pi-pencil" severity="secondary" (click)="editQuestion(q)">
+                    </p-button>
+
+                    <p-button icon="pi pi-trash" severity="danger" (click)="deleteQuestion(q.id)">
+                    </p-button>
+
+                </td>
+
+            </tr>
+
+        </ng-template>
+
+    </p-table>
+
+</div>
+
+
+
+<p-drawer [(visible)]="drawerVisible" position="right" [style]="{ width: '900px' }"
+    styleClass="!bg-slate-900 !text-white p-8" closable="true">
+
+    <h2 class="text-2xl font-bold text-orange-400 mb-6">
+
+        {{editMode ? 'Edit Question' : 'Add Question'}}
+
+    </h2>
+
+    <div class="flex flex-col gap-6 max-h-[80vh] overflow-y-auto pr-4">
+
+        <div class="grid grid-cols-2 gap-4">
+
+            <div class="flex flex-col gap-1">
+
+                <label>Class</label>
+
+                <p-select [options]="classes" optionLabel="class_name" [(ngModel)]="selectedClass"
+                    (onChange)="onClassChange()" placeholder="Select Class">
+                </p-select>
+
+            </div>
+
+
+            <div class="flex flex-col gap-1">
+
+                <label>Subject</label>
+
+                <p-select [options]="subjects" optionLabel="subject_name" [(ngModel)]="selectedSubject"
+                    placeholder="Select Subject">
+                </p-select>
+
+            </div>
+
+        </div>
+
+
+
+        <label>Question Type</label>
+
+        <p-select [options]="types" optionLabel="name" optionValue="value" [(ngModel)]="questionType"
+            (onChange)="onTypeChange()" placeholder="Select Type">
+        </p-select>
+        <label>Question</label>
+
+        <input pInputText [(ngModel)]="questionText" placeholder="Enter question">
+
+
+
+
+        <div *ngIf="questionType === 'mcq'">
+
+            <div *ngFor="let opt of options; let i=index" class="flex items-center gap-3 mb-3">
+
+                <input pInputText [(ngModel)]="opt.text" placeholder="Option {{i+1}}" class="flex-1">
+
+                <p-radioButton name="correct" [value]="i" [(ngModel)]="correctOption">
+                </p-radioButton>
+
+                <span>Correct</span>
+
+                <button pButton icon="pi pi-trash" severity="danger" (click)="removeOption(i)">
+                </button>
+
+            </div>
+
+            <p-button label="+ Add Option" styleClass="bg-orange-500 border-none" (click)="addOption()">
+            </p-button>
+
+        </div>
+
+
+
+
+        <div *ngIf="questionType === 'fill'">
+
+            <label>Correct Answer</label>
+
+            <input pInputText [(ngModel)]="fillAnswer" placeholder="Correct answer">
+
+        </div>
+
+
+
+
+        <div *ngIf="questionType === 'match'">
+
+            <div *ngFor="let pair of pairs; let i=index" class="grid grid-cols-[1fr_1fr_auto] gap-4 mb-3">
+
+                <input pInputText [(ngModel)]="pair.left" placeholder="Left">
+
+                <input pInputText [(ngModel)]="pair.right" placeholder="Right">
+
+                <button pButton icon="pi pi-trash" severity="danger" (click)="removePair(i)">
+                </button>
+
+            </div>
+
+            <p-button label="+ Add Pair" styleClass="bg-orange-500 border-none" (click)="addPair()">
+            </p-button>
+
+        </div>
+
+
+
+
+        <div *ngIf="questionType === 'map'">
+
+            <label>Upload Map</label>
+
+            <input type="file" (change)="onFileSelected($event)" class="w-full bg-white text-black p-2 rounded">
+
+        </div>
+
+
+
+        <div class="flex justify-end gap-4 mt-6">
+
+            <p-button label="Cancel" severity="secondary" (click)="drawerVisible=false">
+            </p-button>
+
+            <p-button label="Save" styleClass="bg-green-500 border-none" (click)="saveQuestion()">
+            </p-button>
+
+        </div>
+
+    </div>
+
+</p-drawer>

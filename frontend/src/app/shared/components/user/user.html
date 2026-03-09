@@ -1,0 +1,113 @@
+<div class="min-h-screen bg-slate-50">
+
+    <div class="h-32 bg-gradient-to-r from-orange-600 to-orange-400 w-full absolute top-0 left-0"></div>
+
+    <div class="relative max-w-7xl mx-auto p-2">
+
+        <div class="flex justify-between mb-8">
+
+            <div>
+                <h1 class="text-3xl font-extrabold text-white">User Management</h1>
+                <p class="text-orange-100">Manage users</p>
+            </div>
+
+            <p-button label="Add New User" icon="pi pi-plus" (onClick)="openAddUser()"
+                styleClass="bg-white text-orange-600 border-none">
+            </p-button>
+
+        </div>
+
+        <div class="bg-white rounded-xl shadow p-4">
+
+            <p-table [value]="users()" responsiveLayout="scroll">
+
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Name</th>
+                        <th>Position</th>
+                        <th>Class</th>
+                        <th>School</th>
+                        <th>Actions</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-user>
+                    <tr>
+
+                        <td>
+                            <div class="flex flex-col">
+                                <b>{{user.name}}</b>
+                                <span class="text-xs text-gray-500">{{user.email}}</span>
+                            </div>
+                        </td>
+
+                        <td>{{user.position}}</td>
+
+                        <td>{{user.studentClass}}</td>
+
+                        <td>
+                            <div class="flex flex-col">
+                                <span>{{user.schoolName}}</span>
+                                <span class="text-xs text-gray-400">{{user.schoolCode}}</span>
+                            </div>
+                        </td>
+
+                        <td class="flex gap-2">
+
+                            <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="editUser(user)">
+                            </p-button>
+
+                            <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="deleteUser(user.id)">
+                            </p-button>
+
+                        </td>
+
+                    </tr>
+                </ng-template>
+
+            </p-table>
+
+        </div>
+
+    </div>
+
+    <p-drawer [(visible)]="isDrawerVisible" position="right" styleClass="w-[450px] !bg-white">
+
+        <ng-template pTemplate="header">
+            <h2 class="text-xl font-bold">User Details</h2>
+        </ng-template>
+
+        <form [formGroup]="userForm" (ngSubmit)="saveUser()" class="flex flex-col gap-4 mt-4">
+
+            <input pInputText formControlName="fullName" placeholder="Full Name">
+
+            <p-select [options]="classOptions()" optionLabel="label" optionValue="value" formControlName="selectedClass"
+                placeholder="Select Class">
+            </p-select>
+
+            <input pInputText formControlName="schoolName" placeholder="School Name">
+
+            <input pInputText formControlName="schoolCode" placeholder="School Code">
+
+            <input pInputText formControlName="email" placeholder="Email">
+
+            <input pInputText formControlName="phone" placeholder="Phone">
+
+            <input pInputText formControlName="position" placeholder="Position">
+
+            <div class="flex gap-3 mt-4">
+
+                <p-button label="Cancel" severity="secondary" (onClick)="isDrawerVisible.set(false)">
+                </p-button>
+
+                <p-button label="Save" type="submit" [disabled]="userForm.invalid"
+                    styleClass="bg-orange-500 border-none">
+                </p-button>
+
+            </div>
+
+        </form>
+
+    </p-drawer>
+
+</div>

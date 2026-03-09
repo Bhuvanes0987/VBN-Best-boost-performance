@@ -1,0 +1,23 @@
+:host ::ng-deep {
+  // Removes PrimeNG default borders to let Tailwind handle the underline
+  .p-inputtext {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  .p-password input {
+    width: 100%;
+  }
+
+  .p-card {
+    .p-card-body {
+        padding: 2.5rem 1.5rem;
+    }
+  }
+
+  // Eye icon color for glass theme
+  .p-password-reveal, .p-password-hide {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+}
