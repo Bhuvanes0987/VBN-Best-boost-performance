@@ -11,6 +11,8 @@ class User(db.Model):
 
     email = db.Column(db.String(150), unique=True, nullable=False)
 
+    password_hash = db.Column(db.String(255), nullable=False)
+
     phone = db.Column(db.String(20))
 
     position = db.Column(db.String(100))

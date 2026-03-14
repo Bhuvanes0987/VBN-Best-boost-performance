@@ -1,5 +1,4 @@
-<div class="min-h-screen flex bg-[#0a0a0c]">
-
+<div class="min-h-screen flex bg-white">
   <div class="hidden lg:flex w-1/2 relative items-center justify-center 
               bg-gradient-to-br from-orange-500 via-orange-600 to-amber-500 p-20">
 
@@ -20,19 +19,19 @@
 
   <div class="flex-1 flex items-center justify-center p-8">
 
-    <div
-      class="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/10 
-             rounded-3xl shadow-2xl p-10">
+<div
+ class="w-full max-w-md bg-white border-2 border-orange-500
+        rounded-3xl shadow-xl p-10">
 
-      <div class="text-center mb-10">
-        <h2 class="text-3xl font-bold text-white mb-2">
-          Welcome Back
-        </h2>
+  <div class="text-center mb-10">
+    <h2 class="text-3xl font-bold text-gray-800 mb-2">
+      Welcome Back
+    </h2>
 
-        <p class="text-gray-400 text-sm">
-          Log in to continue
-        </p>
-      </div>
+    <p class="text-gray-500 text-sm">
+      Log in to continue
+    </p>
+  </div>
 
       <div class="flex flex-col gap-6">
 
@@ -45,7 +44,7 @@
             pInputText
             [(ngModel)]="email"
             placeholder="enter your email"
-            class="w-full p-4 bg-[#1a1a1f] text-white rounded-xl border border-gray-700 
+            class="w-full p-4 bg-white text-gray-800 rounded-xl border border-gray-700 
                    focus:ring-2 focus:ring-orange-500 outline-none"
           />
         </div>
@@ -60,7 +59,7 @@
             [feedback]="false"
             [toggleMask]="true"
             styleClass="w-full"
-            inputStyleClass="w-full p-4 bg-[#1a1a1f] text-white rounded-xl border border-gray-700 focus:ring-2 focus:ring-orange-500"
+            inputStyleClass="w-full p-4 bg-white text-gray-800   rounded-xl border border-gray-700 focus:ring-2 focus:ring-orange-500"
             placeholder="••••••••">
           </p-password>
         </div>

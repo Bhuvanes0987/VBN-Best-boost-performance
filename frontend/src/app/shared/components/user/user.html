@@ -1,113 +1,86 @@
-<div class="min-h-screen bg-slate-50">
+<div class="p-8">
 
-    <div class="h-32 bg-gradient-to-r from-orange-600 to-orange-400 w-full absolute top-0 left-0"></div>
+<h2 class="text-2xl font-bold text-orange-600 mb-6">
+User Management
+</h2>
 
-    <div class="relative max-w-7xl mx-auto p-2">
+<div class="bg-white shadow-lg rounded-xl p-6 mb-8">
 
-        <div class="flex justify-between mb-8">
+<div class="grid grid-cols-2 gap-6">
 
-            <div>
-                <h1 class="text-3xl font-extrabold text-white">User Management</h1>
-                <p class="text-orange-100">Manage users</p>
-            </div>
+<input
+pInputText
+[(ngModel)]="fullName"
+placeholder="Full Name"
+class="p-3 border rounded-lg"
+/>
 
-            <p-button label="Add New User" icon="pi pi-plus" (onClick)="openAddUser()"
-                styleClass="bg-white text-orange-600 border-none">
-            </p-button>
+<input
+pInputText
+[(ngModel)]="email"
+placeholder="Email"
+class="p-3 border rounded-lg"
+/>
 
-        </div>
+<p-select
+[options]="classes"
+[(ngModel)]="selectedClass"
+optionLabel="label"
+placeholder="Select Class">
+</p-select>
 
-        <div class="bg-white rounded-xl shadow p-4">
+<p-select
+[options]="roles"
+[(ngModel)]="selectedRole"
+optionLabel="name"
+placeholder="Select Role">
+</p-select>
 
-            <p-table [value]="users()" responsiveLayout="scroll">
+<input
+pInputText
+[(ngModel)]="schoolName"
+placeholder="School Name"
+class="p-3 border rounded-lg"
+/>
 
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th>Name</th>
-                        <th>Position</th>
-                        <th>Class</th>
-                        <th>School</th>
-                        <th>Actions</th>
-                    </tr>
-                </ng-template>
+<input
+pInputText
+[(ngModel)]="schoolCode"
+placeholder="School Code"
+class="p-3 border rounded-lg"
+/>
 
-                <ng-template pTemplate="body" let-user>
-                    <tr>
+</div>
 
-                        <td>
-                            <div class="flex flex-col">
-                                <b>{{user.name}}</b>
-                                <span class="text-xs text-gray-500">{{user.email}}</span>
-                            </div>
-                        </td>
+<button
+pButton
+label="Create User"
+class="mt-6 bg-orange-500 border-none"
+(click)="createUser()">
+</button>
 
-                        <td>{{user.position}}</td>
+</div>
 
-                        <td>{{user.studentClass}}</td>
+<p-table [value]="users">
 
-                        <td>
-                            <div class="flex flex-col">
-                                <span>{{user.schoolName}}</span>
-                                <span class="text-xs text-gray-400">{{user.schoolCode}}</span>
-                            </div>
-                        </td>
+<ng-template pTemplate="header">
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Class</th>
+<th>School</th>
+</tr>
+</ng-template>
 
-                        <td class="flex gap-2">
+<ng-template pTemplate="body" let-user>
+<tr>
+<td>{{user.name}}</td>
+<td>{{user.email}}</td>
+<td>{{user.studentClass}}</td>
+<td>{{user.schoolName}}</td>
+</tr>
+</ng-template>
 
-                            <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="editUser(user)">
-                            </p-button>
-
-                            <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="deleteUser(user.id)">
-                            </p-button>
-
-                        </td>
-
-                    </tr>
-                </ng-template>
-
-            </p-table>
-
-        </div>
-
-    </div>
-
-    <p-drawer [(visible)]="isDrawerVisible" position="right" styleClass="w-[450px] !bg-white">
-
-        <ng-template pTemplate="header">
-            <h2 class="text-xl font-bold">User Details</h2>
-        </ng-template>
-
-        <form [formGroup]="userForm" (ngSubmit)="saveUser()" class="flex flex-col gap-4 mt-4">
-
-            <input pInputText formControlName="fullName" placeholder="Full Name">
-
-            <p-select [options]="classOptions()" optionLabel="label" optionValue="value" formControlName="selectedClass"
-                placeholder="Select Class">
-            </p-select>
-
-            <input pInputText formControlName="schoolName" placeholder="School Name">
-
-            <input pInputText formControlName="schoolCode" placeholder="School Code">
-
-            <input pInputText formControlName="email" placeholder="Email">
-
-            <input pInputText formControlName="phone" placeholder="Phone">
-
-            <input pInputText formControlName="position" placeholder="Position">
-
-            <div class="flex gap-3 mt-4">
-
-                <p-button label="Cancel" severity="secondary" (onClick)="isDrawerVisible.set(false)">
-                </p-button>
-
-                <p-button label="Save" type="submit" [disabled]="userForm.invalid"
-                    styleClass="bg-orange-500 border-none">
-                </p-button>
-
-            </div>
-
-        </form>
-
-    </p-drawer>
+</p-table>
 
 </div>

@@ -1,0 +1,78 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+
+<div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+
+<h2 class="text-center text-4xl font-bold text-orange-500 mb-8">
+Create Account
+</h2>
+
+<div class="flex flex-col gap-4">
+
+<input
+pInputText
+[(ngModel)]="fullName"
+placeholder="Full Name"
+class="w-full p-3 border rounded-xl"
+/>
+
+<p-select
+[options]="classes"
+[(ngModel)]="selectedClass"
+placeholder="Select Class"
+optionLabel="label"
+class="w-full">
+</p-select>
+
+<input
+pInputText
+[(ngModel)]="schoolName"
+placeholder="School Name"
+class="w-full p-3 border rounded-xl"
+/>
+
+<input
+pInputText
+[(ngModel)]="schoolCode"
+placeholder="School Code"
+class="w-full p-3 border rounded-xl"
+/>
+
+<input
+pInputText
+[(ngModel)]="email"
+placeholder="Email"
+class="w-full p-3 border rounded-xl"
+/>
+
+<p-password
+[(ngModel)]="password"
+[feedback]="false"
+toggleMask="true"
+placeholder="Password"
+class="w-full">
+</p-password>
+
+<p-password
+[(ngModel)]="confirmPassword"
+[feedback]="false"
+toggleMask="true"
+placeholder="Confirm Password"
+class="w-full">
+</p-password>
+
+<button
+pButton
+label="Sign Up"
+class="w-full mt-4 bg-orange-500 border-none">
+</button>
+
+<p class="text-center text-sm mt-4">
+Already have an account?
+<a routerLink="/login" class="text-orange-500 font-semibold">
+Sign In
+</a>
+</p>
+
+</div>
+</div>
+</div>

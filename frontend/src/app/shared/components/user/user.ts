@@ -1,130 +1,94 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
 
 import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
-import { Drawer } from 'primeng/drawer';
-
-import { UserService } from '../../services/user.service';
+import { SelectModule } from 'primeng/select';
 
 @Component({
-  selector: 'app-user',
+  selector: 'app-users',
   standalone: true,
-  imports: [
+  imports:[
     CommonModule,
-    ReactiveFormsModule,
-    HttpClientModule,
+    FormsModule,
     InputTextModule,
     SelectModule,
     ButtonModule,
-    TableModule,
-    IconFieldModule,
-    InputIconModule,
-    Drawer
+    TableModule
   ],
-  templateUrl: './user.html',
-  styleUrl: './user.scss'
+  templateUrl:'./user.html'
 })
 export class User implements OnInit {
 
-  isDrawerVisible = signal(false);
+  fullName=""
+  email=""
+  schoolName=""
+  schoolCode=""
+  selectedClass=""
+  selectedRole:any
 
-  users = signal<any[]>([]);
+  users:any[]=[]
+  roles:any[]=[]
 
-  selectedUserId: number | null = null;
+  classes=[
+    {label:"Class 6",value:"6"},
+    {label:"Class 7",value:"7"},
+    {label:"Class 8",value:"8"},
+    {label:"Class 9",value:"9"},
+    {label:"Class 10",value:"10"}
+  ]
 
-  constructor(private userService: UserService) { }
+  constructor(private http:HttpClient){}
 
-  ngOnInit() {
-    this.loadUsers();
+  ngOnInit(){
+    this.loadUsers()
+    this.loadRoles()
   }
 
-  classOptions = signal([
-    { label: 'Class 10', value: '10' },
-    { label: 'Class 11', value: '11' },
-    { label: 'Class 12', value: '12' }
-  ]);
-
-  userForm = new FormGroup({
-    fullName: new FormControl('', Validators.required),
-    selectedClass: new FormControl('', Validators.required),
-    schoolName: new FormControl('', Validators.required),
-    schoolCode: new FormControl('', Validators.required),
-    email: new FormControl('', [Validators.required, Validators.email]),
-    phone: new FormControl(''),
-    position: new FormControl('')
-  });
-
-
-  loadUsers() {
-    this.userService.getUsers().subscribe((res: any) => {
-      this.users.set(res.users);
-    });
+  loadUsers(){
+    this.http.get("http://localhost:8900/users")
+    .subscribe((res:any)=>{
+      this.users=res.users
+    })
   }
 
-  openAddUser() {
-    this.selectedUserId = null;
-    this.userForm.reset();
-    this.isDrawerVisible.set(true);
+  loadRoles(){
+    this.http.get("http://localhost:8900/roles")
+    .subscribe((res:any)=>{
+      this.roles=res.roles
+    })
   }
 
+  createUser(){
 
-  editUser(user: any) {
-
-    this.selectedUserId = user.id;
-
-    this.userForm.patchValue({
-      fullName: user.name,
-      selectedClass: user.studentClass,
-      schoolName: user.schoolName,
-      schoolCode: user.schoolCode,
-      email: user.email,
-      phone: user.phone,
-      position: user.position
-    });
-
-    this.isDrawerVisible.set(true);
-  }
-
-  saveUser() {
-
-    if (!this.userForm.valid) return;
-
-    const formData = this.userForm.value;
-
-    if (this.selectedUserId) {
-
-      this.userService.updateUser(this.selectedUserId, formData)
-        .subscribe(() => {
-          this.loadUsers();
-          this.isDrawerVisible.set(false);
-        });
-
-    } else {
-
-      this.userService.createUser(formData)
-        .subscribe(() => {
-          this.loadUsers();
-          this.isDrawerVisible.set(false);
-        });
-
+    const payload={
+      fullName:this.fullName,
+      email:this.email,
+      schoolName:this.schoolName,
+      schoolCode:this.schoolCode,
+      selectedClass:this.selectedClass
     }
+
+    this.http.post("http://localhost:8900/users",payload)
+    .subscribe((res:any)=>{
+
+      const userId=res.user_id
+
+      const rolePayload={
+        role_id:this.selectedRole.id
+      }
+
+      this.http.post(`http://localhost:8900/users/${userId}/role`,rolePayload)
+      .subscribe(()=>{
+        alert("User created successfully")
+        this.loadUsers()
+      })
+
+    })
+
   }
 
-
-  deleteUser(id: number) {
-
-    if (!confirm("Deactivate this user?")) return;
-
-    this.userService.deleteUser(id)
-      .subscribe(() => {
-        this.loadUsers();
-      });
-  }
 }

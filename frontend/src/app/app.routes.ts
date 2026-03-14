@@ -7,6 +7,8 @@ import { QuestionBank } from './shared/components/question-bank/question-bank';
 import { ImportQuestions } from './shared/components/import-questions/import-questions';
 import { Subjects } from './shared/components/subjects/subjects';
 import { Quiz } from './shared/components/quiz/quiz';
+import { Signup } from './shared/components/signup/signup';
+import { Role } from './shared/components/role/role';
 
 export const routes: Routes = [
   {
@@ -55,6 +57,15 @@ export const routes: Routes = [
   path:'quiz/:classId/:subjectId',
   component:Quiz
 },
+{
+ path:'signup',
+ component:Signup
+},
+{
+ path:'roles',
+ component:Role
+},
+
   {
     path: '**',
     redirectTo: 'login'
