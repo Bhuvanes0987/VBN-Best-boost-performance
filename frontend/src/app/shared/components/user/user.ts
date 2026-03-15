@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -7,6 +6,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
+
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-users',
@@ -30,6 +31,8 @@ export class User implements OnInit {
   selectedClass=""
   selectedRole:any
 
+  editingUserId:number | null = null
+
   users:any[]=[]
   roles:any[]=[]
 
@@ -41,7 +44,7 @@ export class User implements OnInit {
     {label:"Class 10",value:"10"}
   ]
 
-  constructor(private http:HttpClient){}
+  constructor(private userService:UserService){}
 
   ngOnInit(){
     this.loadUsers()
@@ -49,14 +52,14 @@ export class User implements OnInit {
   }
 
   loadUsers(){
-    this.http.get("http://localhost:8900/users")
+    this.userService.getUsers()
     .subscribe((res:any)=>{
       this.users=res.users
     })
   }
 
   loadRoles(){
-    this.http.get("http://localhost:8900/roles")
+    this.userService.getRoles()
     .subscribe((res:any)=>{
       this.roles=res.roles
     })
@@ -72,23 +75,65 @@ export class User implements OnInit {
       selectedClass:this.selectedClass
     }
 
-    this.http.post("http://localhost:8900/users",payload)
+    this.userService.createUser(payload)
     .subscribe((res:any)=>{
 
       const userId=res.user_id
 
       const rolePayload={
-        role_id:this.selectedRole.id
+        role_id:this.selectedRole
       }
 
-      this.http.post(`http://localhost:8900/users/${userId}/role`,rolePayload)
+      this.userService.assignRole(userId,rolePayload)
       .subscribe(()=>{
         alert("User created successfully")
+        this.resetForm()
         this.loadUsers()
       })
 
     })
 
+  }
+
+  editUser(user:any){
+
+    this.editingUserId=user.id
+
+    this.fullName=user.name
+    this.email=user.email
+    this.selectedClass=user.studentClass
+    this.schoolName=user.schoolName
+    this.schoolCode=user.schoolCode
+  }
+
+  updateUser(){
+
+    const payload={
+      fullName:this.fullName,
+      email:this.email,
+      schoolName:this.schoolName,
+      schoolCode:this.schoolCode,
+      selectedClass:this.selectedClass
+    }
+
+    this.userService.updateUser(this.editingUserId!,payload)
+    .subscribe(()=>{
+      alert("User updated successfully")
+      this.resetForm()
+      this.loadUsers()
+    })
+
+  }
+
+  resetForm(){
+
+    this.fullName=""
+    this.email=""
+    this.schoolName=""
+    this.schoolCode=""
+    this.selectedClass=""
+    this.selectedRole=null
+    this.editingUserId=null
   }
 
 }

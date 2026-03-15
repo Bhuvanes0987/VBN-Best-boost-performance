@@ -2,17 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export interface User {
-  id?: number;
-  name: string;
-  email: string;
-  phone?: string;
-  position?: string;
-  studentClass: string;
-  schoolName: string;
-  schoolCode: string;
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -37,4 +26,13 @@ export class UserService {
   deleteUser(id:number): Observable<any> {
     return this.http.delete(`${this.API}/users/${id}`);
   }
+
+  getRoles(): Observable<any>{
+    return this.http.get(`${this.API}/roles`);
+  }
+
+  assignRole(userId:number, payload:any): Observable<any>{
+    return this.http.post(`${this.API}/users/${userId}/role`, payload);
+  }
+
 }

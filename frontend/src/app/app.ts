@@ -2,12 +2,12 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { Avatar } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
-import { Drawer } from 'primeng/drawer';
+import { Drawer, DrawerModule } from 'primeng/drawer';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ButtonModule, Drawer, Avatar],
+  imports: [RouterOutlet, ButtonModule, DrawerModule, Avatar],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

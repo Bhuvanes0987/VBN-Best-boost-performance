@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from extension import db
 from models.user_model import User
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 
 user_bp = Blueprint("users", __name__)
 
@@ -14,13 +15,12 @@ def create_user():
 
     data = request.json
 
-    student_class = data["selectedClass"]["value"] if isinstance(data["selectedClass"], dict) else data["selectedClass"]
+    student_class = data["selectedClass"]
 
     user = User(
         name=data["fullName"],
         email=data["email"],
-        phone=data.get("phone"),
-        position=data.get("position"),
+        password_hash=generate_password_hash("123456"),
         student_class=student_class,
         school_name=data["schoolName"],
         school_code=data["schoolCode"],
@@ -32,8 +32,10 @@ def create_user():
     db.session.add(user)
     db.session.commit()
 
-    return jsonify({"message": "User created successfully"})
-
+    return jsonify({
+        "message": "User created successfully",
+        "user_id": user.id
+    })
 
 # =============================
 # GET USERS (ONLY ACTIVE)
@@ -71,13 +73,11 @@ def update_user(id):
 
     data = request.json
 
-    student_class = data["selectedClass"]["value"] if isinstance(data["selectedClass"], dict) else data["selectedClass"]
-
     user.name = data["fullName"]
     user.email = data["email"]
     user.phone = data.get("phone")
     user.position = data.get("position")
-    user.student_class = student_class
+    user.student_class = data["selectedClass"]
     user.school_name = data["schoolName"]
     user.school_code = data["schoolCode"]
 

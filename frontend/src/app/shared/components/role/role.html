@@ -4,6 +4,8 @@
 Role Management
 </h2>
 
+<!-- Create Role Card -->
+
 <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
 
 <div class="grid grid-cols-2 gap-6">
@@ -12,14 +14,14 @@ Role Management
 pInputText
 [(ngModel)]="roleName"
 placeholder="Role Name"
-class="p-3 border rounded-lg"
+class="p-3 border rounded-lg w-full"
 />
 
 <input
 pInputText
 [(ngModel)]="description"
 placeholder="Description"
-class="p-3 border rounded-lg"
+class="p-3 border rounded-lg w-full"
 />
 
 </div>
@@ -45,19 +47,39 @@ class="mt-6 bg-orange-500 border-none"
 
 </div>
 
-<p-table [value]="roles">
+<!-- Roles Table -->
+
+<p-table [value]="roles" class="shadow-md rounded-lg">
 
 <ng-template pTemplate="header">
 <tr>
-<th>Role</th>
-<th>Description</th>
+<th class="text-left">Role</th>
+<th class="text-left">Description</th>
+<th class="text-left">Permissions</th>
 </tr>
 </ng-template>
 
 <ng-template pTemplate="body" let-role>
 <tr>
-<td>{{role.name}}</td>
-<td>{{role.description}}</td>
+
+<td class="font-medium">
+{{role.name}}
+</td>
+
+<td>
+{{role.description || '-'}}
+</td>
+
+<td>
+<span *ngIf="role.permissions?.length; else noPerm">
+{{role.permissions.join(', ')}}
+</span>
+
+<ng-template #noPerm>
+-
+</ng-template>
+</td>
+
 </tr>
 </ng-template>
 
