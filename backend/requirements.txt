@@ -5,3 +5,5 @@ python-dotenv
 pymysql
 werkzeug
 flask-migrate
+flask-mail
+PyJWT

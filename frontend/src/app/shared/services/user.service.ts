@@ -28,7 +28,7 @@ export class UserService {
   }
 
   getRoles(): Observable<any>{
-    return this.http.get(`${this.API}/roles`);
+    return this.http.get(`${this.API}/roles/all`);
   }
 
   assignRole(userId:number, payload:any): Observable<any>{

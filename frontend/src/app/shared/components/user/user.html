@@ -1,106 +1,111 @@
+<p-toast position="top-right" />
+
 <div class="p-8">
 
-<h2 class="text-2xl font-bold text-orange-600 mb-6">
-User Management
-</h2>
+  <h2 class="text-2xl font-bold text-orange-600 mb-6">User Management</h2>
 
-<div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+  <div class="bg-white shadow-lg rounded-xl p-6 mb-8">
+    <div class="grid grid-cols-2 gap-6">
 
-<div class="grid grid-cols-2 gap-6">
+      <input pInputText [(ngModel)]="fullName" placeholder="Full Name" />
+      <input pInputText [(ngModel)]="email" placeholder="Email" />
 
-<input
-pInputText
-[(ngModel)]="fullName"
-placeholder="Full Name"
-/>
+      <!-- ✅ School dropdown -->
+      <p-select [options]="schools" [(ngModel)]="selectedSchool"
+        optionLabel="name" optionValue="id"
+        placeholder="Select School"
+        (onChange)="onSchoolChange()">
+      </p-select>
 
-<input
-pInputText
-[(ngModel)]="email"
-placeholder="Email"
-/>
+      <!-- ✅ Class dropdown — loads after school selected -->
+      <p-select [options]="classes" [(ngModel)]="selectedClass"
+        optionLabel="name" optionValue="id"
+        placeholder="Select Class"
+        [disabled]="!selectedSchool">
+      </p-select>
 
-<p-select
-[options]="classes"
-[(ngModel)]="selectedClass"
-optionLabel="label"
-optionValue="value"
-placeholder="Select Class">
-</p-select>
+      <p-select [options]="roles" [(ngModel)]="selectedRole"
+        optionLabel="name" optionValue="id"
+        placeholder="Select Role">
+      </p-select>
 
-<p-select
-[options]="roles"
-[(ngModel)]="selectedRole"
-optionLabel="name"
-optionValue="id"
-placeholder="Select Role">
-</p-select>
+      <!-- ✅ School code auto-filled (read only) -->
+      <input pInputText [(ngModel)]="schoolCode"
+        placeholder="School Code (auto-filled)"
+        [disabled]="true"
+        class="bg-gray-50 text-gray-500"/>
 
-<input
-pInputText
-[(ngModel)]="schoolName"
-placeholder="School Name"
-/>
+    </div>
 
-<input
-pInputText
-[(ngModel)]="schoolCode"
-placeholder="School Code"
-/>
+    <div class="flex gap-3 mt-6">
+      <button pButton *ngIf="!editingUserId"
+        label="Create User" class="bg-orange-500 border-none"
+        (click)="createUser()">
+      </button>
+      <button pButton *ngIf="editingUserId"
+        label="Update User" class="bg-green-500 border-none"
+        (click)="updateUser()">
+      </button>
+      <button pButton *ngIf="editingUserId"
+        label="Cancel" class="p-button-text border-none"
+        (click)="resetForm()">
+      </button>
+    </div>
+  </div>
 
-</div>
+  <p-table [value]="users" [paginator]="true" [rows]="10"
+    styleClass="p-datatable-striped">
 
-<button
-pButton
-*ngIf="!editingUserId"
-label="Create User"
-class="mt-6 bg-orange-500 border-none"
-(click)="createUser()">
-</button>
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Class</th>
+        <th>Role</th>
+        <th>School</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
 
-<button
-pButton
-*ngIf="editingUserId"
-label="Update User"
-class="mt-6 bg-green-500 border-none"
-(click)="updateUser()">
-</button>
+    <ng-template pTemplate="body" let-user>
+      <tr>
+        <td>{{ user.name }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ getClassName(user.studentClass) }}</td>
+        <td>
+          <span class="px-2 py-1 rounded-full text-xs font-semibold"
+            [ngClass]="{
+              'bg-red-100 text-red-600':    getRoleName(user) === 'Admin',
+              'bg-blue-100 text-blue-600':  getRoleName(user) === 'Student',
+              'bg-orange-100 text-orange-600': getRoleName(user) !== 'Admin' && getRoleName(user) !== 'Student' && getRoleName(user) !== '-',
+              'bg-gray-100 text-gray-400':  getRoleName(user) === '-'
+            }">
+            {{ getRoleName(user) }}
+          </span>
+        </td>
+        <td>{{ user.schoolName || '-' }}</td>
+        <td>
+          <div class="flex gap-2">
+            <button pButton icon="pi pi-pencil"
+              class="p-button-warning p-button-sm"
+              pTooltip="Edit" (click)="editUser(user)">
+            </button>
+            <button pButton icon="pi pi-trash"
+              class="p-button-danger p-button-sm"
+              pTooltip="Delete" (click)="confirmDelete($event, user.id)">
+            </button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
 
-</div>
+    <ng-template pTemplate="empty">
+      <tr>
+        <td colspan="6" class="text-center text-gray-400 py-6">No users found</td>
+      </tr>
+    </ng-template>
 
-<p-table [value]="users">
+  </p-table>
 
-<ng-template pTemplate="header">
-<tr>
-<th>Name</th>
-<th>Email</th>
-<th>Class</th>
-<th>School</th>
-<th>Action</th>
-</tr>
-</ng-template>
-
-<ng-template pTemplate="body" let-user>
-<tr>
-<td>{{user.name}}</td>
-<td>{{user.email}}</td>
-<td>{{user.studentClass}}</td>
-<td>{{user.schoolName}}</td>
-
-<td>
-
-<button
-pButton
-icon="pi pi-pencil"
-class="p-button-warning p-button-sm"
-(click)="editUser(user)">
-</button>
-
-</td>
-
-</tr>
-</ng-template>
-
-</p-table>
-
+  <p-confirmpopup />
 </div>

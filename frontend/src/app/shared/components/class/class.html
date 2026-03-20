@@ -1,115 +1,76 @@
+<p-toast position="top-right" />
+<p-confirmpopup />
+
 <div class="min-h-screen bg-slate-50">
+  <div class="h-32 bg-gradient-to-r from-orange-600 to-orange-400 w-full absolute top-0 left-0"></div>
 
-    <div class="h-32 bg-gradient-to-r from-orange-600 to-orange-400 w-full absolute top-0 left-0"></div>
-
-    <div class="relative max-w-6xl mx-auto p-1">
-
-
-        <div class="flex justify-between items-center mb-8">
-
-            <div>
-                <h1 class="text-3xl font-extrabold text-white">
-                    Manage Classes
-                </h1>
-                <p class="text-orange-100 text-sm">
-                    Create and manage available classes
-                </p>
-            </div>
-
-            <p-button label="Add Class" icon="pi pi-plus" (click)="openAdd()"
-                styleClass="bg-white text-orange-600 border-none shadow">
-            </p-button>
-
-        </div>
-
-
-
-        <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
-
-            <p-table [value]="classes" styleClass="p-datatable-hoverable-rows" responsiveLayout="scroll">
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th class="px-6 py-4 text-left w-24">ID</th>
-                        <th class="px-6 py-4 text-left">Class Name</th>
-                        <th class="px-6 py-4 text-center w-40">Actions</th>
-                    </tr>
-                </ng-template>
-
-                <ng-template pTemplate="body" let-c>
-                    <tr class="hover:bg-orange-50">
-
-                        <td class="px-6 py-4">
-                            {{c.id}}
-                        </td>
-
-                        <td class="px-6 py-4">
-                            {{c.class_name}}
-                        </td>
-
-                        <td class="px-6 py-4 text-center">
-
-                            <div class="flex justify-center gap-3">
-
-                                <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="editClass(c)">
-                                </p-button>
-
-                                <p-button icon="pi pi-trash" [text]="true" severity="danger"
-                                    (click)="deleteClass(c.id)">
-                                </p-button>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-                </ng-template>
-
-                <ng-template pTemplate="emptymessage">
-
-                    <tr>
-
-                        <td colspan="3" class="text-center py-12">
-
-                            <div class="flex flex-col items-center gap-2">
-
-                                <i class="pi pi-folder-open text-4xl text-slate-300"></i>
-
-                                <p class="text-slate-500 font-medium">
-                                    No Classes Available
-                                </p>
-
-                                <p class="text-sm text-slate-400">
-                                    Click "Add Class" to create your first class.
-                                </p>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-
-                </ng-template>
-
-            </p-table>
-
-        </div>
-
+  <div class="relative max-w-6xl mx-auto p-1">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-extrabold text-white">Manage Classes</h1>
+        <p class="text-orange-100 text-sm">Create and manage available classes</p>
+      </div>
+      <p-button label="Add Class" icon="pi pi-plus" (click)="openAdd()"
+        styleClass="bg-white text-orange-600 border-none shadow"/>
     </div>
 
+    <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+      <p-table [value]="classes" styleClass="p-datatable-hoverable-rows" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="px-6 py-4">ID</th>
+            <th class="px-6 py-4">Class Name</th>
+            <th class="px-6 py-4">School</th>  
+            <th class="px-6 py-4 text-center">Actions</th>
+          </tr>
+        </ng-template>
 
+        <ng-template pTemplate="body" let-c>
+          <tr class="hover:bg-orange-50">
+            <td class="px-6 py-4">{{ c.id }}</td>
+            <td class="px-6 py-4">{{ c.name }}</td>
+            <td class="px-6 py-4">{{ getSchoolName(c.school_id) }}</td>  
+            <td class="px-6 py-4 text-center">
+              <div class="flex justify-center gap-3">
+                <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="editClass(c)"/>
+                <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="deleteClass($event, c.id)"/>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
 
-    <p-dialog header="{{editMode ? 'Edit Class' : 'Add Class'}}" [(visible)]="showDialog" [modal]="true"
-        [style]="{width:'420px'}">
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="text-center py-12">
+              <div class="flex flex-col items-center gap-2">
+                <i class="pi pi-folder-open text-4xl text-slate-300"></i>
+                <p class="text-slate-500 font-medium">No Classes Available</p>
+                <p class="text-sm text-slate-400">Click "Add Class" to create your first class.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
 
-        <div class="flex flex-col gap-4">
+  <p-dialog [header]="editMode ? 'Edit Class' : 'Add Class'"
+    [(visible)]="showDialog" [modal]="true" [style]="{width:'420px'}">
+    <div class="flex flex-col gap-4 pt-2">
 
-            <input pInputText [(ngModel)]="className" placeholder="Enter class name" class="w-full" />
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">School *</label>
+        <p-select [options]="schools" [(ngModel)]="selectedSchool"
+          optionLabel="name" optionValue="id"
+          placeholder="Select School" styleClass="w-full"/>
+      </div>
 
-            <p-button label="Save" (click)="saveClass()" styleClass="bg-orange-500 border-none w-full">
-            </p-button>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Class Name *</label>
+        <input pInputText [(ngModel)]="className" placeholder="Enter class name" class="w-full"/>
+      </div>
 
-        </div>
-
-    </p-dialog>
-
+      <p-button label="Save" (click)="saveClass()" styleClass="bg-orange-500 border-none w-full"/>
+    </div>
+  </p-dialog>
 </div>

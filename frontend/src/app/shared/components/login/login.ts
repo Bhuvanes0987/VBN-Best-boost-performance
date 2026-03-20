@@ -7,6 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { CardModule } from 'primeng/card';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-login',
@@ -19,38 +20,45 @@ import { CardModule } from 'primeng/card';
     ButtonModule,
     InputTextModule,
     PasswordModule,
-    CardModule
+    CardModule,
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss',
+  providers: [MessageService]
 })
 export class Login {
   email: string = "";
   password: string = "";
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router,private messageService: MessageService) {}
 
-  login() {
-    if (!this.email || !this.password) {
-      alert("Please enter both email and password");
-      return;
-    }
-
-    const credentials = { email: this.email, password: this.password };
-    
-    this.http.post('http://127.0.0.1:8000/api/login', credentials)
-      .subscribe({
-        next: (res: any) => {
-          if (res.success) {
-            if (res.token) localStorage.setItem("token", res.token);
-            this.router.navigate(['/home']);
-          } else {
-            alert(res.message || "Invalid email or password");
-          }
-        },
-        error: (error) => {
-          alert(error.error?.message || "Server error. Please try again.");
-        }
-      });
+ login() {
+  if (!this.email || !this.password) {
+    this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please enter both email and password', life: 3000 });
+    return;
   }
+
+  if (!this.email || !this.password) {
+    alert("Please enter both email and password");
+    return;
+    
+  }
+  const credentials = { email: this.email, password: this.password };
+
+  this.http.post('http://127.0.0.1:8900/api/login', credentials)
+    .subscribe({
+      next: (res: any) => {
+      if (res.success) {
+        localStorage.setItem("token", res.token);
+        localStorage.setItem("position", res.user.position);
+        localStorage.setItem("user", JSON.stringify(res.user)); 
+        this.router.navigate(['/home']);
+      }
+    },
+
+      error: (error) => {
+        alert(error.error?.message || "Server error. Please try again.");
+      }
+    });
+}
 }

@@ -1,0 +1,117 @@
+<p-toast position="top-right" />
+<p-confirmpopup />
+
+<div class="min-h-screen bg-slate-50">
+  <div class="h-32 bg-gradient-to-r from-orange-600 to-orange-400 w-full absolute top-0 left-0"></div>
+
+  <div class="relative max-w-5xl mx-auto p-1">
+
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-extrabold text-white">Manage Schools</h1>
+        <p class="text-orange-100 text-sm">Create and manage schools</p>
+      </div>
+      <p-button label="Add School" icon="pi pi-plus"
+        styleClass="bg-white text-orange-600 border-none shadow"
+        (click)="openAdd()"/>
+    </div>
+
+    <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+      <p-table [value]="schools" [paginator]="true" [rows]="10"
+        styleClass="p-datatable-hoverable-rows">
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th>ID</th>
+            <th>School Name</th>
+            <th>School Code</th>
+            <th>Status</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-s>
+          <tr class="hover:bg-orange-50">
+            <td>{{ s.id }}</td>
+            <td class="font-medium">{{ s.name }}</td>
+            <td>
+              <span *ngIf="s.code"
+                class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
+                {{ s.code }}
+              </span>
+              <span *ngIf="!s.code" class="text-gray-400 text-xs">No code</span>
+            </td>
+            <td>
+              <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold">
+                Active
+              </span>
+            </td>
+            <td class="text-center">
+              <div class="flex justify-center gap-3">
+                <p-button icon="pi pi-pencil" [text]="true" severity="secondary"
+                  pTooltip="Edit" (click)="editSchool(s)"/>
+                <p-button icon="pi pi-trash" [text]="true" severity="danger"
+                  pTooltip="Delete" (click)="confirmDelete($event, s.id)"/>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="text-center py-12">
+              <div class="flex flex-col items-center gap-2">
+                <i class="pi pi-building text-4xl text-slate-300"></i>
+                <p class="text-slate-500 font-medium">No Schools Yet</p>
+                <p class="text-sm text-slate-400">Click "Add School" to create your first school.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+    </div>
+  </div>
+
+  <p-dialog
+    [header]="editMode ? 'Edit School' : 'Add School'"
+    [(visible)]="showDialog"
+    [modal]="true"
+    [style]="{width: '440px'}"
+    [draggable]="false">
+
+    <div class="flex flex-col gap-4 pt-2">
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">School Name *</label>
+        <input pInputText [(ngModel)]="schoolName"
+          placeholder="e.g. St. Joseph's School"
+          class="w-full"/>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">
+          School Code
+          <span class="text-gray-400 font-normal text-xs ml-1">(optional)</span>
+        </label>
+        <input pInputText [(ngModel)]="schoolCode"
+          placeholder="e.g. SCH001"
+          class="w-full"/>
+        <small class="text-gray-400 text-xs">
+          This code will appear in user registration dropdown
+        </small>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <p-button label="Cancel" severity="secondary"
+          (click)="showDialog = false"/>
+        <p-button
+          [label]="editMode ? 'Update School' : 'Create School'"
+          styleClass="bg-orange-500 border-none"
+          (click)="save()"/>
+      </div>
+
+    </div>
+  </p-dialog>
+
+</div>

@@ -7,240 +7,245 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
-
+import { ConfirmPopupModule } from 'primeng/confirmpopup';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { QuestionService } from '../../services/question.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
-    selector: 'app-question-bank',
-    standalone: true,
-    imports: [
-        FormsModule,
-        ButtonModule,
-        DrawerModule,
-        SelectModule,
-        RadioButtonModule,
-        InputTextModule,
-        TableModule,
-        CommonModule
-    ],
-    templateUrl: './question-bank.html',
-    styleUrl: './question-bank.scss'
+  selector: 'app-question-bank',
+  standalone: true,
+  imports: [
+    FormsModule, CommonModule, ButtonModule, DrawerModule,
+    SelectModule, RadioButtonModule, InputTextModule, TableModule,
+    ConfirmPopupModule, ToastModule, TooltipModule
+  ],
+  providers: [ConfirmationService, MessageService],
+  templateUrl: './question-bank.html',
+  styleUrl: './question-bank.scss'
 })
 export class QuestionBank implements OnInit {
 
-    constructor(private questionService: QuestionService) { }
+  constructor(
+    private questionService: QuestionService,
+    private http: HttpClient,
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService
+  ) {}
 
-    drawerVisible = false;
+  private api = 'http://127.0.0.1:8900';
 
-    classes: any[] = [];
-    subjects: any[] = [];
-    questions: any[] = [];
+  drawerVisible = false;
+  schools: any[] = [];
+  classes: any[] = [];
+  subjects: any[] = [];
+  units: any[] = [];
+  questions: any[] = [];
+  editMode = false;
+  selectedQuestionId: number | null = null;
 
-    editMode = false;
-    selectedQuestionId: number | null = null;
+  types = [
+    { name: 'Choose (MCQ)', value: 'mcq' },
+    { name: 'Fill Up', value: 'fill' },
+    { name: 'Match', value: 'match' },
+    { name: 'Map', value: 'map' }
+  ];
 
-    types = [
-        { name: 'Choose (MCQ)', value: 'mcq' },
-        { name: 'Fill Up', value: 'fill' },
-        { name: 'Match', value: 'match' },
-        { name: 'Map', value: 'map' }
-    ];
+  selectedSchool: any = null;
+  selectedClass: any = null;
+  selectedSubject: any = null;
+  selectedUnit: any = null;
+  questionType = '';
+  questionText = '';
+  options: any[] = [{ text: '' }, { text: '' }];
+  correctOption = 0;
+  pairs: any[] = [{ left: '', right: '' }];
+  fillAnswer = '';
+  selectedFile: any;
 
-    selectedClass: any;
-    selectedSubject: any;
+  ngOnInit() {
+    this.loadSchools();
+    this.loadQuestions();
+  }
 
-    questionType = '';
-    questionText = '';
+  loadSchools() {
+    this.http.get(`${this.api}/schools`)
+      .subscribe((res: any) => this.schools = res.schools);
+  }
 
-    options: any[] = [{ text: '' }, { text: '' }];
-    correctOption = 0;
+  loadQuestions() {
+    this.questionService.getQuestions()
+      .subscribe((res: any) => this.questions = res.questions);
+  }
 
-    pairs: any[] = [{ left: '', right: '' }];
+  onSchoolChange() {
+    this.selectedClass = null;
+    this.selectedSubject = null;
+    this.selectedUnit = null;
+    this.classes = [];
+    this.subjects = [];
+    this.units = [];
+    if (!this.selectedSchool) return;
+    this.http.get(`${this.api}/classes?school_id=${this.selectedSchool}`)
+      .subscribe((res: any) => this.classes = res.classes);
+  }
 
-    fillAnswer = '';
+  onClassChange() {
+    this.selectedSubject = null;
+    this.selectedUnit = null;
+    this.subjects = [];
+    this.units = [];
+    if (!this.selectedClass) return;
+    this.questionService.getSubjectsByClass(this.selectedClass.id)
+      .subscribe((res: any) => this.subjects = res.subjects);
+  }
 
-    selectedFile: any;
+  onSubjectChange() {
+    this.selectedUnit = null;
+    this.units = this.selectedSubject?.units || [];
+  }
 
-    ngOnInit() {
-        this.loadClasses();
-        this.loadQuestions();
+  getSchoolName(schoolId: number): string {
+    const school = this.schools.find(s => s.id === schoolId);
+    return school ? school.name : '-';
+  }
+
+  addOption() { this.options.push({ text: '' }); }
+  removeOption(i: number) { if (this.options.length > 1) this.options.splice(i, 1); }
+  addPair() { this.pairs.push({ left: '', right: '' }); }
+  removePair(i: number) { if (this.pairs.length > 1) this.pairs.splice(i, 1); }
+  onFileSelected(event: any) { this.selectedFile = event.target.files[0]; }
+
+  saveQuestion() {
+    if (!this.selectedSchool) {
+      this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please select a school', life: 3000 }); return;
+    }
+    if (!this.selectedClass) {
+      this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please select a class', life: 3000 }); return;
+    }
+    if (!this.selectedSubject) {
+      this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please select a subject', life: 3000 }); return;
+    }
+    if (!this.questionText.trim()) {
+      this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Question text is required', life: 3000 }); return;
+    }
+    if (!this.questionType) {
+      this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please select question type', life: 3000 }); return;
     }
 
-    loadClasses() {
-        this.questionService.getClasses()
-            .subscribe((res: any) => {
-                this.classes = res.classes;
-            });
+    let answer_data: any = {};
+    if (this.questionType === 'mcq') {
+      if (this.options.filter(o => o.text.trim()).length < 2) {
+        this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Add at least 2 options', life: 3000 }); return;
+      }
+      answer_data = { options: this.options.map(o => o.text), correct: this.correctOption };
+    }
+    if (this.questionType === 'fill') {
+      if (!this.fillAnswer.trim()) {
+        this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Correct answer is required', life: 3000 }); return;
+      }
+      answer_data = { answer: this.fillAnswer };
+    }
+    if (this.questionType === 'match') {
+      answer_data = { pairs: this.pairs };
     }
 
-    loadQuestions() {
-        this.questionService.getQuestions()
-            .subscribe((res: any) => {
-                this.questions = res.questions;
-            });
+    const payload = {
+      class_id: this.selectedClass.id,
+      subject_id: this.selectedSubject.id,
+      unit_id: this.selectedUnit?.id || null,
+      school_id: this.selectedSchool,
+      type: this.questionType,
+      question: this.questionText,
+      answer_data
+    };
+
+    if (this.editMode) {
+      this.questionService.updateQuestion(this.selectedQuestionId!, payload).subscribe({
+        next: () => {
+          this.messageService.add({ severity: 'success', summary: 'Updated', detail: 'Question updated', life: 3000 });
+          this.loadQuestions(); this.drawerVisible = false; this.resetForm();
+        },
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Update failed', life: 3000 })
+      });
+    } else {
+      this.questionService.createQuestion(payload).subscribe({
+        next: () => {
+          this.messageService.add({ severity: 'success', summary: 'Created', detail: 'Question added', life: 3000 });
+          this.loadQuestions(); this.drawerVisible = false; this.resetForm();
+        },
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Failed', life: 3000 })
+      });
     }
+  }
 
-    onClassChange() {
+  editQuestion(q: any) {
+    this.drawerVisible = true;
+    this.editMode = true;
+    this.selectedQuestionId = q.id;
+    this.questionText = q.question_text;
+    this.questionType = q.question_type;
+    this.selectedSchool = q.school_id;
 
-        this.selectedSubject = null;
-
-        this.questionService
-            .getSubjectsByClass(this.selectedClass.id)
-            .subscribe((res: any) => {
-                this.subjects = res.subjects;
-            });
-
+    const data = q.answer_data;
+    if (this.questionType === 'mcq') {
+      this.options = data.options.map((o: any) => ({ text: o }));
+      this.correctOption = data.correct;
     }
+    if (this.questionType === 'fill') this.fillAnswer = data.answer;
+    if (this.questionType === 'match') this.pairs = data.pairs;
+  }
 
-    addOption() {
-        this.options.push({ text: '' });
-    }
+  confirmDelete(event: Event, id: number) {
+    this.confirmationService.confirm({
+      target: event.target as EventTarget,
+      message: 'Delete this question?',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete', rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger p-button-sm',
+      rejectButtonStyleClass: 'p-button-text p-button-sm',
+      accept: () => {
+        this.questionService.deleteQuestion(id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Deleted', detail: 'Question deleted', life: 3000 });
+            this.loadQuestions();
+          },
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Delete failed', life: 3000 })
+        });
+      }
+    });
+  }
 
-    removeOption(i: number) {
-        if (this.options.length > 1) {
-            this.options.splice(i, 1);
-        }
-    }
+  resetForm() {
+    this.editMode = false;
+    this.selectedQuestionId = null;
+    this.selectedSchool = null;
+    this.selectedClass = null;
+    this.selectedSubject = null;
+    this.selectedUnit = null;
+    this.classes = [];
+    this.subjects = [];
+    this.units = [];
+    this.questionText = '';
+    this.questionType = '';
+    this.options = [{ text: '' }, { text: '' }];
+    this.correctOption = 0;
+    this.pairs = [{ left: '', right: '' }];
+    this.fillAnswer = '';
+    this.selectedFile = null;
+  }
 
-    addPair() {
-        this.pairs.push({ left: '', right: '' });
-    }
+  openDrawer() {
+    this.resetForm();
+    this.drawerVisible = true;
+  }
 
-    removePair(i: number) {
-        if (this.pairs.length > 1) {
-            this.pairs.splice(i, 1);
-        }
-    }
-
-    onFileSelected(event: any) {
-        this.selectedFile = event.target.files[0];
-    }
-
-    saveQuestion() {
-
-        if (!this.selectedClass || !this.selectedSubject || !this.questionText) {
-            alert("Fill all required fields");
-            return;
-        }
-
-        let answer_data: any = {};
-
-        if (this.questionType === "mcq") {
-            answer_data = {
-                options: this.options.map(o => o.text),
-                correct: this.correctOption
-            };
-        }
-
-        if (this.questionType === "fill") {
-            answer_data = {
-                answer: this.fillAnswer
-            };
-        }
-
-        if (this.questionType === "match") {
-            answer_data = {
-                pairs: this.pairs
-            };
-        }
-
-        const payload = {
-            class_id: this.selectedClass.id,
-            subject_id: this.selectedSubject.id,
-            type: this.questionType,
-            question: this.questionText,
-            answer_data: answer_data
-        };
-
-        if (this.editMode) {
-
-            this.questionService.updateQuestion(this.selectedQuestionId!, payload)
-                .subscribe(() => {
-                    this.loadQuestions();
-                    this.drawerVisible = false;
-                    this.resetForm();
-                });
-
-        } else {
-
-            this.questionService.createQuestion(payload)
-                .subscribe(() => {
-                    this.loadQuestions();
-                    this.drawerVisible = false;
-                    this.resetForm();
-                });
-
-        }
-
-    }
-
-    editQuestion(q: any) {
-
-        this.drawerVisible = true;
-
-        this.editMode = true;
-        this.selectedQuestionId = q.id;
-
-        this.questionText = q.question_text;
-        this.questionType = q.question_type;
-
-        let data = q.answer_data;
-
-        if (this.questionType === "mcq") {
-            this.options = data.options.map((o: any) => ({ text: o }));
-            this.correctOption = data.correct;
-        }
-
-        if (this.questionType === "fill") {
-            this.fillAnswer = data.answer;
-        }
-
-        if (this.questionType === "match") {
-            this.pairs = data.pairs;
-        }
-
-    }
-
-    deleteQuestion(id: number) {
-
-        if (!confirm("Delete this question?")) return;
-
-        this.questionService.deleteQuestion(id)
-            .subscribe(() => {
-                this.loadQuestions();
-            });
-
-    }
-
-    resetForm() {
-
-        this.editMode = false;
-        this.selectedQuestionId = null;
-
-        this.questionText = '';
-        this.questionType = '';
-
-        this.options = [{ text: '' }, { text: '' }];
-        this.correctOption = 0;
-
-        this.pairs = [{ left: '', right: '' }];
-
-        this.fillAnswer = '';
-
-        this.selectedFile = null;
-
-    }
-
-    openDrawer() {
-        this.drawerVisible = true;
-        this.resetForm();
-    }
-
-    onTypeChange() {
-        this.options = [{ text: '' }, { text: '' }];
-        this.correctOption = 0;
-        this.pairs = [{ left: '', right: '' }];
-        this.fillAnswer = '';
-    }
-
+  onTypeChange() {
+    this.options = [{ text: '' }, { text: '' }];
+    this.correctOption = 0;
+    this.pairs = [{ left: '', right: '' }];
+    this.fillAnswer = '';
+  }
 }

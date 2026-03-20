@@ -1,78 +1,73 @@
-<div class="min-h-screen flex items-center justify-center bg-gray-100">
+<p-toast position="top-right" />
 
-<div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+<div class="min-h-screen flex items-center justify-center bg-gray-100 py-10">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
 
-<h2 class="text-center text-4xl font-bold text-orange-500 mb-8">
-Create Account
-</h2>
+    <h2 class="text-center text-4xl font-bold text-orange-500 mb-2">Create Account</h2>
+    <p class="text-center text-gray-500 text-sm mb-8">Fill in your details to register</p>
 
-<div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-4">
 
-<input
-pInputText
-[(ngModel)]="fullName"
-placeholder="Full Name"
-class="w-full p-3 border rounded-xl"
-/>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-orange-400 uppercase font-bold tracking-widest">Full Name *</label>
+        <input pInputText [(ngModel)]="fullName" placeholder="Enter your full name"
+          class="w-full p-3 border rounded-xl" [class.border-red-400]="errors.fullName"/>
+        <span *ngIf="errors.fullName" class="text-red-500 text-xs">{{ errors.fullName }}</span>
+      </div>
 
-<p-select
-[options]="classes"
-[(ngModel)]="selectedClass"
-placeholder="Select Class"
-optionLabel="label"
-class="w-full">
-</p-select>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-orange-400 uppercase font-bold tracking-widest">Email *</label>
+        <input pInputText [(ngModel)]="email" placeholder="Enter your email"
+          class="w-full p-3 border rounded-xl" [class.border-red-400]="errors.email"/>
+        <span *ngIf="errors.email" class="text-red-500 text-xs">{{ errors.email }}</span>
+      </div>
 
-<input
-pInputText
-[(ngModel)]="schoolName"
-placeholder="School Name"
-class="w-full p-3 border rounded-xl"
-/>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-orange-400 uppercase font-bold tracking-widest">School *</label>
+        <p-select [options]="schools" [(ngModel)]="schoolId"
+          optionLabel="name" optionValue="id"
+          placeholder="Select your school" styleClass="w-full"
+          (onChange)="onSchoolChange()"/>
+        <span *ngIf="errors.schoolId" class="text-red-500 text-xs">{{ errors.schoolId }}</span>
+      </div>
 
-<input
-pInputText
-[(ngModel)]="schoolCode"
-placeholder="School Code"
-class="w-full p-3 border rounded-xl"
-/>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-orange-400 uppercase font-bold tracking-widest">Class *</label>
+        <p-select [options]="classes" [(ngModel)]="selectedClass"
+          optionLabel="name" optionValue="id"
+          placeholder="Select your class" styleClass="w-full"
+          [disabled]="!schoolId"/>
+        <span *ngIf="errors.selectedClass" class="text-red-500 text-xs">{{ errors.selectedClass }}</span>
+      </div>
 
-<input
-pInputText
-[(ngModel)]="email"
-placeholder="Email"
-class="w-full p-3 border rounded-xl"
-/>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-orange-400 uppercase font-bold tracking-widest">Password *</label>
+        <p-password [(ngModel)]="password" [feedback]="false" [toggleMask]="true"
+          placeholder="Min. 6 characters" styleClass="w-full"
+          inputStyleClass="w-full p-3 border rounded-xl"/>
+        <span *ngIf="errors.password" class="text-red-500 text-xs">{{ errors.password }}</span>
+      </div>
 
-<p-password
-[(ngModel)]="password"
-[feedback]="false"
-toggleMask="true"
-placeholder="Password"
-class="w-full">
-</p-password>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-orange-400 uppercase font-bold tracking-widest">Confirm Password *</label>
+        <p-password [(ngModel)]="confirmPassword" [feedback]="false" [toggleMask]="true"
+          placeholder="Re-enter your password" styleClass="w-full"
+          inputStyleClass="w-full p-3 border rounded-xl"/>
+        <span *ngIf="errors.confirmPassword" class="text-red-500 text-xs">{{ errors.confirmPassword }}</span>
+      </div>
 
-<p-password
-[(ngModel)]="confirmPassword"
-[feedback]="false"
-toggleMask="true"
-placeholder="Confirm Password"
-class="w-full">
-</p-password>
+      <button pButton
+        [label]="loading ? 'Creating Account...' : 'Create Account'"
+        [disabled]="loading"
+        class="w-full mt-2 bg-orange-500 border-none"
+        (click)="signup()">
+      </button>
 
-<button
-pButton
-label="Sign Up"
-class="w-full mt-4 bg-orange-500 border-none">
-</button>
+      <p class="text-center text-sm mt-2">
+        Already have an account?
+        <a routerLink="/login" class="text-orange-500 font-semibold">Login</a>
+      </p>
 
-<p class="text-center text-sm mt-4">
-Already have an account?
-<a routerLink="/login" class="text-orange-500 font-semibold">
-Sign In
-</a>
-</p>
-
-</div>
-</div>
+    </div>
+  </div>
 </div>

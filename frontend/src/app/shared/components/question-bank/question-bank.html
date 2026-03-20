@@ -1,176 +1,183 @@
-<p-button label="Add Question" icon="pi pi-plus" styleClass="bg-orange-500 border-none" (click)="openDrawer()">
-</p-button>
+<p-toast position="top-right" />
+<p-confirmpopup />
 
+<div class="min-h-screen bg-slate-50">
+  <div class="h-32 bg-gradient-to-r from-orange-600 to-orange-400 w-full absolute top-0 left-0"></div>
 
-<div class="mt-6 bg-white rounded-xl shadow">
+  <div class="relative max-w-6xl mx-auto p-1">
 
-    <p-table [value]="questions">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-extrabold text-white">Question Bank</h1>
+        <p class="text-orange-100 text-sm">Manage questions by school, class, subject and unit</p>
+      </div>
+      <p-button label="Add Question" icon="pi pi-plus"
+        styleClass="bg-white text-orange-600 border-none shadow"
+        (click)="openDrawer()"/>
+    </div>
+
+    <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+      <p-table [value]="questions" [paginator]="true" [rows]="10"
+        styleClass="p-datatable-hoverable-rows">
 
         <ng-template pTemplate="header">
-            <tr>
-                <th>ID</th>
-                <th>Question</th>
-                <th>Type</th>
-                <th>Actions</th>
-            </tr>
+          <tr>
+            <th>ID</th>
+            <th>Question</th>
+            <th>Type</th>
+            <th>School</th>
+            <th>Unit</th>
+            <th class="text-center">Actions</th>
+          </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-q>
-
-            <tr>
-
-                <td>{{q.id}}</td>
-
-                <td>{{q.question_text}}</td>
-
-                <td>{{q.question_type}}</td>
-
-                <td class="flex gap-2">
-
-                    <p-button icon="pi pi-pencil" severity="secondary" (click)="editQuestion(q)">
-                    </p-button>
-
-                    <p-button icon="pi pi-trash" severity="danger" (click)="deleteQuestion(q.id)">
-                    </p-button>
-
-                </td>
-
-            </tr>
-
+          <tr>
+            <td>{{ q.id }}</td>
+            <td class="max-w-xs truncate">{{ q.question_text }}</td>
+            <td>
+              <span class="px-2 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-600">
+                {{ q.question_type | uppercase }}
+              </span>
+            </td>
+            <td>
+              <span class="text-xs text-purple-600">{{ getSchoolName(q.school_id) }}</span>
+            </td>
+            <td>
+              <span class="text-xs text-blue-600">{{ q.unit_name || '-' }}</span>
+            </td>
+            <td class="text-center">
+              <div class="flex justify-center gap-2">
+                <p-button icon="pi pi-pencil" [text]="true" severity="secondary"
+                  pTooltip="Edit" (click)="editQuestion(q)"/>
+                <p-button icon="pi pi-trash" [text]="true" severity="danger"
+                  pTooltip="Delete" (click)="confirmDelete($event, q.id)"/>
+              </div>
+            </td>
+          </tr>
         </ng-template>
 
-    </p-table>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="text-center py-12">
+              <div class="flex flex-col items-center gap-2">
+                <i class="pi pi-question-circle text-4xl text-slate-300"></i>
+                <p class="text-slate-500 font-medium">No Questions Yet</p>
+                <p class="text-sm text-slate-400">Click "Add Question" to get started.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
 
-</div>
+  <p-drawer [(visible)]="drawerVisible" position="right"
+    [style]="{ width: '900px' }"
+    styleClass="!bg-slate-900 !text-white">
 
+    <ng-template pTemplate="header">
+      <span class="font-bold text-xl text-orange-400">
+        {{ editMode ? 'Edit Question' : 'Add Question' }}
+      </span>
+    </ng-template>
 
+    <div class="flex flex-col gap-5 overflow-y-auto pr-2 pb-6">
 
-<p-drawer [(visible)]="drawerVisible" position="right" [style]="{ width: '900px' }"
-    styleClass="!bg-slate-900 !text-white p-8" closable="true">
-
-    <h2 class="text-2xl font-bold text-orange-400 mb-6">
-
-        {{editMode ? 'Edit Question' : 'Add Question'}}
-
-    </h2>
-
-    <div class="flex flex-col gap-6 max-h-[80vh] overflow-y-auto pr-4">
-
-        <div class="grid grid-cols-2 gap-4">
-
-            <div class="flex flex-col gap-1">
-
-                <label>Class</label>
-
-                <p-select [options]="classes" optionLabel="class_name" [(ngModel)]="selectedClass"
-                    (onChange)="onClassChange()" placeholder="Select Class">
-                </p-select>
-
-            </div>
-
-
-            <div class="flex flex-col gap-1">
-
-                <label>Subject</label>
-
-                <p-select [options]="subjects" optionLabel="subject_name" [(ngModel)]="selectedSubject"
-                    placeholder="Select Subject">
-                </p-select>
-
-            </div>
-
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-slate-300 text-sm">School *</label>
+          <p-select [options]="schools" optionLabel="name" optionValue="id"
+            [(ngModel)]="selectedSchool"
+            (onChange)="onSchoolChange()"
+            placeholder="Select School"/>
         </div>
-
-
-
-        <label>Question Type</label>
-
-        <p-select [options]="types" optionLabel="name" optionValue="value" [(ngModel)]="questionType"
-            (onChange)="onTypeChange()" placeholder="Select Type">
-        </p-select>
-        <label>Question</label>
-
-        <input pInputText [(ngModel)]="questionText" placeholder="Enter question">
-
-
-
-
-        <div *ngIf="questionType === 'mcq'">
-
-            <div *ngFor="let opt of options; let i=index" class="flex items-center gap-3 mb-3">
-
-                <input pInputText [(ngModel)]="opt.text" placeholder="Option {{i+1}}" class="flex-1">
-
-                <p-radioButton name="correct" [value]="i" [(ngModel)]="correctOption">
-                </p-radioButton>
-
-                <span>Correct</span>
-
-                <button pButton icon="pi pi-trash" severity="danger" (click)="removeOption(i)">
-                </button>
-
-            </div>
-
-            <p-button label="+ Add Option" styleClass="bg-orange-500 border-none" (click)="addOption()">
-            </p-button>
-
+        <div class="flex flex-col gap-1">
+          <label class="text-slate-300 text-sm">Class *</label>
+          <p-select [options]="classes" optionLabel="name"
+            [(ngModel)]="selectedClass"
+            (onChange)="onClassChange()"
+            placeholder="Select Class"
+            [disabled]="!selectedSchool"/>
         </div>
+      </div>
 
-
-
-
-        <div *ngIf="questionType === 'fill'">
-
-            <label>Correct Answer</label>
-
-            <input pInputText [(ngModel)]="fillAnswer" placeholder="Correct answer">
-
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-slate-300 text-sm">Subject *</label>
+          <p-select [options]="subjects" optionLabel="subject_name"
+            [(ngModel)]="selectedSubject"
+            (onChange)="onSubjectChange()"
+            placeholder="Select Subject"
+            [disabled]="!selectedClass"/>
         </div>
-
-
-
-
-        <div *ngIf="questionType === 'match'">
-
-            <div *ngFor="let pair of pairs; let i=index" class="grid grid-cols-[1fr_1fr_auto] gap-4 mb-3">
-
-                <input pInputText [(ngModel)]="pair.left" placeholder="Left">
-
-                <input pInputText [(ngModel)]="pair.right" placeholder="Right">
-
-                <button pButton icon="pi pi-trash" severity="danger" (click)="removePair(i)">
-                </button>
-
-            </div>
-
-            <p-button label="+ Add Pair" styleClass="bg-orange-500 border-none" (click)="addPair()">
-            </p-button>
-
+        <div class="flex flex-col gap-1">
+          <label class="text-slate-300 text-sm">Unit (optional)</label>
+          <p-select [options]="units" optionLabel="unit_name"
+            [(ngModel)]="selectedUnit"
+            placeholder="Select Unit"
+            [disabled]="!selectedSubject"/>
         </div>
+      </div>
 
+      <div class="flex flex-col gap-1">
+        <label class="text-slate-300 text-sm">Question Type *</label>
+        <p-select [options]="types" optionLabel="name" optionValue="value"
+          [(ngModel)]="questionType"
+          (onChange)="onTypeChange()"
+          placeholder="Select Type"/>
+      </div>
 
+      <div class="flex flex-col gap-1">
+        <label class="text-slate-300 text-sm">Question *</label>
+        <input pInputText [(ngModel)]="questionText"
+          placeholder="Enter your question"
+          class="w-full bg-slate-800 text-white border-slate-600"/>
+      </div>
 
-
-        <div *ngIf="questionType === 'map'">
-
-            <label>Upload Map</label>
-
-            <input type="file" (change)="onFileSelected($event)" class="w-full bg-white text-black p-2 rounded">
-
+      <div *ngIf="questionType === 'mcq'" class="flex flex-col gap-3">
+        <label class="text-slate-300 text-sm font-semibold">Options</label>
+        <div *ngFor="let opt of options; let i=index" class="flex items-center gap-3">
+          <input pInputText [(ngModel)]="opt.text"
+            placeholder="Option {{i+1}}"
+            class="flex-1 bg-slate-800 text-white border-slate-600"/>
+          <p-radioButton name="correct" [value]="i" [(ngModel)]="correctOption"/>
+          <span class="text-slate-400 text-xs">Correct</span>
+          <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeOption(i)"/>
         </div>
+        <p-button label="+ Add Option" styleClass="bg-orange-500 border-none" (click)="addOption()"/>
+      </div>
 
+      <div *ngIf="questionType === 'fill'" class="flex flex-col gap-1">
+        <label class="text-slate-300 text-sm">Correct Answer *</label>
+        <input pInputText [(ngModel)]="fillAnswer"
+          placeholder="Enter correct answer"
+          class="w-full bg-slate-800 text-white border-slate-600"/>
+      </div>
 
-
-        <div class="flex justify-end gap-4 mt-6">
-
-            <p-button label="Cancel" severity="secondary" (click)="drawerVisible=false">
-            </p-button>
-
-            <p-button label="Save" styleClass="bg-green-500 border-none" (click)="saveQuestion()">
-            </p-button>
-
+      <div *ngIf="questionType === 'match'" class="flex flex-col gap-3">
+        <label class="text-slate-300 text-sm font-semibold">Match Pairs</label>
+        <div *ngFor="let pair of pairs; let i=index" class="grid grid-cols-[1fr_1fr_auto] gap-4">
+          <input pInputText [(ngModel)]="pair.left" placeholder="Left"
+            class="bg-slate-800 text-white border-slate-600"/>
+          <input pInputText [(ngModel)]="pair.right" placeholder="Right"
+            class="bg-slate-800 text-white border-slate-600"/>
+          <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removePair(i)"/>
         </div>
+        <p-button label="+ Add Pair" styleClass="bg-orange-500 border-none" (click)="addPair()"/>
+      </div>
+
+      <div *ngIf="questionType === 'map'" class="flex flex-col gap-1">
+        <label class="text-slate-300 text-sm">Upload Map</label>
+        <input type="file" (change)="onFileSelected($event)"
+          class="w-full bg-white text-black p-2 rounded"/>
+      </div>
+
+      <div class="flex justify-end gap-4 mt-4">
+        <p-button label="Cancel" severity="secondary" (click)="drawerVisible = false"/>
+        <p-button label="Save Question" styleClass="bg-green-500 border-none" (click)="saveQuestion()"/>
+      </div>
 
     </div>
-
-</p-drawer>
+  </p-drawer>
+</div>
