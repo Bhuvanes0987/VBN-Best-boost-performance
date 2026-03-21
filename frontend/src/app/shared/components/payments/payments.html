@@ -1,14 +1,180 @@
-<div class="min-h-screen bg-slate-50">
-      <div class="h-32 bg-gradient-to-r from-orange-600 to-orange-400 w-full absolute top-0 left-0"></div>
-      <div class="relative max-w-5xl mx-auto p-1">
-        <div class="mb-8">
-          <h1 class="text-3xl font-extrabold text-white">Payments</h1>
-          <p class="text-orange-100 text-sm">Manage your subscription</p>
-        </div>
-        <div class="bg-white rounded-xl shadow p-8 text-center">
-          <i class="pi pi-wallet text-6xl text-orange-300 mb-4 block"></i>
-          <h2 class="text-2xl font-bold text-slate-700 mb-2">Coming Soon</h2>
-          <p class="text-slate-500">Payment features will be available soon.</p>
-        </div>
+<!-- src/app/payments/payments.component.html -->
+<div class="pf-root">
+  <div class="pf-top-bar"></div>
+
+  <!-- Header -->
+  <header class="pf-header">
+    <div class="pf-brand">
+    <img src="/vbn-logo.jpg" alt="VBN" class="w-6 h-6 md:w-7 md:h-7 rounded-sm object-contain" />
+      <div>
+        <div class="pf-brand-name">VBN Boost Performance</div>
+        <div class="pf-brand-sub">Quick &amp; Secure Payments</div>
       </div>
     </div>
+    <div class="pf-secure-chip">
+      <span class="pf-chip-dot"></span>
+      SSL Secured · Razorpay
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="pf-main">
+    <div class="pf-card" [class.has-success]="showSuccess">
+
+      <!-- ── Order summary ── -->
+      <div class="pf-order-row">
+        <div class="pf-order-icon">🛒</div>
+        <div class="pf-order-info">
+          <div class="pf-order-name">VBN Boost Performance</div>
+          <div class="pf-order-desc">Premium Plan · 1 month</div>
+        </div>
+        <div class="pf-order-price">
+          ₹399.00
+          <span>incl. GST</span>
+        </div>
+      </div>
+
+      <!-- ── Quick pay ── -->
+      <div class="pf-sec-label">Quick Pay</div>
+
+      <button
+        class="pf-method-full"
+        [class.active]="activeMethod === 'upi'"
+        (click)="selectMethod('upi')"
+        [disabled]="isProcessing"
+      >
+        <span class="pf-mf-icon">📱</span>
+        <div class="pf-mf-text">
+          <div class="pf-mf-name">Scan &amp; Pay · UPI</div>
+          <div class="pf-mf-sub">GPay, PhonePe, Paytm, any UPI app</div>
+        </div>
+        <span class="pf-check" *ngIf="activeMethod === 'upi'">✓</span>
+      </button>
+
+      <button
+        class="pf-method-full"
+        [class.active]="activeMethod === 'wallet'"
+        (click)="selectMethod('wallet')"
+        [disabled]="isProcessing"
+      >
+        <span class="pf-mf-icon">👜</span>
+        <div class="pf-mf-text">
+          <div class="pf-mf-name">Wallets</div>
+          <div class="pf-mf-sub">Paytm, Amazon Pay, Mobikwik, Freecharge</div>
+        </div>
+        <span class="pf-check" *ngIf="activeMethod === 'wallet'">✓</span>
+      </button>
+
+      <!-- ── Divider ── -->
+      <div class="pf-or-divider"><span>or pay with card</span></div>
+
+      <!-- ── Card tabs ── -->
+      <div class="pf-card-tabs">
+        <button
+          class="pf-card-tab"
+          [class.active]="activeMethod === 'debit'"
+          (click)="selectMethod('debit')"
+          [disabled]="isProcessing"
+        >
+          <span class="pf-ct-icon">💳</span>
+          <span>Debit Card</span>
+          <span class="pf-check-sm" *ngIf="activeMethod === 'debit'">✓</span>
+        </button>
+        <button
+          class="pf-card-tab"
+          [class.active]="activeMethod === 'credit'"
+          (click)="selectMethod('credit')"
+          [disabled]="isProcessing"
+        >
+          <span class="pf-ct-icon">🪙</span>
+          <span>Credit Card</span>
+          <span class="pf-check-sm" *ngIf="activeMethod === 'credit'">✓</span>
+        </button>
+      </div>
+
+      <!-- ── 3D Card (debit/credit only) ── -->
+      <div class="pf-card-scene" *ngIf="isCardMethod" (click)="flipCard()">
+        <div class="pf-card-3d" [class.flipped]="cardFlipped">
+
+          <!-- Front -->
+          <div class="pf-face pf-face-front">
+            <div class="pf-cf-top">
+              <div class="pf-chip"></div>
+              <span class="pf-nfc">((·))</span>
+            </div>
+            <div class="pf-card-num">{{ cardNumber }}</div>
+            <div class="pf-card-bot">
+              <div>
+                <div class="pf-card-field-label">CARD HOLDER</div>
+                <div class="pf-card-field">TEST USER</div>
+              </div>
+              <div>
+                <div class="pf-card-field-label">EXPIRES</div>
+                <div class="pf-card-field">12/26</div>
+              </div>
+              <div class="pf-card-brand">{{ cardBrand }}</div>
+            </div>
+          </div>
+
+          <!-- Back -->
+          <div class="pf-face pf-face-back">
+            <div class="pf-mag-strip"></div>
+            <div class="pf-cvv-row">
+              <div class="pf-cvv-strip">
+                <span class="pf-cvv-stars">***</span>
+              </div>
+              <div class="pf-cvv-right">
+                <div class="pf-cvv-label">CVV</div>
+                <div class="pf-cvv-val">123</div>
+              </div>
+            </div>
+            <div class="pf-bank-text">This card is issued by PayFlow Test Bank.</div>
+          </div>
+
+        </div>
+      </div>
+      <div class="pf-flip-hint" *ngIf="isCardMethod">
+        <span>↻</span> Click card to flip
+      </div>
+
+      <!-- ── Success overlay ── -->
+      <div class="pf-success-overlay" *ngIf="showSuccess">
+        <div class="pf-s-ring">
+          <svg class="pf-s-svg" viewBox="0 0 52 52">
+            <circle class="pf-s-circle" cx="26" cy="26" r="24"/>
+            <path class="pf-s-check" d="M14 27.2l7.2 7.2 16.8-16.8"/>
+          </svg>
+        </div>
+        <div class="pf-s-title">Payment Successful!</div>
+        <div class="pf-s-amt">₹399.00</div>
+        <div class="pf-s-sub">Premium Plan activated · 1 month</div>
+        <div class="pf-s-id" *ngIf="successPaymentId">
+          Payment ID: {{ successPaymentId }}
+        </div>
+        <button class="pf-s-again" (click)="reset()">Make Another Payment</button>
+      </div>
+
+      <!-- ── Error ── -->
+      <div class="pf-error-box" *ngIf="showError && !showSuccess">
+        <span class="pf-err-icon">⚠</span>
+        <span class="pf-err-text">{{ errorMessage }}</span>
+      </div>
+
+      <!-- ── Pay button ── -->
+      <button
+        class="pf-pay-btn"
+        (click)="pay()"
+        [disabled]="isProcessing || showSuccess"
+      >
+        <span class="pf-spinner" *ngIf="isProcessing"></span>
+        <span *ngIf="!isProcessing">Pay ₹399.00</span>
+        <span *ngIf="isProcessing">Opening Gateway…</span>
+      </button>
+
+      <div class="pf-note">
+        <span>🔒</span> 100% secure · PCI DSS compliant · No data stored
+      </div>
+
+    </div>
+  </main>
+</div>

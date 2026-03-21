@@ -7,3 +7,4 @@ werkzeug
 flask-migrate
 flask-mail
 PyJWT
+razorpay==1.4.1
