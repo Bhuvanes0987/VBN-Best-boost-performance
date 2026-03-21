@@ -27,18 +27,20 @@ export class User implements OnInit {
 
   private api = 'http://127.0.0.1:8900';
 
-  fullName = ""
-  email = ""
-  schoolCode = ""
-  selectedSchool: any = null
-  selectedClass: any = null
-  selectedRole: any = null
-  editingUserId: number | null = null
+  fullName = "";
+  email = "";
+  schoolCode = "";
+  selectedSchool: any = null;
+  selectedClass: any = null;
+  selectedRole: any = null;
+  selectedSubject: any = null;  
+  editingUserId: number | null = null;
 
-  users: any[] = []
-  roles: any[] = []
-  classes: any[] = []
-  schools: any[] = []
+  users: any[] = [];
+  roles: any[] = [];
+  classes: any[] = [];
+  schools: any[] = [];
+  subjects: any[] = [];  
 
   constructor(
     private userService: UserService,
@@ -62,29 +64,42 @@ export class User implements OnInit {
       .subscribe((res: any) => this.schools = res.schools);
   }
 
-  // ✅ When school selected — load its classes and auto-fill school code
-  onSchoolChange() {
-    this.selectedClass = null;
-    this.classes = [];
-    this.schoolCode = "";
-
-    if (!this.selectedSchool) return;
-
-    // Auto-fill school code
-    const school = this.schools.find(s => s.id === this.selectedSchool);
-    if (school) this.schoolCode = school.code || "";
-
-    // Load classes for this school
-    this.http.get(`${this.api}/classes?school_id=${this.selectedSchool}`)
-      .subscribe((res: any) => this.classes = res.classes);
-  }
-
   loadUsers() {
     this.userService.getUsers().subscribe((res: any) => this.users = res.users);
   }
 
   loadRoles() {
     this.userService.getRoles().subscribe((res: any) => this.roles = res.roles);
+  }
+
+  onSchoolChange() {
+    this.selectedClass = null;
+    this.selectedSubject = null;
+    this.classes = [];
+    this.subjects = [];
+    this.schoolCode = "";
+    if (!this.selectedSchool) return;
+
+    const school = this.schools.find(s => s.id === this.selectedSchool);
+    if (school) this.schoolCode = school.code || "";
+
+    this.http.get(`${this.api}/classes?school_id=${this.selectedSchool}`)
+      .subscribe((res: any) => this.classes = res.classes);
+  }
+
+  onClassChange() {
+    this.selectedSubject = null;
+    this.subjects = [];
+    if (!this.selectedClass) return;
+    this.http.get(`${this.api}/subjects/by-class/${this.selectedClass}`)
+      .subscribe((res: any) => this.subjects = res.subjects);
+  }
+
+  isTeacherRole(): boolean {
+    if (!this.selectedRole) return false;
+    const role = this.roles.find(r => r.id === this.selectedRole);
+    return role?.role_type === 'teacher' ||
+           role?.name?.toLowerCase().includes('teacher');
   }
 
   getRoleName(user: any): string {
@@ -103,18 +118,28 @@ export class User implements OnInit {
     return cls ? cls.name : classId;
   }
 
+  getSchoolName(schoolId: any): string {
+    if (!schoolId) return '-';
+    const school = this.schools.find(s => s.id === schoolId);
+    return school ? school.name : '-';
+  }
+
   createUser() {
-    if (!this.selectedSchool) { this.toast('warn', 'Validation', 'Please select a school'); return; }
-    if (!this.selectedRole)   { this.toast('warn', 'Validation', 'Please select a role'); return; }
+    if (!this.selectedSchool)  { this.toast('warn', 'Validation', 'Please select a school'); return; }
+    if (!this.selectedRole)    { this.toast('warn', 'Validation', 'Please select a role'); return; }
     if (!this.fullName.trim()) { this.toast('warn', 'Validation', 'Full name is required'); return; }
     if (!this.email.trim())    { this.toast('warn', 'Validation', 'Email is required'); return; }
+    if (this.isTeacherRole() && !this.selectedSubject) {
+      this.toast('warn', 'Validation', 'Please select a subject for teacher'); return;
+    }
 
     const payload = {
       fullName: this.fullName,
       email: this.email,
-      schoolId: this.selectedSchool,   // ✅ FK
+      schoolId: this.selectedSchool,
       selectedClass: this.selectedClass,
-      selectedRole: this.selectedRole
+      selectedRole: this.selectedRole,
+      selectedSubject: this.isTeacherRole() ? this.selectedSubject : null  
     };
 
     this.userService.createUser(payload).subscribe({
@@ -134,7 +159,6 @@ export class User implements OnInit {
     this.selectedSchool = user.schoolId;
     this.selectedRole = user.roleId || null;
 
-    // ✅ Load classes for this school then set class
     if (user.schoolId) {
       const school = this.schools.find(s => s.id === user.schoolId);
       this.schoolCode = school?.code || "";
@@ -143,6 +167,14 @@ export class User implements OnInit {
         .subscribe((res: any) => {
           this.classes = res.classes;
           this.selectedClass = user.studentClass ? parseInt(user.studentClass) : null;
+
+          if (this.selectedClass) {
+            this.http.get(`${this.api}/subjects/by-class/${this.selectedClass}`)
+              .subscribe((res2: any) => {
+                this.subjects = res2.subjects;
+                this.selectedSubject = user.subjectScope || null;
+              });
+          }
         });
     }
   }
@@ -156,7 +188,8 @@ export class User implements OnInit {
       email: this.email,
       schoolId: this.selectedSchool,
       selectedClass: this.selectedClass,
-      selectedRole: this.selectedRole
+      selectedRole: this.selectedRole,
+      selectedSubject: this.isTeacherRole() ? this.selectedSubject : null
     };
 
     this.userService.updateUser(this.editingUserId!, payload).subscribe({
@@ -196,7 +229,9 @@ export class User implements OnInit {
     this.selectedSchool = null;
     this.selectedClass = null;
     this.selectedRole = null;
+    this.selectedSubject = null;
     this.classes = [];
+    this.subjects = [];
     this.editingUserId = null;
   }
 }
