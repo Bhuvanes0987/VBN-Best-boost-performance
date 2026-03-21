@@ -7,6 +7,7 @@ import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { environment } from '../../../../Environment/Environment';
 
 @Component({
   selector: 'app-reset-password',
@@ -51,7 +52,7 @@ export class ResetPassword implements OnInit {
     }
 
     this.loading = true
-    this.http.post('http://127.0.0.1:8900/api/reset-password', {
+    this.http.post(`${environment.apiUrl}/api/reset-password`, {
       token: this.token,
       password: this.password
     }).subscribe({

@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class ClassService {
 
-  API = "http://127.0.0.1:8900";
+  API = "${environment.apiUrl}";
 
   constructor(private http: HttpClient) {}
 

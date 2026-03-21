@@ -25,7 +25,7 @@ import { QuestionService } from '../../services/question.service';
 export class Home implements OnInit {
 
   public router = inject(Router);
-  private api = 'http://127.0.0.1:8900';
+  private api = '${environment.apiUrl}';
 
   constructor(
     private questionService: QuestionService,

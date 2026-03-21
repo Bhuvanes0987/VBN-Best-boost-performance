@@ -9,6 +9,7 @@ import { PasswordModule } from 'primeng/password';
 import { CardModule } from 'primeng/card';
 import { MessageService } from 'primeng/api';
 import { LoginBackground } from '../login-background/login-background';
+import { environment } from '../../../../Environment/Environment';
 
 @Component({
   selector: 'app-login',
@@ -47,7 +48,7 @@ export class Login {
   }
   const credentials = { email: this.email, password: this.password };
 
-  this.http.post('http://127.0.0.1:8900/api/login', credentials)
+  this.http.post(`${environment.apiUrl}/api/login`, credentials)
     .subscribe({
       next: (res: any) => {
       if (res.success) {

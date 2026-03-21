@@ -35,7 +35,7 @@ export class QuestionBank implements OnInit {
     private messageService: MessageService
   ) {}
 
-  private api = 'http://127.0.0.1:8900';
+  private api = '${environment.apiUrl}';
 
   drawerVisible = false;
   schools: any[] = [];

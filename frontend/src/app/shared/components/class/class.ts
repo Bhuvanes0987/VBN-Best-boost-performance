@@ -32,7 +32,7 @@ export class Class implements OnInit {
   showDialog = false;
   editMode = false;
   selectedId: number | null = null;
-  private api = 'http://127.0.0.1:8900';
+  private api = '${environment.apiUrl}';
 
   constructor(
     private classService: ClassService,

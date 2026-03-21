@@ -21,7 +21,7 @@ import { MessageService } from 'primeng/api';
 })
 export class Quiz implements OnInit {
 
-  private api = 'http://127.0.0.1:8900';
+  private api = '${environment.apiUrl}';
   currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
   questions: any[] = [];

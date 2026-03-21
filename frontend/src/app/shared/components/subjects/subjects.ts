@@ -45,7 +45,7 @@ filteredSubjects: any[] = [];
     { unit_name: '', unit_number: 1 }
   ];
 
-  private api = 'http://127.0.0.1:8900';
+  private api = '${environment.apiUrl}';
 
   constructor(
     private subjectService: SubjectService,

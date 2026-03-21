@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
 export class RoleService {
-  private api = 'http://127.0.0.1:8900';
+  private api = '${environment.apiUrl}';
 
   constructor(private http: HttpClient) {}
 

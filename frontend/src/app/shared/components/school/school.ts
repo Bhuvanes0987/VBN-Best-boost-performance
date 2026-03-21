@@ -24,7 +24,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class School implements OnInit {
 
-  private api = 'http://127.0.0.1:8900';
+  private api = '${environment.apiUrl}';
 
   schools: any[] = [];
   schoolName = "";

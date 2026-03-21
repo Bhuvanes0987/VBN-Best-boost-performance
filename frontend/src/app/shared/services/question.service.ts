@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class QuestionService {
 
-  api = "http://127.0.0.1:8900";
+  api = "${environment.apiUrl}";
 
   constructor(private http: HttpClient) {}
 

@@ -36,7 +36,7 @@ export class Role implements OnInit {
   permissions: any[] = [];
   schools: any[] = [];
 
-  private api = 'http://127.0.0.1:8900';
+  private api = '${environment.apiUrl}';
 
   constructor(
     private roleService: RoleService,

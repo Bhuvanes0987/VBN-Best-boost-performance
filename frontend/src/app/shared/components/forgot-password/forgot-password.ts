@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { environment } from '../../../../Environment/Environment';
 
 @Component({
   selector: 'app-forgot-password',
@@ -29,7 +30,7 @@ export class ForgotPassword {
     }
 
     this.loading = true
-    this.http.post('http://127.0.0.1:8900/api/forgot-password', { email: this.email })
+    this.http.post(`${environment.apiUrl}/api/forgot-password`, { email: this.email })
       .subscribe({
         next: (res: any) => {
           this.loading = false

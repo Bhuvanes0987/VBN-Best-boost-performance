@@ -25,7 +25,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class User implements OnInit {
 
-  private api = 'http://127.0.0.1:8900';
+  private api = '${environment.apiUrl}';
 
   fullName = "";
   email = "";
