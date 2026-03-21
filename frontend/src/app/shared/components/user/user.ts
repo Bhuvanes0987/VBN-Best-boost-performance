@@ -35,6 +35,8 @@ export class User implements OnInit {
   selectedRole: any = null;
   selectedSubject: any = null;  
   editingUserId: number | null = null;
+  searchText: string = '';
+filteredUsers: any[] = [];
 
   users: any[] = [];
   roles: any[] = [];
@@ -64,9 +66,36 @@ export class User implements OnInit {
       .subscribe((res: any) => this.schools = res.schools);
   }
 
-  loadUsers() {
-    this.userService.getUsers().subscribe((res: any) => this.users = res.users);
+loadUsers() {
+  this.userService.getUsers().subscribe((res: any) => {
+    this.users = res.users;
+    this.filteredUsers = [...this.users]; // initialize
+  });
+}
+applyFilter() {
+  const query = this.searchText.toLowerCase().trim();
+
+  if (!query) {
+    this.filteredUsers = [...this.users];
+    return;
   }
+
+  this.filteredUsers = this.users.filter(user => {
+    const name = user.name?.toLowerCase() || '';
+    const email = user.email?.toLowerCase() || '';
+    const school = user.schoolName?.toLowerCase() || '';
+    const role = this.getRoleName(user)?.toLowerCase() || '';
+    const cls = user.studentClassName?.toLowerCase() || '';
+
+    return (
+      name.includes(query) ||
+      email.includes(query) ||
+      school.includes(query) ||
+      role.includes(query) ||
+      cls.includes(query)
+    );
+  });
+}
 
   loadRoles() {
     this.userService.getRoles().subscribe((res: any) => this.roles = res.roles);

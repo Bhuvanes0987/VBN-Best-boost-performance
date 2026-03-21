@@ -171,7 +171,9 @@
       <p-select [options]="classes" optionLabel="name"
         [(ngModel)]="selectedClass"
         (onChange)="onClassChange()"
-        placeholder="Select Class">
+        placeholder="Select Class"
+        [appendTo]="'body'">
+        
       </p-select>
     </div>
 

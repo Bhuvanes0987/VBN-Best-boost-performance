@@ -8,7 +8,7 @@
 
     <div class="flex justify-between items-center mb-6">
       <div>
-        <h1 class="text-3xl font-extrabold text-white">Question Bank</h1>
+        <h1 class="text-1xl font-extrabold text-white">Question Bank</h1>
         <p class="text-orange-100 text-sm">Manage questions by school, class, subject and unit</p>
       </div>
       <p-button label="Add Question" icon="pi pi-plus"
@@ -17,6 +17,18 @@
       </p-button>
     </div>
 
+    <div class="flex justify-end mb-4">
+  <span class="p-input-icon-left w-80">
+    <input
+      type="text"
+      pInputText
+      [(ngModel)]="searchText"
+      (input)="applySearch()"
+      placeholder="Search questions..."
+      class="w-full"
+    />
+  </span>
+</div>
     <div class="bg-white rounded-xl shadow p-4 mb-4">
       <div class="grid grid-cols-4 gap-3">
         <p-select [options]="schools" [(ngModel)]="filterSchool"
@@ -51,9 +63,18 @@
         </p-select>
       </div>
     </div>
+    <div class="flex justify-end mb-3">
+  <p-button
+    label="Clear Filters"
+    icon="pi pi-times"
+    severity="secondary"
+    [text]="true"
+    (click)="clearFilters()">
+  </p-button>
+</div>
 
     <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
-      <p-table [value]="questions" [paginator]="true" [rows]="10"
+      <p-table [value]="filteredQuestions" [paginator]="true" [rows]="10"
         styleClass="p-datatable-hoverable-rows">
 
         <ng-template pTemplate="header">

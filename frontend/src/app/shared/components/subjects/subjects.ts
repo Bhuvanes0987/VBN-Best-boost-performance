@@ -31,7 +31,8 @@ export class Subjects implements OnInit {
   classes: any[] = [];
   subjects: any[] = [];
   schools: any[] = [];
-
+searchText: string = '';
+filteredSubjects: any[] = [];
   selectedClasses: any[] = [];
   selectedSchool: any = null;
   subjectName = "";
@@ -81,13 +82,47 @@ export class Subjects implements OnInit {
       .subscribe((res: any) => this.classes = res.classes);
   }
 
-  loadSubjects() {
-    const url = this.selectedSchool
-      ? `${this.api}/subjects?school_id=${this.selectedSchool}`
-      : `${this.api}/subjects`;
-    this.http.get(url).subscribe((res: any) => this.subjects = res.subjects);
+ loadSubjects() {
+  const url = this.selectedSchool
+    ? `${this.api}/subjects?school_id=${this.selectedSchool}`
+    : `${this.api}/subjects`;
+
+  this.http.get(url).subscribe((res: any) => {
+    this.subjects = res.subjects;
+    this.filteredSubjects = [...this.subjects]; // ✅ initialize
+  });
+}
+applyFilter() {
+  const query = this.searchText.toLowerCase().trim();
+
+  if (!query) {
+    this.filteredSubjects = [...this.subjects];
+    return;
   }
 
+  this.filteredSubjects = this.subjects.filter(s => {
+    const subject = s.subject_name?.toLowerCase() || '';
+
+    const school = this.getSchoolName(s.school_id)?.toLowerCase() || '';
+
+    const classes = (s.classes || [])
+      .map((c: any) => c.name?.toLowerCase())
+      .join(' ');
+
+    const units = (s.units || [])
+      .map((u: any) =>
+        (`u${u.unit_number} ${u.unit_name}`).toLowerCase()
+      )
+      .join(' ');
+
+    return (
+      subject.includes(query) ||
+      school.includes(query) ||
+      classes.includes(query) ||
+      units.includes(query)
+    );
+  });
+}
   getSchoolName(schoolId: number): string {
     const school = this.schools.find(s => s.id === schoolId);
     return school ? school.name : '-';

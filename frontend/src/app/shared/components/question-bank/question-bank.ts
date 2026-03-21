@@ -72,6 +72,8 @@ export class QuestionBank implements OnInit {
   pairs: any[] = [{ left: '', right: '' }];
   fillAnswer = '';
   selectedFile: any;
+  searchText: string = '';
+filteredQuestions: any[] = [];
 
   ngOnInit() {
     this.loadSchools();
@@ -84,17 +86,37 @@ export class QuestionBank implements OnInit {
   }
 
   loadQuestions() {
-    let url = `${this.api}/questions`;
-    const params: string[] = [];
-    if (this.filterSchool)  params.push(`school_id=${this.filterSchool}`);
-    if (this.filterClass)   params.push(`class_id=${this.filterClass}`);
-    if (this.filterSubject) params.push(`subject_id=${this.filterSubject}`);
-    if (this.filterUnit)    params.push(`unit_id=${this.filterUnit}`);
-    if (params.length) url += '?' + params.join('&');
+  const params: any = {};
 
-    this.questionService.getQuestions()
-      .subscribe((res: any) => this.questions = res.questions);
+  if (this.filterSchool) params.school_id = this.filterSchool;
+  if (this.filterClass) params.class_id = this.filterClass;
+  if (this.filterSubject) params.subject_id = this.filterSubject;
+  if (this.filterUnit) params.unit_id = this.filterUnit;
+
+  this.questionService.getQuestions(params)
+    .subscribe((res: any) => {
+      this.questions = res.questions;
+      this.filteredQuestions = res.questions; // reset search base
+      this.applySearch(); // re-apply search if text exists
+    });
+}
+applySearch() {
+  const query = this.searchText.toLowerCase().trim();
+
+  if (!query) {
+    this.filteredQuestions = [...this.questions];
+    return;
   }
+
+  this.filteredQuestions = this.questions.filter(q => {
+    return (
+      (q.question_text || '').toLowerCase().includes(query) ||
+      (q.question_type || '').toLowerCase().includes(query) ||
+      this.getSchoolName(q.school_id).toLowerCase().includes(query) ||
+      (q.unit_name || '').toLowerCase().includes(query)
+    );
+  });
+}
 
   onFilterSchoolChange() {
     this.filterClass = null; this.filterSubject = null; this.filterUnit = null;
@@ -301,4 +323,16 @@ export class QuestionBank implements OnInit {
     this.pairs = [{ left: '', right: '' }];
     this.fillAnswer = '';
   }
+  clearFilters() {
+  this.filterSchool = null;
+  this.filterClass = null;
+  this.filterSubject = null;
+  this.filterUnit = null;
+
+  this.filterClasses = [];
+  this.filterSubjects = [];
+  this.filterUnits = [];
+
+  this.loadQuestions();
+}
 }

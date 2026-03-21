@@ -7,10 +7,11 @@ import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { ConfirmationService } from 'primeng/api';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ButtonModule, DrawerModule, Avatar, ConfirmPopupModule, CommonModule],
+  imports: [RouterOutlet, ButtonModule, DrawerModule, Avatar, ConfirmPopupModule, CommonModule,FormsModule],
   providers: [ConfirmationService],
   templateUrl: './app.html',
   styleUrl: './app.scss'
@@ -94,5 +95,28 @@ logout() {
   this.userData.set({});
   this.router.navigate(['/login']);
 }
+searchValue = signal('');
+searchResults = signal<any[]>([]);
 
+onSearch() {
+  const query = this.searchValue().toLowerCase();
+
+  // Example global data (replace with API later)
+  const allData = [
+    'Users',
+    'Roles',
+    'Classes',
+    'Subjects',
+    'Questions',
+    'Quiz',
+    'Payments',
+    'Results'
+  ];
+
+  const filtered = allData.filter(item =>
+    item.toLowerCase().includes(query)
+  );
+
+  this.searchResults.set(filtered);
+}
 }

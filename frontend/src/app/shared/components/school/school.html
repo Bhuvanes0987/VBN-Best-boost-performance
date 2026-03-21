@@ -8,16 +8,29 @@
 
     <div class="flex justify-between items-center mb-8">
       <div>
-        <h1 class="text-3xl font-extrabold text-white">Manage Schools</h1>
+        <h1 class="text-1xl font-extrabold text-white">Manage Schools</h1>
         <p class="text-orange-100 text-sm">Create and manage schools</p>
       </div>
       <p-button label="Add School" icon="pi pi-plus"
         styleClass="bg-white text-orange-600 border-none shadow"
         (click)="openAdd()"/>
     </div>
+    <div class="flex justify-end p-4">
+  <span class="p-input-icon-left w-80">
+
+    <input
+      type="text"
+      pInputText
+      [(ngModel)]="searchText"
+      (input)="applyFilter()"
+      placeholder="Search schools..."
+      class="w-full"
+    />
+  </span>
+</div>
 
     <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
-      <p-table [value]="schools" [paginator]="true" [rows]="10"
+      <p-table [value]="filteredSchools" [paginator]="true" [rows]="10"
         styleClass="p-datatable-hoverable-rows">
 
         <ng-template pTemplate="header">

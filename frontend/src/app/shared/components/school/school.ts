@@ -17,7 +17,7 @@ import { HttpClient } from '@angular/common/http';
   imports: [
     CommonModule, FormsModule, TableModule, ButtonModule,
     InputTextModule, DialogModule, ConfirmPopupModule,
-    ToastModule, TooltipModule
+    ToastModule, TooltipModule, FormsModule
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './school.html'
@@ -32,6 +32,8 @@ export class School implements OnInit {
   showDialog = false;
   editMode = false;
   selectedId: number | null = null;
+  searchText: string = '';
+filteredSchools: any[] = [];
 
   constructor(
     private http: HttpClient,
@@ -47,10 +49,22 @@ export class School implements OnInit {
     this.messageService.add({ severity, summary, detail, life: 3000 });
   }
 
-  loadSchools() {
-    this.http.get(`${this.api}/schools`)
-      .subscribe((res: any) => this.schools = res.schools);
-  }
+loadSchools() {
+  this.http.get(`${this.api}/schools`)
+    .subscribe((res: any) => {
+      this.schools = res.schools;
+      this.filteredSchools = [...this.schools]; // initialize filter
+    });
+}
+applyFilter() {
+  const query = this.searchText.toLowerCase();
+
+  this.filteredSchools = this.schools.filter(s =>
+    (s.name && s.name.toLowerCase().includes(query)) ||
+    (s.code && s.code.toLowerCase().includes(query)) ||
+    (s.id && s.id.toString().includes(query))
+  );
+}
 
   openAdd() {
     this.schoolName = "";

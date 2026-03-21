@@ -22,9 +22,9 @@ export class QuestionService {
     return this.http.post(`${this.api}/questions`,data);
   }
 
-  getQuestions(){
-    return this.http.get(`${this.api}/questions`);
-  }
+  getQuestions(params?: any) {
+  return this.http.get(`${this.api}/questions`, { params });
+}
 
   updateQuestion(id:number,data:any){
     return this.http.put(`${this.api}/questions/${id}`,data);
