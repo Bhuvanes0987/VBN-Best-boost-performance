@@ -40,7 +40,7 @@ export class Subjects implements OnInit {
   submitted = false;
   showDialog = false;
 
-  units: { unit_name: string; unit_number: number }[] = [
+  units: Array<{ unit_name: string; unit_number: number }> = [
     { unit_name: '', unit_number: 1 }
   ];
 
@@ -55,6 +55,14 @@ export class Subjects implements OnInit {
 
   ngOnInit() {
     this.loadSchools();
+  }
+
+  get hasEmptyUnit(): boolean {
+    return this.units.some(u => !u.unit_name.trim());
+  }
+
+  get unitCount(): number {
+    return this.units.length;
   }
 
   loadSchools() {
@@ -91,14 +99,28 @@ export class Subjects implements OnInit {
   }
 
   addUnit() {
-    this.units.push({ unit_name: '', unit_number: this.units.length + 1 });
+    this.units = [
+      ...this.units,
+      { unit_name: '', unit_number: this.units.length + 1 }
+    ];
   }
 
   removeUnit(i: number) {
     if (this.units.length > 1) {
-      this.units.splice(i, 1);
-      this.units.forEach((u, idx) => u.unit_number = idx + 1);
+      this.units = this.units
+        .filter((_, idx) => idx !== i)
+        .map((u, idx) => ({ ...u, unit_number: idx + 1 }));
     }
+  }
+
+  updateUnitName(i: number, value: string) {
+    this.units = this.units.map((u, idx) =>
+      idx === i ? { ...u, unit_name: value } : u
+    );
+  }
+
+  trackByIndex(index: number): number {
+    return index;
   }
 
   addSubject() {
@@ -116,7 +138,7 @@ export class Subjects implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Select at least one class', life: 3000 });
       return;
     }
-    if (this.units.some(u => !u.unit_name.trim())) {
+    if (this.hasEmptyUnit) {
       this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'All unit names are required', life: 3000 });
       return;
     }
@@ -168,7 +190,10 @@ export class Subjects implements OnInit {
     }
 
     this.units = s.units?.length
-      ? s.units.map((u: any) => ({ unit_name: u.unit_name, unit_number: u.unit_number }))
+      ? s.units.map((u: any) => ({
+          unit_name: u.unit_name,
+          unit_number: u.unit_number
+        }))
       : [{ unit_name: '', unit_number: 1 }];
 
     this.showDialog = true;
@@ -179,7 +204,8 @@ export class Subjects implements OnInit {
       target: event.target as EventTarget,
       message: 'Delete this subject and all its units?',
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Delete', rejectLabel: 'Cancel',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptButtonStyleClass: 'p-button-danger p-button-sm',
       rejectButtonStyleClass: 'p-button-text p-button-sm',
       accept: () => {

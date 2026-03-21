@@ -6,14 +6,50 @@
 
   <div class="relative max-w-6xl mx-auto p-1">
 
-    <div class="flex justify-between items-center mb-8">
+    <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-3xl font-extrabold text-white">Question Bank</h1>
         <p class="text-orange-100 text-sm">Manage questions by school, class, subject and unit</p>
       </div>
       <p-button label="Add Question" icon="pi pi-plus"
         styleClass="bg-white text-orange-600 border-none shadow"
-        (click)="openDrawer()"/>
+        (click)="openDrawer()">
+      </p-button>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-4 mb-4">
+      <div class="grid grid-cols-4 gap-3">
+        <p-select [options]="schools" [(ngModel)]="filterSchool"
+          optionLabel="name" optionValue="id"
+          placeholder="Filter by School"
+          (onChange)="onFilterSchoolChange()"
+          styleClass="w-full">
+        </p-select>
+
+        <p-select [options]="filterClasses" [(ngModel)]="filterClass"
+          optionLabel="name" optionValue="id"
+          placeholder="Filter by Class"
+          [disabled]="!filterSchool"
+          (onChange)="onFilterClassChange()"
+          styleClass="w-full">
+        </p-select>
+
+        <p-select [options]="filterSubjects" [(ngModel)]="filterSubject"
+          optionLabel="subject_name" optionValue="id"
+          placeholder="Filter by Subject"
+          [disabled]="!filterClass"
+          (onChange)="onFilterSubjectChange()"
+          styleClass="w-full">
+        </p-select>
+
+        <p-select [options]="filterUnits" [(ngModel)]="filterUnit"
+          optionLabel="unit_name" optionValue="id"
+          placeholder="Filter by Unit"
+          [disabled]="!filterSubject"
+          (onChange)="loadQuestions()"
+          styleClass="w-full">
+        </p-select>
+      </div>
     </div>
 
     <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
@@ -34,24 +70,34 @@
         <ng-template pTemplate="body" let-q>
           <tr>
             <td>{{ q.id }}</td>
-            <td class="max-w-xs truncate">{{ q.question_text }}</td>
+            <td class="max-w-xs">
+              <span class="line-clamp-2 text-sm">{{ q.question_text }}</span>
+            </td>
             <td>
               <span class="px-2 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-600">
                 {{ q.question_type | uppercase }}
               </span>
             </td>
             <td>
-              <span class="text-xs text-purple-600">{{ getSchoolName(q.school_id) }}</span>
+              <span class="text-xs text-purple-600 font-medium">
+                {{ getSchoolName(q.school_id) }}
+              </span>
             </td>
             <td>
-              <span class="text-xs text-blue-600">{{ q.unit_name || '-' }}</span>
+              <span *ngIf="q.unit_name"
+                class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
+                {{ q.unit_name }}
+              </span>
+              <span *ngIf="!q.unit_name" class="text-gray-400 text-xs">-</span>
             </td>
             <td class="text-center">
               <div class="flex justify-center gap-2">
                 <p-button icon="pi pi-pencil" [text]="true" severity="secondary"
-                  pTooltip="Edit" (click)="editQuestion(q)"/>
+                  pTooltip="Edit" (click)="editQuestion(q)">
+                </p-button>
                 <p-button icon="pi pi-trash" [text]="true" severity="danger"
-                  pTooltip="Delete" (click)="confirmDelete($event, q.id)"/>
+                  pTooltip="Delete" (click)="confirmDelete($event, q.id)">
+                </p-button>
               </div>
             </td>
           </tr>
@@ -68,6 +114,7 @@
             </td>
           </tr>
         </ng-template>
+
       </p-table>
     </div>
   </div>
@@ -90,7 +137,8 @@
           <p-select [options]="schools" optionLabel="name" optionValue="id"
             [(ngModel)]="selectedSchool"
             (onChange)="onSchoolChange()"
-            placeholder="Select School"/>
+            placeholder="Select School">
+          </p-select>
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-slate-300 text-sm">Class *</label>
@@ -98,7 +146,8 @@
             [(ngModel)]="selectedClass"
             (onChange)="onClassChange()"
             placeholder="Select Class"
-            [disabled]="!selectedSchool"/>
+            [disabled]="!selectedSchool">
+          </p-select>
         </div>
       </div>
 
@@ -109,14 +158,19 @@
             [(ngModel)]="selectedSubject"
             (onChange)="onSubjectChange()"
             placeholder="Select Subject"
-            [disabled]="!selectedClass"/>
+            [disabled]="!selectedClass">
+          </p-select>
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-slate-300 text-sm">Unit (optional)</label>
+          <label class="text-slate-300 text-sm">
+            Unit
+            <span class="text-slate-500 text-xs">(optional)</span>
+          </label>
           <p-select [options]="units" optionLabel="unit_name"
             [(ngModel)]="selectedUnit"
             placeholder="Select Unit"
-            [disabled]="!selectedSubject"/>
+            [disabled]="!selectedSubject">
+          </p-select>
         </div>
       </div>
 
@@ -125,7 +179,8 @@
         <p-select [options]="types" optionLabel="name" optionValue="value"
           [(ngModel)]="questionType"
           (onChange)="onTypeChange()"
-          placeholder="Select Type"/>
+          placeholder="Select Type">
+        </p-select>
       </div>
 
       <div class="flex flex-col gap-1">
@@ -141,11 +196,16 @@
           <input pInputText [(ngModel)]="opt.text"
             placeholder="Option {{i+1}}"
             class="flex-1 bg-slate-800 text-white border-slate-600"/>
-          <p-radioButton name="correct" [value]="i" [(ngModel)]="correctOption"/>
+          <p-radioButton name="correct" [value]="i" [(ngModel)]="correctOption">
+          </p-radioButton>
           <span class="text-slate-400 text-xs">Correct</span>
-          <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeOption(i)"/>
+          <p-button icon="pi pi-trash" severity="danger" [text]="true"
+            (click)="removeOption(i)">
+          </p-button>
         </div>
-        <p-button label="+ Add Option" styleClass="bg-orange-500 border-none" (click)="addOption()"/>
+        <p-button label="+ Add Option" styleClass="bg-orange-500 border-none"
+          (click)="addOption()">
+        </p-button>
       </div>
 
       <div *ngIf="questionType === 'fill'" class="flex flex-col gap-1">
@@ -157,14 +217,19 @@
 
       <div *ngIf="questionType === 'match'" class="flex flex-col gap-3">
         <label class="text-slate-300 text-sm font-semibold">Match Pairs</label>
-        <div *ngFor="let pair of pairs; let i=index" class="grid grid-cols-[1fr_1fr_auto] gap-4">
+        <div *ngFor="let pair of pairs; let i=index"
+          class="grid grid-cols-[1fr_1fr_auto] gap-4">
           <input pInputText [(ngModel)]="pair.left" placeholder="Left"
             class="bg-slate-800 text-white border-slate-600"/>
           <input pInputText [(ngModel)]="pair.right" placeholder="Right"
             class="bg-slate-800 text-white border-slate-600"/>
-          <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removePair(i)"/>
+          <p-button icon="pi pi-trash" severity="danger" [text]="true"
+            (click)="removePair(i)">
+          </p-button>
         </div>
-        <p-button label="+ Add Pair" styleClass="bg-orange-500 border-none" (click)="addPair()"/>
+        <p-button label="+ Add Pair" styleClass="bg-orange-500 border-none"
+          (click)="addPair()">
+        </p-button>
       </div>
 
       <div *ngIf="questionType === 'map'" class="flex flex-col gap-1">
@@ -174,10 +239,15 @@
       </div>
 
       <div class="flex justify-end gap-4 mt-4">
-        <p-button label="Cancel" severity="secondary" (click)="drawerVisible = false"/>
-        <p-button label="Save Question" styleClass="bg-green-500 border-none" (click)="saveQuestion()"/>
+        <p-button label="Cancel" severity="secondary"
+          (click)="drawerVisible = false">
+        </p-button>
+        <p-button label="Save Question" styleClass="bg-green-500 border-none"
+          (click)="saveQuestion()">
+        </p-button>
       </div>
 
     </div>
   </p-drawer>
+
 </div>

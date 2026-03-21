@@ -1,0 +1,49 @@
+<div class="min-h-screen bg-slate-50">
+      <div class="h-32 bg-gradient-to-r from-orange-600 to-orange-400 w-full absolute top-0 left-0"></div>
+      <div class="relative max-w-5xl mx-auto p-1">
+        <div class="mb-8">
+          <h1 class="text-3xl font-extrabold text-white">My Results</h1>
+          <p class="text-orange-100 text-sm">Your test history and scores</p>
+        </div>
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+          <p-table [value]="results" styleClass="p-datatable-hoverable-rows">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Date</th>
+                <th>Subject</th>
+                <th>Unit</th>
+                <th>Score</th>
+                <th>Total</th>
+                <th>Percentage</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-r>
+              <tr>
+                <td>{{ r.taken_at | date:'dd MMM yyyy' }}</td>
+                <td>{{ r.subject_name || '-' }}</td>
+                <td>{{ r.unit_name || 'All Units' }}</td>
+                <td>{{ r.correct_answers }}</td>
+                <td>{{ r.total_questions }}</td>
+                <td>
+                  <span class="font-bold"
+                    [ngClass]="{
+                      'text-green-600': r.score_percent >= 70,
+                      'text-orange-600': r.score_percent >= 40 && r.score_percent < 70,
+                      'text-red-600': r.score_percent < 40
+                    }">
+                    {{ r.score_percent }}%
+                  </span>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="6" class="text-center py-12 text-gray-400">
+                  No results yet. Take a quiz to see your scores here!
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>

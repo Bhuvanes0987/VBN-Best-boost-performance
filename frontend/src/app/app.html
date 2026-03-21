@@ -89,13 +89,13 @@
           </li>
         }
 
-        @if (isAdmin() || canAccess('quiz')) {
+        <!-- @if (isAdmin() || canAccess('quiz')) {
           <li (click)="goTo('/quiz')"
             class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer
                    text-slate-300 hover:bg-slate-700 hover:text-white transition">
             <i class="pi pi-play-circle"></i><span>Quizzes</span>
           </li>
-        }
+        } -->
 
         @if (isAdmin() || canAccess('results')) {
           <li (click)="goTo('/results')"

@@ -1,9 +1,8 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
-import { DrawerModule } from 'primeng/drawer';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
@@ -17,11 +16,11 @@ import { QuestionService } from '../../services/question.service';
   standalone: true,
   imports: [
     CommonModule, FormsModule, ButtonModule, AvatarModule,
-    DrawerModule, DialogModule, SelectModule, ToastModule
+    DialogModule, SelectModule, ToastModule
   ],
   providers: [MessageService],
   templateUrl: './home.html',
-  styleUrl: './home.scss',
+  styleUrl: './home.scss'
 })
 export class Home implements OnInit {
 
@@ -34,34 +33,44 @@ export class Home implements OnInit {
     private messageService: MessageService
   ) {}
 
-  sidebarVisible = signal(false);
-
   currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   userPosition = parseInt(localStorage.getItem('position') || '2');
-
-  userInitials = signal(() => {
-    const name = this.currentUser?.name || '';
-    return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
-  });
-
   isStudent = this.userPosition === 2;
 
   dialogVisible = false;
-  quizMode: 'daily' | 'subject' | 'unit' = 'daily';
+  quizMode: 'daily' | 'subject' = 'daily';
 
   classes: any[] = [];
   subjects: any[] = [];
-  units: any[] = [];
-
+  units: any[] = [];          
   selectedClass: any = null;
   selectedSubject: any = null;
-  selectedUnit: any = null;
-
-  studentClassId = this.currentUser?.studentClass || null;
+  selectedUnit: any = null;  
   schoolId = this.currentUser?.schoolId || null;
+  studentClassId = this.currentUser?.studentClass || null;
+
+  stats = {
+    totalTests: 0,
+    avgScore: 0,
+    bestScore: 0,
+    streak: 0
+  };
 
   ngOnInit() {
     this.loadClasses();
+    this.loadStats();
+  }
+
+  loadStats() {
+    const userId = this.currentUser?.id;
+    if (!userId) return;
+    this.http.get(`${this.api}/results/stats?user_id=${userId}`)
+      .subscribe({
+        next: (res: any) => {
+          this.stats = res.stats || this.stats;
+        },
+        error: () => {} 
+      });
   }
 
   loadClasses() {
@@ -88,7 +97,6 @@ export class Home implements OnInit {
     this.subjects = [];
     this.units = [];
     if (!this.selectedClass) return;
-
     this.questionService.getSubjectsByClass(this.selectedClass.id)
       .subscribe((res: any) => this.subjects = res.subjects);
   }
@@ -98,15 +106,13 @@ export class Home implements OnInit {
     this.units = this.selectedSubject?.units || [];
   }
 
-  openQuizDialog(mode: 'daily' | 'subject' | 'unit') {
+  openQuizDialog(mode: 'daily' | 'subject') {
     this.quizMode = mode;
-    this.dialogVisible = true;
-
-    if (!this.isStudent) {
-      this.selectedClass = null;
-    }
     this.selectedSubject = null;
     this.selectedUnit = null;
+    this.units = [];
+    if (!this.isStudent) this.selectedClass = null;
+    this.dialogVisible = true;
   }
 
   startQuiz() {
@@ -114,14 +120,8 @@ export class Home implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please select a class', life: 3000 });
       return;
     }
-
     if (this.quizMode === 'subject' && !this.selectedSubject) {
       this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please select a subject', life: 3000 });
-      return;
-    }
-
-    if (this.quizMode === 'unit' && !this.selectedUnit) {
-      this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please select a unit', life: 3000 });
       return;
     }
 
@@ -141,13 +141,10 @@ export class Home implements OnInit {
   }
 
   goTo(path: string) {
-    this.sidebarVisible.set(false);
     this.router.navigate([path]);
   }
 
-  getUserName(): string {
-    return this.currentUser?.name || 'User';
-  }
+  getUserName(): string { return this.currentUser?.name || 'User'; }
 
   getUserInitials(): string {
     const name = this.currentUser?.name || '';
