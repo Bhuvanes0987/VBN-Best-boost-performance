@@ -8,19 +8,21 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { CardModule } from 'primeng/card';
 import { MessageService } from 'primeng/api';
+import { LoginBackground } from '../login-background/login-background';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [
-    FormsModule, 
-    CommonModule, 
-    HttpClientModule, 
+    FormsModule,
+    CommonModule,
+    HttpClientModule,
     RouterModule,
     ButtonModule,
     InputTextModule,
     PasswordModule,
     CardModule,
+    LoginBackground,
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss',
