@@ -61,42 +61,38 @@ export class Quiz implements OnInit {
   }
 
   loadQuestions() {
-    this.loading = true;
-    this.noQuestions = false;
+  this.loading = true;
+  this.noQuestions = false;
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const selectedSubjectIds: number[] = user?.selectedSubjects || [];
+
     let url = '';
 
-    if (this.quizMode === 'daily') {
-      // ✅ Don't filter by school if not available
-      url = `${this.api}/questions/daily-test?class_id=${this.classId}&limit=20`;
-      if (this.schoolId && this.schoolId !== 'null') {
-        url += `&school_id=${this.schoolId}`;
-      }
-    } else {
-      url = `${this.api}/questions/subject-test?class_id=${this.classId}&subject_id=${this.subjectId}&limit=20`;
-      if (this.unitId && this.unitId !== 'all') url += `&unit_id=${this.unitId}`;
-      if (this.schoolId && this.schoolId !== 'null') url += `&school_id=${this.schoolId}`;
+  if (this.quizMode === 'daily') {
+    url = `${this.api}/questions/daily-test?class_id=${this.classId}&limit=20`;
+    if (this.schoolId && this.schoolId !== 'null') url += `&school_id=${this.schoolId}`;
+    if (selectedSubjectIds.length > 0) {
+      url += `&subject_ids=${selectedSubjectIds.join(',')}`;
     }
-
-    console.log('Fetching questions from:', url);
-
-    this.http.get(url).subscribe({
-      next: (res: any) => {
-        console.log('Questions response:', res);
-        this.loading = false;
-        if (!res.questions || res.questions.length === 0) {
-          this.noQuestions = true;
-          return;
-        }
-        this.questions = res.questions;
-        this.answers = new Array(this.questions.length).fill(null);
-      },
-      error: (err) => {
-        console.error('Failed to load questions:', err);
-        this.loading = false;
-        this.noQuestions = true;
-      }
-    });
+  } else {
+    url = `${this.api}/questions/subject-test?class_id=${this.classId}&subject_id=${this.subjectId}&limit=20`;
+    if (this.unitId && this.unitId !== 'all') url += `&unit_id=${this.unitId}`;
+    if (this.schoolId && this.schoolId !== 'null') url += `&school_id=${this.schoolId}`;
   }
+
+  this.http.get(url).subscribe({
+    next: (res: any) => {
+      this.loading = false;
+      if (!res.questions || res.questions.length === 0) {
+        this.noQuestions = true; return;
+      }
+      this.questions = res.questions;
+      this.answers = new Array(this.questions.length).fill(null);
+    },
+    error: () => { this.loading = false; this.noQuestions = true; }
+  });
+}
 
   get currentQuestion() {
     return this.questions[this.currentIndex];
@@ -150,7 +146,6 @@ export class Quiz implements OnInit {
           this.correctCount++;
         }
       } else if (q.question_type === 'match') {
-        // ✅ Auto-correct match questions
         if (userAnswer === 'matched') this.correctCount++;
       }
     });

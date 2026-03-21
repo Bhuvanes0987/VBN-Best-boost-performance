@@ -124,14 +124,21 @@ def subjects_by_class(class_id):
 def daily_test():
     class_id = request.args.get("class_id")
     school_id = request.args.get("school_id")
+    subject_ids_str = request.args.get("subject_ids")  
     limit = int(request.args.get("limit", 20))
 
     if not class_id:
         return jsonify({"error": "class_id required"}), 400
 
     query = Question.query.filter_by(class_id=int(class_id), status=1)
+
     if school_id and school_id != 'None':
         query = query.filter_by(school_id=int(school_id))
+
+    if subject_ids_str:
+        subject_ids = [int(x) for x in subject_ids_str.split(',') if x.strip()]
+        if subject_ids:
+            query = query.filter(Question.subject_id.in_(subject_ids))
 
     questions = query.all()
 

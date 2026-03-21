@@ -21,3 +21,5 @@ class User(db.Model):
     updated_by = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime)
+    profile_pic = db.Column(db.Text)       
+    selected_subjects = db.Column(db.Text)   
