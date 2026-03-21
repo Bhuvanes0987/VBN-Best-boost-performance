@@ -25,6 +25,7 @@ from routes.role_routes import role_bp
 from routes.user_role_routes import user_role_bp
 from routes.school_routes import school_bp  
 from routes.result_routes import result_bp
+from routes.profile_routes import profile_bp
 
 
 app = Flask(__name__)
@@ -43,6 +44,7 @@ app.register_blueprint(role_bp)
 app.register_blueprint(user_role_bp)
 app.register_blueprint(school_bp)  
 app.register_blueprint(result_bp)  
+app.register_blueprint(profile_bp)
 
 with app.app_context():
     db.create_all()
