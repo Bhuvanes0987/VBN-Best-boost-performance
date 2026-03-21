@@ -10,7 +10,7 @@ export class Quiz {
   getQuiz(classId:number,subjectId:number){
 
     return this.http.get(
-      `http://localhost:8000/quiz?class_id=${classId}&subject_id=${subjectId}`
+      `http://localhost:8900/quiz?class_id=${classId}&subject_id=${subjectId}`
     )
 
   }
