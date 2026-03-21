@@ -46,6 +46,14 @@ export class QuestionBank implements OnInit {
   editMode = false;
   selectedQuestionId: number | null = null;
 
+  filterSchool: any = null;
+  filterClass: any = null;
+  filterSubject: any = null;
+  filterUnit: any = null;
+  filterClasses: any[] = [];
+  filterSubjects: any[] = [];
+  filterUnits: any[] = [];
+
   types = [
     { name: 'Choose (MCQ)', value: 'mcq' },
     { name: 'Fill Up', value: 'fill' },
@@ -76,27 +84,55 @@ export class QuestionBank implements OnInit {
   }
 
   loadQuestions() {
+    let url = `${this.api}/questions`;
+    const params: string[] = [];
+    if (this.filterSchool)  params.push(`school_id=${this.filterSchool}`);
+    if (this.filterClass)   params.push(`class_id=${this.filterClass}`);
+    if (this.filterSubject) params.push(`subject_id=${this.filterSubject}`);
+    if (this.filterUnit)    params.push(`unit_id=${this.filterUnit}`);
+    if (params.length) url += '?' + params.join('&');
+
     this.questionService.getQuestions()
       .subscribe((res: any) => this.questions = res.questions);
   }
 
+  onFilterSchoolChange() {
+    this.filterClass = null; this.filterSubject = null; this.filterUnit = null;
+    this.filterClasses = []; this.filterSubjects = []; this.filterUnits = [];
+    if (!this.filterSchool) { this.loadQuestions(); return; }
+    this.http.get(`${this.api}/classes?school_id=${this.filterSchool}`)
+      .subscribe((res: any) => this.filterClasses = res.classes);
+    this.loadQuestions();
+  }
+
+  onFilterClassChange() {
+    this.filterSubject = null; this.filterUnit = null;
+    this.filterSubjects = []; this.filterUnits = [];
+    if (!this.filterClass) { this.loadQuestions(); return; }
+    this.questionService.getSubjectsByClass(this.filterClass)
+      .subscribe((res: any) => this.filterSubjects = res.subjects);
+    this.loadQuestions();
+  }
+
+  onFilterSubjectChange() {
+    this.filterUnit = null; this.filterUnits = [];
+    if (!this.filterSubject) { this.loadQuestions(); return; }
+    const subject = this.filterSubjects.find(s => s.id === this.filterSubject);
+    this.filterUnits = subject?.units || [];
+    this.loadQuestions();
+  }
+
   onSchoolChange() {
-    this.selectedClass = null;
-    this.selectedSubject = null;
-    this.selectedUnit = null;
-    this.classes = [];
-    this.subjects = [];
-    this.units = [];
+    this.selectedClass = null; this.selectedSubject = null; this.selectedUnit = null;
+    this.classes = []; this.subjects = []; this.units = [];
     if (!this.selectedSchool) return;
     this.http.get(`${this.api}/classes?school_id=${this.selectedSchool}`)
       .subscribe((res: any) => this.classes = res.classes);
   }
 
   onClassChange() {
-    this.selectedSubject = null;
-    this.selectedUnit = null;
-    this.subjects = [];
-    this.units = [];
+    this.selectedSubject = null; this.selectedUnit = null;
+    this.subjects = []; this.units = [];
     if (!this.selectedClass) return;
     this.questionService.getSubjectsByClass(this.selectedClass.id)
       .subscribe((res: any) => this.subjects = res.subjects);
@@ -188,6 +224,23 @@ export class QuestionBank implements OnInit {
     this.questionText = q.question_text;
     this.questionType = q.question_type;
     this.selectedSchool = q.school_id;
+    if (q.school_id) {
+      this.http.get(`${this.api}/classes?school_id=${q.school_id}`)
+        .subscribe((res: any) => {
+          this.classes = res.classes;
+          this.selectedClass = this.classes.find(c => c.id === q.class_id) || null;
+
+          if (q.class_id) {
+            this.questionService.getSubjectsByClass(q.class_id)
+              .subscribe((res2: any) => {
+                this.subjects = res2.subjects;
+                this.selectedSubject = this.subjects.find(s => s.id === q.subject_id) || null;
+                this.units = this.selectedSubject?.units || [];
+                this.selectedUnit = this.units.find(u => u.id === q.unit_id) || null;
+              });
+          }
+        });
+    }
 
     const data = q.answer_data;
     if (this.questionType === 'mcq') {

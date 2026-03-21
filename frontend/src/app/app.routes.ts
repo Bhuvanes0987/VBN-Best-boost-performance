@@ -9,12 +9,16 @@ import { Subjects } from './shared/components/subjects/subjects';
 import { Quiz } from './shared/components/quiz/quiz';
 import { Signup } from './shared/components/signup/signup';
 import { Role } from './shared/components/role/role';
+import { School } from './shared/components/school/school';
+import { UnitComponent } from './shared/components/unit/unit';
 import { authGuard } from './shared/services/auth-guard';
 import { adminGuard } from './shared/services/admin-guard';
 import { permissionGuard } from './shared/services/permission-guard';
 import { ResetPassword } from './shared/components/reset-password/reset-password';
 import { ForgotPassword } from './shared/components/forgot-password/forgot-password';
-import { School } from './shared/components/school/school';
+import { Results } from './shared/components/results/results';
+import { Payments } from './shared/components/payments/payments';
+
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -26,44 +30,32 @@ export const routes: Routes = [
   { path: 'home', component: Home, canActivate: [authGuard] },
 
   {
-    path: 'user', component: User,
-    canActivate: [authGuard, adminGuard]
-  },
-  {
-    path: 'roles', component: Role,
-    canActivate: [authGuard, adminGuard]
+    path: 'results',
+    component: Results,
+    canActivate: [authGuard]
   },
 
   {
-    path: 'classes', component: Class,
-    canActivate: [authGuard, permissionGuard],
-    data: { page: 'classes' }
+    path: 'payments',
+    component: Payments,
+    canActivate: [authGuard]
   },
+
   {
-    path: 'subjects', component: Subjects,
-    canActivate: [authGuard, permissionGuard],
-    data: { page: 'subjects' }
+    path: 'quiz/:classId/:subjectId',
+    component: Quiz,
+    canActivate: [authGuard]
   },
-  {
-    path: 'questions', component: QuestionBank,
-    canActivate: [authGuard, permissionGuard],
-    data: { page: 'questions' }
-  },
-  {
-    path: 'import', component: ImportQuestions,
-    canActivate: [authGuard, permissionGuard],
-    data: { page: 'questions' }
-  },
-  {
-    path: 'quiz/:classId/:subjectId', component: Quiz,
-    canActivate: [authGuard, permissionGuard],
-    data: { page: 'quiz' }
-  },
-  {
-  path: 'schools',
-  component: School,
-  canActivate: [authGuard, adminGuard]
-},
+
+  { path: 'schools', component: School, canActivate: [authGuard, adminGuard] },
+  { path: 'user', component: User, canActivate: [authGuard, adminGuard] },
+  { path: 'roles', component: Role, canActivate: [authGuard, adminGuard] },
+
+  { path: 'classes', component: Class, canActivate: [authGuard, permissionGuard], data: { page: 'classes' } },
+  { path: 'subjects', component: Subjects, canActivate: [authGuard, permissionGuard], data: { page: 'subjects' } },
+  { path: 'questions', component: QuestionBank, canActivate: [authGuard, permissionGuard], data: { page: 'questions' } },
+  { path: 'import', component: ImportQuestions, canActivate: [authGuard, permissionGuard], data: { page: 'questions' } },
+  { path: 'units', component: UnitComponent, canActivate: [authGuard, permissionGuard], data: { page: 'subjects' } },
 
   { path: '**', redirectTo: 'login' }
 ];
