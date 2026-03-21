@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
@@ -24,7 +24,7 @@ import { QuestionService } from '../../services/question.service';
 })
 export class Home implements OnInit {
 
-  private router = inject(Router);
+  public router = inject(Router);
   private api = 'http://127.0.0.1:8900';
 
   constructor(
@@ -42,19 +42,14 @@ export class Home implements OnInit {
 
   classes: any[] = [];
   subjects: any[] = [];
-  units: any[] = [];          
+  units: any[] = [];
   selectedClass: any = null;
   selectedSubject: any = null;
-  selectedUnit: any = null;  
+  selectedUnit: any = null;
   schoolId = this.currentUser?.schoolId || null;
   studentClassId = this.currentUser?.studentClass || null;
 
-  stats = {
-    totalTests: 0,
-    avgScore: 0,
-    bestScore: 0,
-    streak: 0
-  };
+  stats = { totalTests: 0, avgScore: 0, bestScore: 0, streak: 0 };
 
   ngOnInit() {
     this.loadClasses();
@@ -66,25 +61,26 @@ export class Home implements OnInit {
     if (!userId) return;
     this.http.get(`${this.api}/results/stats?user_id=${userId}`)
       .subscribe({
-        next: (res: any) => {
-          this.stats = res.stats || this.stats;
-        },
-        error: () => {} 
+        next: (res: any) => this.stats = res.stats || this.stats,
+        error: () => {}
       });
   }
 
   loadClasses() {
     if (this.isStudent && this.studentClassId) {
-      this.http.get(`${this.api}/classes?school_id=${this.schoolId}`)
-        .subscribe((res: any) => {
-          this.classes = res.classes.filter(
-            (c: any) => c.id === parseInt(this.studentClassId)
-          );
-          if (this.classes.length === 1) {
-            this.selectedClass = this.classes[0];
-            this.onClassChange();
-          }
-        });
+      const url = this.schoolId
+        ? `${this.api}/classes?school_id=${this.schoolId}`
+        : `${this.api}/classes`;
+
+      this.http.get(url).subscribe((res: any) => {
+        this.classes = res.classes.filter(
+          (c: any) => c.id === parseInt(this.studentClassId)
+        );
+        if (this.classes.length === 1) {
+          this.selectedClass = this.classes[0];
+          this.onClassChange();
+        }
+      });
     } else {
       this.questionService.getClasses()
         .subscribe((res: any) => this.classes = res.classes);
@@ -131,13 +127,13 @@ export class Home implements OnInit {
     const subjectId = this.selectedSubject?.id || 'all';
     const unitId = this.selectedUnit?.id || 'all';
 
-    this.router.navigate(['/quiz', classId, subjectId], {
-      queryParams: {
-        mode: this.quizMode,
-        unit: unitId,
-        school: this.schoolId
-      }
-    });
+    const queryParams: any = {
+      mode: this.quizMode,
+      unit: unitId
+    };
+    if (this.schoolId) queryParams['school'] = this.schoolId;
+
+    this.router.navigate(['/quiz', classId, subjectId], { queryParams });
   }
 
   goTo(path: string) {

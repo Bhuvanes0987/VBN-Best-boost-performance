@@ -43,14 +43,11 @@ def get_results():
 def get_stats():
     user_id = request.args.get("user_id")
     if not user_id:
-        return jsonify({"stats": {}}), 400
+        return jsonify({"stats": {"totalTests": 0, "avgScore": 0, "bestScore": 0, "streak": 0}})
 
     results = TestResult.query.filter_by(user_id=int(user_id)).all()
     if not results:
-        return jsonify({"stats": {
-            "totalTests": 0, "avgScore": 0,
-            "bestScore": 0, "streak": 0
-        }})
+        return jsonify({"stats": {"totalTests": 0, "avgScore": 0, "bestScore": 0, "streak": 0}})
 
     scores = [r.score_percent for r in results if r.score_percent is not None]
     avg = round(sum(scores) / len(scores), 1) if scores else 0
@@ -60,23 +57,30 @@ def get_stats():
         "totalTests": len(results),
         "avgScore": avg,
         "bestScore": best,
-        "streak": 0 
+        "streak": 0
     }})
 
 
 @result_bp.route("/results", methods=["POST"])
 def save_result():
     data = request.json
+    if not data.get("user_id") or not data.get("total_questions"):
+        return jsonify({"message": "Missing required fields"}), 400
+
+    total = data["total_questions"]
+    correct = data["correct_answers"]
+    percent = round((correct / total) * 100, 1) if total > 0 else 0
+
     result = TestResult(
         user_id=data["user_id"],
         school_id=data.get("school_id"),
         class_id=data.get("class_id"),
         subject_id=data.get("subject_id"),
         unit_id=data.get("unit_id"),
-        total_questions=data["total_questions"],
-        correct_answers=data["correct_answers"],
-        score_percent=round((data["correct_answers"] / data["total_questions"]) * 100, 1),
-        test_type=data.get("test_type", "subject_test"),
+        total_questions=total,
+        correct_answers=correct,
+        score_percent=percent,
+        test_type=data.get("test_type", "daily_random"),
         taken_at=datetime.now(timezone.utc)
     )
     db.session.add(result)
