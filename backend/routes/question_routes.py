@@ -3,10 +3,12 @@ from extension import db
 from models.question_model import Question
 from models.subject_model import Subject
 from models.unit_model import Unit
-from datetime import datetime
+from datetime import datetime, timezone
 import json
+import random as rnd
 
 question_bp = Blueprint("questions", __name__)
+
 
 @question_bp.route("/questions", methods=["POST"])
 def create_question():
@@ -24,13 +26,13 @@ def create_question():
         question_type=data["type"],
         class_id=data["class_id"],
         subject_id=data["subject_id"],
-        unit_id=data.get("unit_id"),      
-        school_id=data.get("school_id"),  
+        unit_id=data.get("unit_id"),
+        school_id=data.get("school_id"),
         answer_data=json.dumps(data.get("answer_data")),
         map_image=data.get("map_image"),
         status=1,
         created_by="admin",
-        created_at=datetime.utcnow()
+        created_at=datetime.now(timezone.utc)
     )
     db.session.add(question)
     db.session.commit()
@@ -53,7 +55,6 @@ def get_questions():
     questions = query.all()
     result = []
     for q in questions:
-        # Get unit name
         unit_name = None
         if q.unit_id:
             unit = Unit.query.get(q.unit_id)
@@ -82,11 +83,11 @@ def update_question(id):
     question.question_type = data["type"]
     question.class_id = data["class_id"]
     question.subject_id = data["subject_id"]
-    question.unit_id = data.get("unit_id")      
-    question.school_id = data.get("school_id")  
+    question.unit_id = data.get("unit_id")
+    question.school_id = data.get("school_id")
     question.answer_data = json.dumps(data.get("answer_data"))
     question.map_image = data.get("map_image")
-    question.updated_at = datetime.utcnow()
+    question.updated_at = datetime.now(timezone.utc)
     question.updated_by = "admin"
 
     db.session.commit()
@@ -97,14 +98,13 @@ def update_question(id):
 def delete_question(id):
     question = Question.query.get_or_404(id)
     question.status = 0
-    question.updated_at = datetime.utcnow()
+    question.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     return jsonify({"message": "Question deleted"})
 
 
 @question_bp.route("/subjects-by-class/<int:class_id>", methods=["GET"])
 def subjects_by_class(class_id):
-    from models.unit_model import Unit
     subjects = Subject.query.filter_by(status=1).all()
     result = []
     for s in subjects:
@@ -122,7 +122,6 @@ def subjects_by_class(class_id):
 
 @question_bp.route("/questions/daily-test", methods=["GET"])
 def daily_test():
-    import random as rnd
     class_id = request.args.get("class_id")
     school_id = request.args.get("school_id")
     limit = int(request.args.get("limit", 20))
@@ -130,13 +129,50 @@ def daily_test():
     if not class_id:
         return jsonify({"error": "class_id required"}), 400
 
-    questions = Question.query.filter_by(
-        class_id=int(class_id),
-        school_id=int(school_id) if school_id else Question.school_id,
-        status=1
-    ).all()
+    query = Question.query.filter_by(class_id=int(class_id), status=1)
+    if school_id and school_id != 'None':
+        query = query.filter_by(school_id=int(school_id))
+
+    questions = query.all()
+
+    if not questions:
+        return jsonify({"questions": [], "message": "No questions found for this class"})
 
     selected = rnd.sample(questions, min(limit, len(questions)))
+
+    result = [{
+        "id": q.id,
+        "question_text": q.question_text,   
+        "question_type": q.question_type,
+        "subject_id": q.subject_id,
+        "unit_id": q.unit_id,
+        "answer_data": json.loads(q.answer_data) if q.answer_data else None
+    } for q in selected]
+
+    return jsonify({"questions": result})
+
+@question_bp.route("/questions/subject-test", methods=["GET"])
+def subject_test():
+    class_id = request.args.get("class_id")
+    subject_id = request.args.get("subject_id")
+    unit_id = request.args.get("unit_id")
+    school_id = request.args.get("school_id")
+    limit = int(request.args.get("limit", 20))
+
+    query = Question.query.filter_by(status=1)
+    if class_id:   query = query.filter_by(class_id=int(class_id))
+    if subject_id: query = query.filter_by(subject_id=int(subject_id))
+    if unit_id and unit_id != 'all':
+        query = query.filter_by(unit_id=int(unit_id))
+    if school_id:  query = query.filter_by(school_id=int(school_id))
+
+    questions = query.all()
+
+    if not questions:
+        return jsonify({"questions": [], "message": "No questions found"})
+
+    selected = rnd.sample(questions, min(limit, len(questions)))
+
     result = [{
         "id": q.id,
         "question_text": q.question_text,

@@ -1,49 +1,81 @@
 <div class="min-h-screen bg-slate-50">
-      <div class="h-32 bg-gradient-to-r from-orange-600 to-orange-400 w-full absolute top-0 left-0"></div>
-      <div class="relative max-w-5xl mx-auto p-1">
-        <div class="mb-8">
-          <h1 class="text-3xl font-extrabold text-white">My Results</h1>
-          <p class="text-orange-100 text-sm">Your test history and scores</p>
-        </div>
-        <div class="bg-white rounded-xl shadow overflow-hidden">
-          <p-table [value]="results" styleClass="p-datatable-hoverable-rows">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Date</th>
-                <th>Subject</th>
-                <th>Unit</th>
-                <th>Score</th>
-                <th>Total</th>
-                <th>Percentage</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-r>
-              <tr>
-                <td>{{ r.taken_at | date:'dd MMM yyyy' }}</td>
-                <td>{{ r.subject_name || '-' }}</td>
-                <td>{{ r.unit_name || 'All Units' }}</td>
-                <td>{{ r.correct_answers }}</td>
-                <td>{{ r.total_questions }}</td>
-                <td>
-                  <span class="font-bold"
-                    [ngClass]="{
-                      'text-green-600': r.score_percent >= 70,
-                      'text-orange-600': r.score_percent >= 40 && r.score_percent < 70,
-                      'text-red-600': r.score_percent < 40
-                    }">
-                    {{ r.score_percent }}%
-                  </span>
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="6" class="text-center py-12 text-gray-400">
-                  No results yet. Take a quiz to see your scores here!
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
+  <div class="h-32 bg-gradient-to-r from-orange-600 to-orange-400 w-full absolute top-0 left-0"></div>
+
+  <div class="relative max-w-5xl mx-auto p-4">
+
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-extrabold text-white">My Results</h1>
+        <p class="text-orange-100 text-sm">Your test history and scores</p>
       </div>
+      <button pButton label="← Back to Home" severity="secondary"
+        (click)="router.navigate(['/home'])">
+      </button>
     </div>
+
+    <div *ngIf="loading" class="bg-white rounded-xl shadow p-12 text-center">
+      <i class="pi pi-spin pi-spinner text-3xl text-orange-500 mb-3 block"></i>
+      <p class="text-slate-500">Loading your results...</p>
+    </div>
+
+    <div *ngIf="!loading" class="bg-white rounded-xl shadow overflow-hidden">
+      <p-table [value]="results" [paginator]="true" [rows]="10"
+        styleClass="p-datatable-hoverable-rows">
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Subject</th>
+            <th>Unit</th>
+            <th>Score</th>
+            <th>Total</th>
+            <th>Percentage</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-r>
+          <tr>
+            <td>{{ r.taken_at | date:'dd MMM yyyy, h:mm a' }}</td>
+            <td>
+              <span class="text-xs font-semibold px-2 py-1 rounded-full bg-orange-100 text-orange-600">
+                {{ getTestTypeLabel(r.test_type) }}
+              </span>
+            </td>
+            <td>{{ r.subject_name || 'All Subjects' }}</td>
+            <td>{{ r.unit_name || 'All Units' }}</td>
+            <td class="font-bold">{{ r.correct_answers }}</td>
+            <td>{{ r.total_questions }}</td>
+            <td>
+              <span class="font-bold text-lg"
+                [ngClass]="{
+                  'text-green-600':  r.score_percent >= 70,
+                  'text-orange-600': r.score_percent >= 40 && r.score_percent < 70,
+                  'text-red-600':    r.score_percent < 40
+                }">
+                {{ r.score_percent }}%
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7" class="text-center py-16">
+              <div class="flex flex-col items-center gap-3">
+                <i class="pi pi-chart-bar text-5xl text-slate-200"></i>
+                <p class="text-slate-500 font-medium text-lg">No results yet</p>
+                <p class="text-slate-400 text-sm">Take a quiz to see your scores here!</p>
+                <button pButton label="Take a Quiz"
+                  styleClass="bg-orange-500 border-none mt-2"
+                  (click)="router.navigate(['/home'])">
+                </button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+    </div>
+  </div>
+</div>
