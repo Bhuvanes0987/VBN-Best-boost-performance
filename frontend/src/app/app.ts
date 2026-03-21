@@ -62,6 +62,7 @@ export class App {
   });
 
   userName = computed(() => this.userData()?.name || 'User');
+  userEmail = computed(() => this.userData()?.email || '');
   userRole = computed(() => this.userData()?.role || '');
 
   goTo(path: string) {

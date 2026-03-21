@@ -4,8 +4,11 @@
   <nav class="sticky top-0 z-50 flex h-16 items-center justify-between
               bg-gradient-to-r from-orange-600 via-orange-400 to-orange-600 px-6 shadow-md">
 
-    <span class="text-2xl font-bold text-white tracking-tight cursor-pointer"
-      (click)="goTo('/home')">QuizElevate</span>
+    <span class="flex items-center gap-2 text-2xl font-bold text-white tracking-tight cursor-pointer"
+      (click)="goTo('/home')">
+      <img src="/vbn-logo.jpg" alt="VBN" class="w-6 h-6 md:w-7 md:h-7 rounded-sm object-contain" />
+      <span>VBN Boost Performance</span>
+    </span>
 
     <div class="flex items-center gap-4">
 
@@ -119,6 +122,7 @@
               styleClass="bg-orange-500 text-white" />
             <div>
               <p class="text-sm font-medium text-white">{{ userName() }}</p>
+              <p class="text-sm font-medium text-white">{{ userEmail() }}</p>
               <p class="text-xs text-orange-400 capitalize">{{ userRole() || 'User' }}</p>
             </div>
           </div>
