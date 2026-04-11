@@ -96,15 +96,7 @@ def save_result():
 
 @result_bp.route("/results/leaderboard", methods=["GET"])
 def leaderboard():
-    """
-    Top N users ranked by best single-test score, avg score as tiebreaker.
-
-    Query params:
-      limit     – entries to return (default 10, max 1000)
-      school_id – optional: filter to one school
-      class_id  – optional: filter to one class
-    """
-    limit     = min(int(request.args.get("limit", 10)), 1000)
+    limit     = min(int(request.args.get("limit", 5)), 1000)
     school_id = request.args.get("school_id")
     class_id  = request.args.get("class_id")
 
@@ -118,6 +110,7 @@ def leaderboard():
         .group_by(TestResult.user_id)
     )
 
+    # Optional filters (ONLY if passed)
     if school_id:
         q = q.filter(TestResult.school_id == int(school_id))
     if class_id:
@@ -131,16 +124,26 @@ def leaderboard():
 
     board = []
     for rank, row in enumerate(rows, start=1):
-        user   = User.query.get(row.user_id)
-        school = School.query.get(user.school_id) \
-                 if user and getattr(user, "school_id", None) else None
+        user = User.query.get(row.user_id)
+
+        school = School.query.get(user.school_id) if user and user.school_id else None
+
+        class_name = None
+        if user and getattr(user, "class_id", None):
+            cls = db.session.execute(
+                "SELECT name FROM class WHERE id = :id",
+                {"id": user.class_id}
+            ).fetchone()
+            class_name = cls[0] if cls else None
+
         board.append({
             "rank":        rank,
             "user_id":     row.user_id,
             "name":        user.name if user else "Unknown",
             "school_name": school.name if school else None,
+            "class_name":  class_name,
             "best_score":  round(row.best_score or 0, 1),
-            "avg_score":   round(row.avg_score  or 0, 1),
+            "avg_score":   round(row.avg_score or 0, 1),
             "tests_taken": row.tests_taken,
         })
 

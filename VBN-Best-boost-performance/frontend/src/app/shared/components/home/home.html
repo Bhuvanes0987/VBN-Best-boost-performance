@@ -128,9 +128,10 @@
                   <span *ngIf="entry.user_id === currentUser?.id"
                         class="ml-1 text-xs text-orange-500 font-semibold">(You)</span>
                 </p>
-                <p *ngIf="entry.school_name" class="text-xs text-slate-400 truncate">
-                  {{ entry.school_name }}
-                </p>
+              <p class="text-xs text-slate-400 truncate">
+              <span *ngIf="entry.school_name">{{ entry.school_name }}</span>
+              <span *ngIf="entry.class_name"> · {{ entry.class_name }}</span>
+            </p>
               </div>
 
               <!-- Score + tests -->
@@ -156,7 +157,10 @@
             </div>
             <div class="flex-1">
               <p class="text-sm font-bold text-orange-700">{{ myRankEntry.name }} <span class="font-semibold text-xs">(You)</span></p>
-              <p *ngIf="myRankEntry.school_name" class="text-xs text-orange-400">{{ myRankEntry.school_name }}</p>
+              <p class="text-xs text-orange-400">
+                <span *ngIf="myRankEntry.school_name">{{ myRankEntry.school_name }}</span>
+                <span *ngIf="myRankEntry.class_name"> · {{ myRankEntry.class_name }}</span>
+              </p>
             </div>
             <div class="text-right">
               <p class="text-sm font-black text-orange-600">{{ myRankEntry.best_score }}%</p>

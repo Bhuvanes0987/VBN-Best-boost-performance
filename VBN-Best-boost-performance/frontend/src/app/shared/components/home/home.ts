@@ -83,27 +83,22 @@ export class Home implements OnInit {
   // ─── Leaderboard ──────────────────────────────────────────────────────────
 
   loadLeaderboard() {
-    this.leaderboardLoading = true;
+  this.leaderboardLoading = true;
 
-    // Build URL — optionally scope to the user's school
-    let url = `${this.api}/results/leaderboard?limit=10`;
-    if (this.schoolId) url += `&school_id=${this.schoolId}`;
+  const url = `${this.api}/results/leaderboard?limit=5`;
 
-    this.http.get(url).subscribe({
-      next: (res: any) => {
-        this.leaderboard        = res.leaderboard || [];
-        this.leaderboardLoading = false;
-        this.findMyRank();
-      },
-      error: () => { this.leaderboardLoading = false; }
-    });
-  }
-
-  /**
-   * If the current user appears in the top-10 list, `myRankEntry` points to
-   * that row. If not, we fetch the full leaderboard (limit=1000) to find
-   * their position — but only if they have taken at least one test.
-   */
+  this.http.get(url).subscribe({
+    next: (res: any) => {
+      this.leaderboard = res.leaderboard || [];
+      this.leaderboardLoading = false;
+      this.findMyRank();
+    },
+    error: () => {
+      this.leaderboardLoading = false;
+    }
+  });
+}
+ 
   private findMyRank() {
     const uid = this.currentUser?.id;
     if (!uid) return;
