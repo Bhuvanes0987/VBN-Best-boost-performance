@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { environment } from '../../../Environment/Environment';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -47,7 +48,7 @@ export class Login {
   }
   const credentials = { email: this.email, password: this.password };
 
-  this.http.post('http://127.0.0.1:8900/api/login', credentials)
+  this.http.post(`${environment.apiUrl}/api/login`, credentials)
     .subscribe({
       next: (res: any) => {
       if (res.success) {

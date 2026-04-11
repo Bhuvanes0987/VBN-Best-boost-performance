@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { environment } from '../../../Environment/Environment';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { InputTextModule } from 'primeng/inputtext';
@@ -36,7 +37,7 @@ export class Role implements OnInit {
   permissions: any[] = [];
   schools: any[] = [];
 
-  private api = 'http://127.0.0.1:8900';
+  private api = environment.apiUrl;
 
   constructor(
     private roleService: RoleService,

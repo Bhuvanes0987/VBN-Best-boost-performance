@@ -22,7 +22,7 @@
     <div class="pf-card" [class.has-success]="showSuccess">
 
       <!-- ── Order summary ── -->
-      <div class="pf-order-row">
+      <div class="pf-order-row" *ngIf="!showQrView && !showSuccess">
         <div class="pf-order-icon">🛒</div>
         <div class="pf-order-info">
           <div class="pf-order-name">VBN Boost Performance</div>
@@ -40,11 +40,71 @@
         <span class="pf-err-text">{{ errorMessage }}</span>
       </div>
 
-      <div *ngIf="!showSuccess">
-        <!-- ── Quick pay ── -->
+      <!-- ══════════════════════════════════════════════════════
+           QR VIEW OVERLAY (Replaces Methods completely)
+           ══════════════════════════════════════════════════════ -->
+      <div class="pf-qr-fullscreen-view" *ngIf="showQrView && !showSuccess">
+        
+        <div class="pf-qr-view-header">
+          <button class="pf-back-btn" (click)="cancelQrView()">
+            <span>←</span> Back to methods
+          </button>
+          <div class="pf-qr-view-brand">Pay via UPI</div>
+        </div>
+
+        <div class="pf-qr-view-body">
+          <div class="pf-qr-amount-large">{{ AMOUNT_DISPLAY }}</div>
+          <div class="pf-qr-subtitle">VBN Boost Performance</div>
+
+          <!-- Timer Expired State -->
+          <div class="pf-qr-expired" *ngIf="upiTimerExpired">
+            <div class="pf-expired-icon">⏱️</div>
+            <div class="pf-expired-title">QR Code Expired</div>
+            <div class="pf-expired-sub">The payment window has timed out</div>
+            <button class="pf-refresh-btn" (click)="refreshQr()">
+              <span>↻</span> Generate New QR
+            </button>
+          </div>
+
+          <!-- Active QR State -->
+          <div class="pf-qr-active-box" *ngIf="!upiTimerExpired">
+            
+            <div class="pf-qr-timer-pill" [class.warning]="upiTimer <= 60" [class.danger]="upiTimer <= 30">
+              <span class="pf-pill-dot"></span>
+              Time remaining: {{ upiTimerDisplay }}
+            </div>
+
+            <div class="pf-qr-image-wrapper">
+              <!-- REAL QR CODE IMAGE from API (Professional look) -->
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi%3A%2F%2Fpay%3Fpa%3Dvbn%40ybl%26pn%3DVBN%20Boost%20Performance%26am%3D1.00&color=202020&bgcolor=FFFFFF" 
+                   alt="Scan to Pay" class="pf-qr-real-img" />
+              
+              <div class="pf-qr-logo-center">
+                <div class="pf-qr-logo-inner">₹</div>
+              </div>
+            </div>
+
+            <div class="pf-qr-scan-hint">Scan with any UPI app</div>
+            <div class="pf-upi-apps-row">
+              <span class="pf-upi-app-badge">GPay</span>
+              <span class="pf-upi-app-badge">PhonePe</span>
+              <span class="pf-upi-app-badge">Paytm</span>
+              <span class="pf-upi-app-badge">BHIM</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
+           STANDARD METHODS SELECTION
+           ══════════════════════════════════════════════════════ -->
+      <div *ngIf="!showSuccess && !showQrView">
+        
         <div class="pf-sec-label">Quick Pay</div>
 
-        <!-- UPI Button -->
+        <!-- UPI Button (Now acts as standard radio) -->
         <button class="pf-method-full" [class.active]="activeMethod === 'upi'" (click)="selectMethod('upi')"
           [disabled]="isProcessing">
           <span class="pf-mf-icon">📱</span>
@@ -54,112 +114,6 @@
           </div>
           <span class="pf-check" *ngIf="activeMethod === 'upi'">✓</span>
         </button>
-
-        <!-- ══════════════════════════════════════════════════════
-             UPI EXPANDED PANEL
-             ══════════════════════════════════════════════════════ -->
-        <div class="pf-upi-panel" *ngIf="activeMethod === 'upi'">
-
-          <!-- UPI Mode Tabs -->
-          <div class="pf-upi-tabs">
-            <button class="pf-upi-tab" [class.active]="upiMode === 'qr'" (click)="setUpiMode('qr')">
-              <span>📷</span> Scan QR Code
-            </button>
-            <button class="pf-upi-tab" [class.active]="upiMode === 'id'" (click)="setUpiMode('id')">
-              <span>🔗</span> Enter UPI ID
-            </button>
-          </div>
-
-          <!-- QR Code Mode -->
-          <div class="pf-upi-qr-section" *ngIf="upiMode === 'qr'">
-
-            <!-- QR Loading -->
-            <div class="pf-qr-loading" *ngIf="qrGenerating">
-              <div class="pf-qr-spinner"></div>
-              <span>Generating QR Code...</span>
-            </div>
-
-            <!-- QR Code Display -->
-            <div class="pf-qr-container" *ngIf="showQrCode && !upiTimerExpired">
-              <!-- Timer Ring -->
-              <div class="pf-timer-ring">
-                <svg class="pf-timer-svg" viewBox="0 0 120 120">
-                  <circle class="pf-timer-bg" cx="60" cy="60" r="54" />
-                  <circle class="pf-timer-progress" cx="60" cy="60" r="54"
-                    [style.stroke-dasharray]="339.292"
-                    [style.stroke-dashoffset]="339.292 - (339.292 * upiTimerPercent / 100)"
-                    [class.warning]="upiTimer <= 60"
-                    [class.danger]="upiTimer <= 30" />
-                </svg>
-                <div class="pf-timer-text" [class.warning]="upiTimer <= 60" [class.danger]="upiTimer <= 30">
-                  {{ upiTimerDisplay }}
-                </div>
-              </div>
-
-              <!-- Fake QR (Razorpay generates real one) -->
-              <div class="pf-qr-box">
-                <div class="pf-qr-pattern">
-                  <div class="pf-qr-corner pf-qr-tl"></div>
-                  <div class="pf-qr-corner pf-qr-tr"></div>
-                  <div class="pf-qr-corner pf-qr-bl"></div>
-                  <div class="pf-qr-inner">
-                    <div class="pf-qr-dots">
-                      <span *ngFor="let d of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49]"
-                        class="pf-qr-dot" [class.filled]="d % 3 === 0 || d % 7 === 0 || d % 5 === 0"></span>
-                    </div>
-                  </div>
-                  <div class="pf-qr-logo">₹</div>
-                </div>
-              </div>
-
-              <div class="pf-qr-amount">Pay {{ AMOUNT_DISPLAY }}</div>
-              <div class="pf-qr-hint">Open any UPI app → Scan this QR → Confirm payment</div>
-
-              <div class="pf-upi-apps-row">
-                <span class="pf-upi-app-badge">GPay</span>
-                <span class="pf-upi-app-badge">PhonePe</span>
-                <span class="pf-upi-app-badge">Paytm</span>
-                <span class="pf-upi-app-badge">BHIM</span>
-              </div>
-            </div>
-
-            <!-- Timer Expired -->
-            <div class="pf-qr-expired" *ngIf="upiTimerExpired">
-              <div class="pf-expired-icon">⏱️</div>
-              <div class="pf-expired-title">QR Code Expired</div>
-              <div class="pf-expired-sub">The payment window has timed out</div>
-              <button class="pf-refresh-btn" (click)="refreshQr()">
-                <span>↻</span> Generate New QR
-              </button>
-            </div>
-
-            <!-- Generate QR Button (first time) -->
-            <button class="pf-generate-qr-btn" *ngIf="!showQrCode && !qrGenerating && !upiTimerExpired"
-              (click)="generateQr()">
-              <span>📷</span> Generate QR Code to Pay
-            </button>
-          </div>
-
-          <!-- UPI ID Mode -->
-          <div class="pf-upi-id-section" *ngIf="upiMode === 'id'">
-            <div class="pf-upi-id-box">
-              <label class="pf-upi-label">Enter your UPI ID</label>
-              <div class="pf-upi-input-wrap">
-                <span class="pf-upi-at">@</span>
-                <input type="text" class="pf-upi-input" [(ngModel)]="upiId" name="upiId"
-                  placeholder="yourname@upi" autocomplete="off" />
-                <span class="pf-upi-valid" *ngIf="isValidUpiId">✓</span>
-              </div>
-              <div class="pf-upi-id-hint">Example: name&#64;okaxis, name&#64;ybl, name&#64;paytm</div>
-            </div>
-
-            <button class="pf-upi-pay-btn" [disabled]="!isValidUpiId || isProcessing" (click)="payWithUpiId()">
-              <span class="pf-spinner" *ngIf="isProcessing"></span>
-              <span *ngIf="!isProcessing">Verify & Pay {{ AMOUNT_DISPLAY }}</span>
-              <span *ngIf="isProcessing">Processing...</span>
-            </button>
-          </div>
-        </div>
 
         <!-- Wallet Button -->
         <button class="pf-method-full" [class.active]="activeMethod === 'wallet'" (click)="selectMethod('wallet')"
@@ -172,9 +126,7 @@
           <span class="pf-check" *ngIf="activeMethod === 'wallet'">✓</span>
         </button>
 
-        <!-- ══════════════════════════════════════════════════════
-             WALLET EXPANDED PANEL
-             ══════════════════════════════════════════════════════ -->
+        <!-- Wallet Expanded Panel -->
         <div class="pf-wallet-panel" *ngIf="activeMethod === 'wallet'">
           <div class="pf-wallet-grid">
             <button class="pf-wallet-card" *ngFor="let w of wallets"
@@ -192,14 +144,6 @@
           <div class="pf-wallet-selected-info" *ngIf="selectedWallet">
             <span>💳</span> Pay {{ AMOUNT_DISPLAY }} with <strong>{{ getSelectedWalletName() }}</strong>
           </div>
-
-          <button class="pf-wallet-pay-btn" [disabled]="!selectedWallet || isProcessing"
-            (click)="payWithWallet()">
-            <span class="pf-spinner" *ngIf="isProcessing"></span>
-            <span *ngIf="!isProcessing && selectedWallet">Pay with {{ getSelectedWalletName() }}</span>
-            <span *ngIf="!isProcessing && !selectedWallet">Select a wallet</span>
-            <span *ngIf="isProcessing">Redirecting to {{ getSelectedWalletName() }}...</span>
-          </button>
         </div>
 
         <!-- ── Divider ── -->
@@ -268,17 +212,25 @@
       </div>
 
       <!-- ── Pay button (for card methods) ── -->
-      <button class="pf-pay-btn" (click)="pay()" *ngIf="!showSuccess && isCardMethod" [disabled]="isProcessing">
+      <button class="pf-pay-btn" (click)="pay()" *ngIf="!showSuccess && !showQrView && isCardMethod" [disabled]="isProcessing">
         <span class="pf-spinner" *ngIf="isProcessing"></span>
         <span *ngIf="!isProcessing">Pay {{ AMOUNT_DISPLAY }}</span>
         <span *ngIf="isProcessing">Opening Gateway…</span>
       </button>
 
-      <!-- ── Pay button (for UPI QR mode - opens Razorpay) ── -->
-      <button class="pf-pay-btn" (click)="pay()" *ngIf="!showSuccess && activeMethod === 'upi' && upiMode === 'qr'" [disabled]="isProcessing">
+      <!-- ── Pay button (for Wallet) ── -->
+      <button class="pf-pay-btn" (click)="payWithWallet()" *ngIf="!showSuccess && !showQrView && activeMethod === 'wallet'" [disabled]="isProcessing || !selectedWallet">
+        <span class="pf-spinner" *ngIf="isProcessing"></span>
+        <span *ngIf="!isProcessing && selectedWallet">Pay {{ AMOUNT_DISPLAY }} with {{ getSelectedWalletName() }}</span>
+        <span *ngIf="!isProcessing && !selectedWallet">Select a wallet</span>
+        <span *ngIf="isProcessing">Opening Wallet Gateway…</span>
+      </button>
+
+      <!-- ── Pay button (for UPI mode - opens QR View) ── -->
+      <button class="pf-pay-btn" (click)="generateQr()" *ngIf="!showSuccess && !showQrView && activeMethod === 'upi'" [disabled]="isProcessing">
         <span class="pf-spinner" *ngIf="isProcessing"></span>
         <span *ngIf="!isProcessing">Pay {{ AMOUNT_DISPLAY }} via UPI</span>
-        <span *ngIf="isProcessing">Opening UPI Gateway…</span>
+        <span *ngIf="isProcessing">Generating QR Code…</span>
       </button>
 
       <div class="pf-success-overlay" *ngIf="showSuccess">
@@ -297,7 +249,7 @@
         <button class="pf-s-again" (click)="reset()">Make Another Payment</button>
       </div>
 
-      <div class="pf-note">
+      <div class="pf-note" *ngIf="!showQrView">
         <span>🔒</span> 100% secure · PCI DSS compliant · No data stored
       </div>
 

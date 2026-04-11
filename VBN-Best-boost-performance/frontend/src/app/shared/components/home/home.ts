@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { environment } from '../../../Environment/Environment';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
@@ -25,7 +26,7 @@ import { QuestionService } from '../../services/question.service';
 export class Home implements OnInit {
 
   public router = inject(Router);
-  private api   = 'http://127.0.0.1:8900';
+  private api   = environment.apiUrl;
 
   constructor(
     private questionService: QuestionService,

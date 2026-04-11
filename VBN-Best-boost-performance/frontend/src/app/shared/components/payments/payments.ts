@@ -43,14 +43,13 @@ export class Payments implements OnInit, OnDestroy {
   inputCVV = '123';
 
   // ── UPI State ─────────────────────────────────────
+  showQrView = false;
   upiMode: 'qr' | 'id' = 'qr';
   upiId = '';
   upiTimer = 300; // 5 minutes in seconds
   upiTimerDisplay = '05:00';
   upiTimerPercent = 100;
   upiTimerExpired = false;
-  showQrCode = false;
-  qrGenerating = false;
   private upiTimerInterval: any = null;
 
   // ── Wallet State ──────────────────────────────────
@@ -104,10 +103,8 @@ export class Payments implements OnInit, OnDestroy {
     this.activeMethod = m;
     this.cardFlipped = false;
     this.clearAlerts();
-    this.stopUpiTimer();
-    this.showQrCode = false;
-    this.upiTimerExpired = false;
     this.selectedWallet = null;
+    this.cancelQrView();
   }
 
   flipCard(): void {
@@ -131,26 +128,37 @@ export class Payments implements OnInit, OnDestroy {
   }
 
   // ── UPI Methods ───────────────────────────────────
+  generateQr(): void {
+    if (this.isProcessing) return;
+    this.clearAlerts();
+    this.isProcessing = true;
+
+    // Simulate opening the QR code screen
+    setTimeout(() => {
+      this.isProcessing = false;
+      this.showQrView = true;
+      this.upiMode = 'qr';
+      this.startUpiTimer();
+    }, 600);
+  }
+
+  cancelQrView(): void {
+    this.showQrView = false;
+    this.stopUpiTimer();
+    this.upiId = '';
+  }
+
   setUpiMode(mode: 'qr' | 'id'): void {
     this.upiMode = mode;
-    if (mode === 'qr' && !this.showQrCode) {
-      this.generateQr();
+    if (mode === 'qr' && !this.upiTimerExpired) {
+      this.startUpiTimer();
+    } else {
+      this.stopUpiTimer();
     }
   }
 
-  generateQr(): void {
-    this.qrGenerating = true;
-    this.stopUpiTimer();
-
-    // Simulate QR generation (in real flow, Razorpay handles the QR)
-    setTimeout(() => {
-      this.qrGenerating = false;
-      this.showQrCode = true;
-      this.startUpiTimer();
-    }, 1200);
-  }
-
   startUpiTimer(): void {
+    this.stopUpiTimer();
     this.upiTimer = 300;
     this.upiTimerExpired = false;
     this.updateTimerDisplay();
@@ -162,7 +170,6 @@ export class Payments implements OnInit, OnDestroy {
       if (this.upiTimer <= 0) {
         this.stopUpiTimer();
         this.upiTimerExpired = true;
-        this.showQrCode = false;
       }
     }, 1000);
   }
@@ -182,9 +189,8 @@ export class Payments implements OnInit, OnDestroy {
   }
 
   refreshQr(): void {
-    this.showQrCode = false;
     this.upiTimerExpired = false;
-    this.generateQr();
+    this.startUpiTimer();
   }
 
   get isValidUpiId(): boolean {
@@ -209,12 +215,6 @@ export class Payments implements OnInit, OnDestroy {
     // Validation for wallet
     if (this.activeMethod === 'wallet' && !this.selectedWallet) {
       this.showErr('Please select a wallet to continue.');
-      return;
-    }
-
-    // Validation for UPI ID mode
-    if (this.activeMethod === 'upi' && this.upiMode === 'id' && !this.isValidUpiId) {
-      this.showErr('Please enter a valid UPI ID (e.g., name@upi).');
       return;
     }
 
@@ -289,6 +289,7 @@ export class Payments implements OnInit, OnDestroy {
             this.isProcessing = false;
             this.showSuccess = true;
             this.successPaymentId = verifyRes.payment_id;
+            this.showQrView = false;
           },
           error: () => {
             this.isProcessing = false;
@@ -380,7 +381,7 @@ export class Payments implements OnInit, OnDestroy {
     this.activeMethod = 'upi';
     this.cardFlipped = false;
     this.successPaymentId = '';
-    this.showQrCode = false;
+    this.showQrView = false;
     this.stopUpiTimer();
     this.upiTimerExpired = false;
     this.upiId = '';

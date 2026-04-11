@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { environment } from '../../../Environment/Environment';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -29,7 +30,7 @@ export class ForgotPassword {
     }
 
     this.loading = true
-    this.http.post('http://127.0.0.1:8900/api/forgot-password', { email: this.email })
+    this.http.post(`${environment.apiUrl}/api/forgot-password`, { email: this.email })
       .subscribe({
         next: (res: any) => {
           this.loading = false

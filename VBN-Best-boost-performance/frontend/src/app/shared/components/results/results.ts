@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { environment } from '../../../Environment/Environment';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { TableModule } from 'primeng/table';
@@ -15,7 +16,7 @@ export class Results implements OnInit {
 
   results: any[] = [];
   loading = true;
-  private api = 'http://127.0.0.1:8900';
+  private api = environment.apiUrl;
   currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
   constructor(

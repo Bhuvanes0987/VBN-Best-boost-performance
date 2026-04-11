@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { environment } from '../../../Environment/Environment';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -51,7 +52,7 @@ export class ResetPassword implements OnInit {
     }
 
     this.loading = true
-    this.http.post('http://127.0.0.1:8900/api/reset-password', {
+    this.http.post(`${environment.apiUrl}/api/reset-password`, {
       token: this.token,
       password: this.password
     }).subscribe({

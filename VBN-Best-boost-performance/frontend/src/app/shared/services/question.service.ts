@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../Environment/Environment';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable({
@@ -6,31 +7,31 @@ import { HttpClient } from '@angular/common/http';
 })
 export class QuestionService {
 
-  api = "http://127.0.0.1:8900";
+  api = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  getClasses(){
+  getClasses() {
     return this.http.get(`${this.api}/classes`);
   }
 
-  getSubjectsByClass(classId:number){
+  getSubjectsByClass(classId: number) {
     return this.http.get(`${this.api}/subjects-by-class/${classId}`);
   }
 
-  createQuestion(data:any){
-    return this.http.post(`${this.api}/questions`,data);
+  createQuestion(data: any) {
+    return this.http.post(`${this.api}/questions`, data);
   }
 
-  getQuestions(){
+  getQuestions() {
     return this.http.get(`${this.api}/questions`);
   }
 
-  updateQuestion(id:number,data:any){
-    return this.http.put(`${this.api}/questions/${id}`,data);
+  updateQuestion(id: number, data: any) {
+    return this.http.put(`${this.api}/questions/${id}`, data);
   }
 
-  deleteQuestion(id:number){
+  deleteQuestion(id: number) {
     return this.http.delete(`${this.api}/questions/${id}`);
   }
 

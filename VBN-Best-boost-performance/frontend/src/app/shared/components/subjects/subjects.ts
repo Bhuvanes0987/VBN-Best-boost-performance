@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { environment } from '../../../Environment/Environment';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -44,7 +45,7 @@ export class Subjects implements OnInit {
     { unit_name: '', unit_number: 1 }
   ];
 
-  private api = 'http://127.0.0.1:8900';
+  private api = environment.apiUrl;
 
   constructor(
     private subjectService: SubjectService,

@@ -1,34 +1,35 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../Environment/Environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
-providedIn: 'root'
+    providedIn: 'root'
 })
 export class SubjectService {
 
-API = "http://127.0.0.1:8900";
+    API = environment.apiUrl;
 
-constructor(private http:HttpClient){}
+    constructor(private http: HttpClient) { }
 
-getSubjects():Observable<any>{
-return this.http.get(`${this.API}/subjects`);
-}
+    getSubjects(): Observable<any> {
+        return this.http.get(`${this.API}/subjects`);
+    }
 
-createSubject(data:any):Observable<any>{
-return this.http.post(`${this.API}/subjects`,data);
-}
+    createSubject(data: any): Observable<any> {
+        return this.http.post(`${this.API}/subjects`, data);
+    }
 
-updateSubject(id:number,data:any):Observable<any>{
-return this.http.put(`${this.API}/subjects/${id}`,data);
-}
+    updateSubject(id: number, data: any): Observable<any> {
+        return this.http.put(`${this.API}/subjects/${id}`, data);
+    }
 
-deleteSubject(id:number):Observable<any>{
-return this.http.delete(`${this.API}/subjects/${id}`);
-}
+    deleteSubject(id: number): Observable<any> {
+        return this.http.delete(`${this.API}/subjects/${id}`);
+    }
 
-getClasses():Observable<any>{
-return this.http.get(`${this.API}/classes`);
-}
+    getClasses(): Observable<any> {
+        return this.http.get(`${this.API}/classes`);
+    }
 
 }

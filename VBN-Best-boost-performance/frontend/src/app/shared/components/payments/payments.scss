@@ -118,6 +118,7 @@
     position: relative;
     box-shadow: 0 4px 40px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
     overflow: hidden;
+    min-height: 520px; // ensure the QR view doesn't shrink the card
 }
 
 // ── Order row ──────────────────────────────────────────────
@@ -258,215 +259,171 @@
     flex-shrink: 0;
 }
 
+
 // ══════════════════════════════════════════════════════════════
-// ── UPI PANEL ────────────────────────────────────────────────
+// ── QR FULLSCREEN VIEW (Overlay Mode) ─────────────────────────
 // ══════════════════════════════════════════════════════════════
 
-.pf-upi-panel {
-    background: linear-gradient(135deg, #FFFAF5, #FFF7ED);
-    border: 1px solid #FFE4CC;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 12px;
-    animation: slideDown 0.3s ease;
+.pf-qr-fullscreen-view {
+    animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
-@keyframes slideDown {
-    from { opacity: 0; max-height: 0; transform: translateY(-8px); }
-    to { opacity: 1; max-height: 800px; transform: translateY(0); }
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-// UPI Mode Tabs
-.pf-upi-tabs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 10px;
-    padding: 4px;
-    margin-bottom: 18px;
-}
-
-.pf-upi-tab {
+.pf-qr-view-header {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px 8px;
-    border: none;
-    border-radius: 8px;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px dashed var(--border);
+}
+
+.pf-back-btn {
     background: transparent;
-    font-family: var(--font);
-    font-size: 12px;
-    font-weight: 600;
+    border: none;
     color: var(--sub);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    transition: color 0.2s;
 
     &:hover {
-        background: rgba(249, 115, 22, 0.06);
-        color: var(--o);
+        color: var(--text);
     }
-
-    &.active {
-        background: #fff;
-        color: var(--o);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-
+    
     span {
-        font-size: 14px;
+        font-size: 18px;
     }
 }
 
-// QR Section
-.pf-upi-qr-section {
-    text-align: center;
+.pf-qr-view-brand {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--o);
 }
 
-// QR Loading
-.pf-qr-loading {
+.pf-qr-view-body {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    padding: 40px 0;
-    color: var(--sub);
+    text-align: center;
+}
+
+.pf-qr-amount-large {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: -1px;
+    margin-bottom: 4px;
+}
+
+.pf-qr-subtitle {
     font-size: 13px;
-    font-weight: 500;
+    color: var(--sub);
+    margin-bottom: 24px;
 }
 
-.pf-qr-spinner {
-    width: 36px;
-    height: 36px;
-    border: 3px solid rgba(249, 115, 22, 0.15);
-    border-top-color: var(--o);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-// Timer Ring
-.pf-timer-ring {
-    position: relative;
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 16px;
-}
-
-.pf-timer-svg {
-    width: 80px;
-    height: 80px;
-    transform: rotate(-90deg);
-}
-
-.pf-timer-bg {
-    fill: none;
-    stroke: rgba(249, 115, 22, 0.12);
-    stroke-width: 6;
-}
-
-.pf-timer-progress {
-    fill: none;
-    stroke: var(--o);
-    stroke-width: 6;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 1s linear, stroke 0.3s;
-
-    &.warning { stroke: #F59E0B; }
-    &.danger { stroke: #EF4444; }
-}
-
-.pf-timer-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-family: var(--mono);
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--o);
-
-    &.warning { color: #F59E0B; }
-    &.danger { color: #EF4444; }
-}
-
-// QR Box
-.pf-qr-container {
+.pf-qr-active-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
     animation: fadeIn 0.4s ease;
 }
 
-.pf-qr-box {
-    width: 180px;
-    height: 180px;
-    margin: 0 auto 14px;
-    background: #fff;
-    border-radius: 16px;
-    border: 2px solid var(--border);
+// Timer Pill
+.pf-qr-timer-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10B981;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--mono);
+    margin-bottom: 24px;
+
+    .pf-pill-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #10B981;
+        animation: pulse 1.5s infinite;
+    }
+
+    &.warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: #F59E0B;
+        .pf-pill-dot { background: #F59E0B; }
+    }
+
+    &.danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: #EF4444;
+        .pf-pill-dot { background: #EF4444; }
+    }
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+// Real QR Image Box
+.pf-qr-image-wrapper {
+    position: relative;
+    width: 220px;
+    height: 220px;
     padding: 12px;
-    position: relative;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
 }
 
-.pf-qr-pattern {
+.pf-qr-real-img {
     width: 100%;
     height: 100%;
-    position: relative;
+    display: block;
+    // ensure QR fills nicely
+    object-fit: contain;
 }
 
-.pf-qr-corner {
-    position: absolute;
-    width: 28px;
-    height: 28px;
-    border: 4px solid var(--text);
-    border-radius: 4px;
-
-    &::after {
-        content: '';
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        background: var(--text);
-        border-radius: 2px;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-}
-
-.pf-qr-tl { top: 0; left: 0; }
-.pf-qr-tr { top: 0; right: 0; }
-.pf-qr-bl { bottom: 0; left: 0; }
-
-.pf-qr-inner {
-    position: absolute;
-    top: 32px;
-    left: 32px;
-    right: 4px;
-    bottom: 4px;
-}
-
-.pf-qr-dots {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
-    width: 100%;
-    height: 100%;
-}
-
-.pf-qr-dot {
-    border-radius: 1px;
-    background: rgba(0, 0, 0, 0.06);
-
-    &.filled {
-        background: var(--text);
-    }
-}
-
-.pf-qr-logo {
+.pf-qr-logo-center {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+    background: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.pf-qr-logo-inner {
     width: 32px;
     height: 32px;
     background: var(--o);
@@ -477,75 +434,67 @@
     color: #fff;
     font-size: 16px;
     font-weight: 800;
-    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
 }
 
-.pf-qr-amount {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--text);
-    margin-bottom: 6px;
-}
-
-.pf-qr-hint {
-    font-size: 11px;
+.pf-qr-scan-hint {
+    font-size: 12px;
+    font-weight: 600;
     color: var(--sub);
-    margin-bottom: 14px;
-    line-height: 1.5;
+    margin-bottom: 12px;
 }
 
 .pf-upi-apps-row {
     display: flex;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
 }
 
 .pf-upi-app-badge {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--sub);
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 4px 10px;
+    padding: 6px 14px;
 }
 
-// QR Expired
+// QR Expired State
 .pf-qr-expired {
-    padding: 30px 0;
+    padding: 60px 0;
     text-align: center;
     animation: fadeIn 0.3s ease;
 }
 
 .pf-expired-icon {
-    font-size: 42px;
-    margin-bottom: 10px;
+    font-size: 48px;
+    margin-bottom: 16px;
 }
 
 .pf-expired-title {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 20px;
+    font-weight: 800;
     color: var(--text);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .pf-expired-sub {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--sub);
-    margin-bottom: 16px;
+    margin-bottom: 24px;
 }
 
 .pf-refresh-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 22px;
+    gap: 8px;
+    padding: 14px 28px;
     border: 2px solid var(--o);
-    border-radius: 10px;
+    border-radius: 12px;
     background: #fff;
     color: var(--o);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     font-family: var(--font);
     cursor: pointer;
@@ -553,146 +502,14 @@
 
     &:hover {
         background: var(--o4);
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
     }
 
     span {
-        font-size: 16px;
+        font-size: 18px;
     }
 }
 
-// Generate QR Button
-.pf-generate-qr-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 14px;
-    border: 2px dashed #FFB380;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.6);
-    color: var(--o);
-    font-size: 14px;
-    font-weight: 700;
-    font-family: var(--font);
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover {
-        background: #fff;
-        border-color: var(--o);
-        box-shadow: 0 4px 16px rgba(249, 115, 22, 0.15);
-    }
-
-    span { font-size: 18px; }
-}
-
-// UPI ID Section
-.pf-upi-id-section {
-    animation: fadeIn 0.3s ease;
-}
-
-.pf-upi-id-box {
-    margin-bottom: 14px;
-}
-
-.pf-upi-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 8px;
-}
-
-.pf-upi-input-wrap {
-    display: flex;
-    align-items: center;
-    background: #fff;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    padding: 0 14px;
-    transition: border-color 0.2s;
-
-    &:focus-within {
-        border-color: var(--o);
-        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-    }
-}
-
-.pf-upi-at {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--o);
-    margin-right: 8px;
-}
-
-.pf-upi-input {
-    flex: 1;
-    border: none;
-    outline: none;
-    padding: 14px 0;
-    font-family: var(--mono);
-    font-size: 15px;
-    color: var(--text);
-    background: transparent;
-
-    &::placeholder {
-        color: #D1D5DB;
-    }
-}
-
-.pf-upi-valid {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: #10B981;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes scaleIn {
-    from { transform: scale(0); }
-    to { transform: scale(1); }
-}
-
-.pf-upi-id-hint {
-    font-size: 11px;
-    color: var(--sub);
-    margin-top: 8px;
-    padding-left: 2px;
-}
-
-.pf-upi-pay-btn {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--o) 0%, #FB923C 100%);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 700;
-    font-family: var(--font);
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.35);
-
-    &:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 24px rgba(249, 115, 22, 0.45);
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-    }
-}
 
 // ══════════════════════════════════════════════════════════════
 // ── WALLET PANEL ─────────────────────────────────────────────
@@ -705,6 +522,11 @@
     padding: 20px;
     margin-bottom: 12px;
     animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; max-height: 0; transform: translateY(-8px); }
+    to { opacity: 1; max-height: 800px; transform: translateY(0); }
 }
 
 .pf-wallet-grid {
@@ -795,32 +617,6 @@
     strong {
         color: var(--o);
         font-weight: 700;
-    }
-}
-
-.pf-wallet-pay-btn {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--o) 0%, #FB923C 100%);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 700;
-    font-family: var(--font);
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.35);
-
-    &:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 24px rgba(249, 115, 22, 0.45);
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
     }
 }
 
@@ -1388,11 +1184,6 @@
 
     .pf-wallet-grid {
         grid-template-columns: repeat(2, 1fr);
-    }
-
-    .pf-qr-box {
-        width: 160px;
-        height: 160px;
     }
 }
 

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../Environment/Environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -7,31 +8,31 @@ import { Observable } from 'rxjs';
 })
 export class UserService {
 
-  private API = "http://127.0.0.1:8900";
+  private API = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getUsers(): Observable<any> {
     return this.http.get(`${this.API}/users`);
   }
 
-  createUser(data:any): Observable<any> {
+  createUser(data: any): Observable<any> {
     return this.http.post(`${this.API}/users`, data);
   }
 
-  updateUser(id:number, data:any): Observable<any> {
+  updateUser(id: number, data: any): Observable<any> {
     return this.http.put(`${this.API}/users/${id}`, data);
   }
 
-  deleteUser(id:number): Observable<any> {
+  deleteUser(id: number): Observable<any> {
     return this.http.delete(`${this.API}/users/${id}`);
   }
 
-  getRoles(): Observable<any>{
+  getRoles(): Observable<any> {
     return this.http.get(`${this.API}/roles/all`);
   }
 
-  assignRole(userId:number, payload:any): Observable<any>{
+  assignRole(userId: number, payload: any): Observable<any> {
     return this.http.post(`${this.API}/users/${userId}/role`, payload);
   }
 

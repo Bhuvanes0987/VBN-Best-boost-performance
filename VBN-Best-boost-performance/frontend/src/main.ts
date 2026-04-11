@@ -9,10 +9,10 @@ import { provideHttpClient } from '@angular/common/http';
 
 bootstrapApplication(App, {
   providers: [
-    provideHttpClient (),
+    provideHttpClient(),
     provideAnimations(),
     MessageService,
-    ...(appConfig.providers || []), 
+    ...(appConfig.providers || []),
     providePrimeNG({
       theme: {
         preset: CustomPreset,

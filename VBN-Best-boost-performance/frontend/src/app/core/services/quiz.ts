@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
+import { environment } from '../../Environment/Environment';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -10,7 +12,7 @@ export class Quiz {
   getQuiz(classId:number,subjectId:number){
 
     return this.http.get(
-      `http://localhost:8900/quiz?class_id=${classId}&subject_id=${subjectId}`
+      `${environment.apiUrl}/quiz?class_id=${classId}&subject_id=${subjectId}`
     )
 
   }

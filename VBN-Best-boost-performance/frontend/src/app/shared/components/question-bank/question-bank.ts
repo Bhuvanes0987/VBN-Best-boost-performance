@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { environment } from '../../../Environment/Environment';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
@@ -41,7 +42,7 @@ export class QuestionBank implements OnInit {
     private messageService: MessageService
   ) {}
 
-  private api = 'http://127.0.0.1:8900';
+  private api = environment.apiUrl;
 
   // ─── Drawer ───────────────────────────────────────────────────────────────
   drawerVisible = false;

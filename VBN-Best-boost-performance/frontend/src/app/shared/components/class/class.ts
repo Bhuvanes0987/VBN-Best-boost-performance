@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { environment } from '../../../Environment/Environment';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
@@ -32,7 +33,7 @@ export class Class implements OnInit {
   showDialog = false;
   editMode = false;
   selectedId: number | null = null;
-  private api = 'http://127.0.0.1:8900';
+  private api = environment.apiUrl;
 
   constructor(
     private classService: ClassService,
