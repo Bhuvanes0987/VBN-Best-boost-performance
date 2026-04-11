@@ -1,0 +1,94 @@
+<div class="min-h-screen flex overflow-hidden">
+
+  <!-- LEFT: orange background with WHITE floating symbols -->
+  <div class="hidden lg:flex w-1/2 relative items-center justify-center
+              bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 p-20 overflow-hidden">
+
+    <app-login-background
+      [symbolColor]="'white'"
+      class="absolute inset-0 w-full h-full z-0">
+    </app-login-background>
+
+    <div class="absolute w-[400px] h-[400px] bg-white/10 rounded-full blur-[120px] top-[-100px] left-[-100px]"></div>
+
+    <div class="relative z-10 text-white text-center">
+      <div class="flex items-center justify-center gap-4 mb-6">
+        <img src="/vbn-logo.jpg" alt="VBN Logo"
+             class="w-16 h-16 md:w-24 md:h-24 object-contain bg-transparent">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
+          VBN Boost Performance
+        </h1>
+      </div>
+      <p class="text-lg opacity-90 mb-8 max-w-md text-white">
+        Challenge your knowledge, climb the leaderboard and win exciting prizes.
+      </p>
+    </div>
+  </div>
+
+  <!-- RIGHT: white background with ORANGE floating symbols -->
+  <div class="flex-1 flex items-center justify-center p-8 bg-white relative overflow-hidden">
+
+    <app-login-background
+      [symbolColor]="'orange'"
+      class="absolute inset-0 w-full h-full z-0">
+    </app-login-background>
+
+    <div class="w-full max-w-md bg-white border-2 border-orange-500
+                rounded-3xl shadow-xl p-10 relative z-10">
+
+      <div class="text-center mb-10">
+        <h2 class="text-3xl font-bold text-orange-500 mb-2">Welcome Back</h2>
+        <p class="text-orange-400 text-sm">Log in to continue</p>
+      </div>
+
+      <div class="flex flex-col gap-6">
+
+        <div class="flex flex-col gap-2">
+          <label class="text-xs text-orange-500 uppercase font-bold tracking-widest">Email</label>
+          <input
+            pInputText
+            [(ngModel)]="email"
+            placeholder="Enter your email"
+            class="w-full p-4 bg-white text-orange-500 placeholder-orange-300
+                   rounded-xl border border-orange-200
+                   focus:ring-2 focus:ring-orange-500 outline-none"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-xs text-orange-500 uppercase font-bold tracking-widest">Password</label>
+          <p-password
+            [(ngModel)]="password"
+            [feedback]="false"
+            [toggleMask]="true"
+            styleClass="w-full"
+            inputStyleClass="w-full p-4 bg-white text-orange-500 rounded-xl border border-orange-200 focus:ring-2 focus:ring-orange-500"
+            placeholder="Enter your password">
+          </p-password>
+        </div>
+
+        <div class="text-right">
+          <a routerLink="/forgot-password" class="text-sm text-orange-500 hover:text-orange-400">
+            Forgot Password?
+          </a>
+        </div>
+
+        <button
+          (click)="login()"
+          class="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600
+                 hover:from-orange-600 hover:to-orange-700
+                 text-white font-bold text-lg rounded-xl shadow-lg
+                 transition transform hover:scale-[1.02] active:scale-95">
+          Start Playing
+        </button>
+
+        <p class="text-center text-orange-400 text-sm">
+          Don't have an account?
+          <a routerLink="/signup" class="text-orange-500 hover:text-orange-400 font-semibold ml-1">Sign Up</a>
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+</div>

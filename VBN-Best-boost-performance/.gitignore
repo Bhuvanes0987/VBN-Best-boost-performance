@@ -1,0 +1,112 @@
+
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+
+# ===================================
+# Node / Angular (frontend)
+# ===================================
+/node_modules/
+/dist/
+/tmp/
+/out-tsc/
+/bazel-out/
+/connect.lock
+/coverage/
+/libpeerconnection.log
+testem.log
+/typings
+/.angular/cache
+__screenshots__/
+
+# ===================================
+# Python (backend)
+# ===================================
+# Virtual environments
+venv/
+.env/
+ENV/
+env/
+*.env
+.venv
+
+# Python cache / compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# SQLite / database
+*.sqlite3
+*.db
+
+# ===================================
+# IDEs and Editors
+# ===================================
+.vscode/
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+*.sublime-workspace
+.history/
+
+# Allow VS Code project settings (optional)
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ===================================
+# Miscellaneous
+# ===================================
+# Temporary or generated files
+*.bak
+*.tmp
+*.temp
+/.cache/
+/.angular/
+.angular/
+node_modules/
+dist/
+/coverage/
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log

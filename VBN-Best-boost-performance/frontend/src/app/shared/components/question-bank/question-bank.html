@@ -1,0 +1,576 @@
+<p-toast position="top-right" />
+<p-confirmpopup />
+
+<div class="min-h-screen bg-slate-50">
+  <div class="h-32 bg-gradient-to-r from-orange-600 to-orange-400 w-full absolute top-0 left-0"></div>
+
+  <div class="relative max-w-6xl mx-auto p-1">
+
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-3xl font-extrabold text-white">Question Bank</h1>
+        <p class="text-orange-100 text-sm">Manage questions by school, class, subject and unit</p>
+      </div>
+      <p-button label="Add Question" icon="pi pi-plus"
+        styleClass="bg-white text-orange-600 border-none shadow"
+        (click)="openDrawer()">
+      </p-button>
+    </div>
+
+    <!-- MULTI-SELECT FILTERS -->
+    <div class="bg-white rounded-xl shadow p-4 mb-4">
+      <div class="grid grid-cols-4 gap-3">
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs text-slate-500 font-semibold uppercase tracking-wide">School</label>
+          <p-multiselect
+            [options]="schools"
+            [(ngModel)]="filterSchools"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="All Schools"
+            (onChange)="onFilterSchoolChange()"
+            styleClass="w-full"
+            display="chip">
+          </p-multiselect>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Class</label>
+          <p-multiselect
+            [options]="filterClasses"
+            [(ngModel)]="filterSelectedClasses"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="All Classes"
+            [disabled]="!filterSchools.length"
+            (onChange)="onFilterClassChange()"
+            styleClass="w-full"
+            display="chip">
+          </p-multiselect>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Subject</label>
+          <p-multiselect
+            [options]="filterSubjects"
+            [(ngModel)]="filterSelectedSubjects"
+            optionLabel="subject_name"
+            optionValue="id"
+            placeholder="All Subjects"
+            [disabled]="!filterSelectedClasses.length"
+            (onChange)="onFilterSubjectChange()"
+            styleClass="w-full"
+            display="chip">
+          </p-multiselect>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs text-slate-500 font-semibold uppercase tracking-wide">Unit</label>
+          <p-multiselect
+            [options]="filterUnits"
+            [(ngModel)]="filterSelectedUnits"
+            optionLabel="unit_name"
+            optionValue="id"
+            placeholder="All Units"
+            [disabled]="!filterSelectedSubjects.length"
+            (onChange)="loadQuestions()"
+            styleClass="w-full"
+            display="chip">
+          </p-multiselect>
+        </div>
+
+      </div>
+
+      <!-- Clear filters -->
+      <div class="flex justify-end mt-2">
+        <button (click)="clearFilters()"
+                class="text-xs text-slate-400 hover:text-orange-500 transition-colors flex items-center gap-1 cursor-pointer">
+          <i class="pi pi-filter-slash"></i> Clear filters
+        </button>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+      <p-table [value]="questions" [paginator]="true" [rows]="10"
+        styleClass="p-datatable-hoverable-rows">
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th>ID</th>
+            <th>Question</th>
+            <th>Type</th>
+            <th>School</th>
+            <th>Unit</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-q>
+          <tr>
+            <td>{{ q.id }}</td>
+            <td class="max-w-xs">
+              <span class="line-clamp-2 text-sm">{{ q.question_text }}</span>
+            </td>
+            <td>
+              <span class="px-2 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-600">
+                {{ q.question_type | uppercase }}
+              </span>
+            </td>
+            <td>
+              <span class="text-xs text-purple-600 font-medium">
+                {{ getSchoolName(q.school_id) }}
+              </span>
+            </td>
+            <td>
+              <span *ngIf="q.unit_name"
+                class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
+                {{ q.unit_name }}
+              </span>
+              <span *ngIf="!q.unit_name" class="text-gray-400 text-xs">-</span>
+            </td>
+            <td class="text-center">
+              <div class="flex justify-center gap-2">
+                <p-button icon="pi pi-play" [text]="true" severity="success"
+                  pTooltip="Preview & Answer" (click)="openPreview(q)">
+                </p-button>
+                <p-button icon="pi pi-pencil" [text]="true" severity="secondary"
+                  pTooltip="Edit" (click)="editQuestion(q)">
+                </p-button>
+                <p-button icon="pi pi-trash" [text]="true" severity="danger"
+                  pTooltip="Delete" (click)="confirmDelete($event, q.id)">
+                </p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="text-center py-12">
+              <div class="flex flex-col items-center gap-2">
+                <i class="pi pi-question-circle text-4xl text-slate-300"></i>
+                <p class="text-slate-500 font-medium">No Questions Yet</p>
+                <p class="text-sm text-slate-400">Click "Add Question" to get started.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+    </div>
+  </div>
+
+  <!-- ===================== ADD / EDIT DRAWER ===================== -->
+  <p-drawer [(visible)]="drawerVisible" position="right"
+    [style]="{ width: '900px' }"
+    styleClass="!bg-slate-900 !text-white">
+
+    <ng-template pTemplate="header">
+      <span class="font-bold text-xl text-orange-400">
+        {{ editMode ? 'Edit Question' : 'Add Question' }}
+      </span>
+    </ng-template>
+
+    <div class="flex flex-col gap-5 overflow-y-auto pr-2 pb-6">
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-slate-300 text-sm">School *</label>
+          <p-select [options]="schools" optionLabel="name" optionValue="id"
+            [(ngModel)]="selectedSchool" (onChange)="onSchoolChange()"
+            placeholder="Select School">
+          </p-select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-slate-300 text-sm">Class *</label>
+          <p-select [options]="classes" optionLabel="name"
+            [(ngModel)]="selectedClass" (onChange)="onClassChange()"
+            placeholder="Select Class" [disabled]="!selectedSchool">
+          </p-select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-slate-300 text-sm">Subject *</label>
+          <p-select [options]="subjects" optionLabel="subject_name"
+            [(ngModel)]="selectedSubject" (onChange)="onSubjectChange()"
+            placeholder="Select Subject" [disabled]="!selectedClass">
+          </p-select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-slate-300 text-sm">
+            Unit <span class="text-slate-500 text-xs">(optional)</span>
+          </label>
+          <p-select [options]="units" optionLabel="unit_name"
+            [(ngModel)]="selectedUnit" placeholder="Select Unit"
+            [disabled]="!selectedSubject">
+          </p-select>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-slate-300 text-sm">Question Type *</label>
+        <p-select [options]="types" optionLabel="name" optionValue="value"
+          [(ngModel)]="questionType" (onChange)="onTypeChange()"
+          placeholder="Select Type">
+        </p-select>
+      </div>
+
+      <!-- SYMBOL TOOLBAR + QUESTION TEXT -->
+      <div class="flex flex-col gap-2">
+        <label class="text-slate-300 text-sm">Question *</label>
+        <div class="flex flex-wrap gap-2 bg-slate-800 p-2 rounded-md border border-slate-700">
+          <p-button label="+" pTooltip="Addition"           (click)="insertSymbol('+')"  size="small"></p-button>
+          <p-button label="−" pTooltip="Subtraction"        (click)="insertSymbol('−')"  size="small"></p-button>
+          <p-button label="×" pTooltip="Multiplication"     (click)="insertSymbol('×')"  size="small"></p-button>
+          <p-button label="÷" pTooltip="Division"           (click)="insertSymbol('÷')"  size="small"></p-button>
+          <p-button label="=" pTooltip="Equal"              (click)="insertSymbol('=')"  size="small"></p-button>
+          <p-button label="≠" pTooltip="Not equal"          (click)="insertSymbol('≠')"  size="small"></p-button>
+          <p-button label="≈" pTooltip="Approximately"      (click)="insertSymbol('≈')"  size="small"></p-button>
+          <p-button label="√" pTooltip="Square root"        (click)="insertSymbol('√')"  size="small"></p-button>
+          <p-button label="∛" pTooltip="Cube root"          (click)="insertSymbol('∛')"  size="small"></p-button>
+          <p-button label="^" pTooltip="Power"              (click)="insertSymbol('^')"  size="small"></p-button>
+          <p-button label="±" pTooltip="Plus minus"         (click)="insertSymbol('±')"  size="small"></p-button>
+          <p-button label="∞" pTooltip="Infinity"           (click)="insertSymbol('∞')"  size="small"></p-button>
+          <p-button label="∝" pTooltip="Proportional"       (click)="insertSymbol('∝')"  size="small"></p-button>
+          <p-button label="∠" pTooltip="Angle"              (click)="insertSymbol('∠')"  size="small"></p-button>
+          <p-button label="⊥" pTooltip="Perpendicular"      (click)="insertSymbol('⊥')"  size="small"></p-button>
+          <p-button label="∥" pTooltip="Parallel"           (click)="insertSymbol('∥')"  size="small"></p-button>
+          <p-button label="△" pTooltip="Triangle"           (click)="insertSymbol('△')"  size="small"></p-button>
+          <p-button label="°" pTooltip="Degree"             (click)="insertSymbol('°')"  size="small"></p-button>
+          <p-button label="∈" pTooltip="Element of"         (click)="insertSymbol('∈')"  size="small"></p-button>
+          <p-button label="∉" pTooltip="Not element"        (click)="insertSymbol('∉')"  size="small"></p-button>
+          <p-button label="⊂" pTooltip="Subset"             (click)="insertSymbol('⊂')"  size="small"></p-button>
+          <p-button label="⊆" pTooltip="Subset or equal"    (click)="insertSymbol('⊆')"  size="small"></p-button>
+          <p-button label="∪" pTooltip="Union"              (click)="insertSymbol('∪')"  size="small"></p-button>
+          <p-button label="∩" pTooltip="Intersection"       (click)="insertSymbol('∩')"  size="small"></p-button>
+          <p-button label="∫" pTooltip="Integral"           (click)="insertSymbol('∫')"  size="small"></p-button>
+          <p-button label="∬" pTooltip="Double integral"    (click)="insertSymbol('∬')"  size="small"></p-button>
+          <p-button label="∑" pTooltip="Summation"          (click)="insertSymbol('∑')"  size="small"></p-button>
+          <p-button label="∂" pTooltip="Partial derivative" (click)="insertSymbol('∂')"  size="small"></p-button>
+          <p-button label="∇" pTooltip="Nabla"              (click)="insertSymbol('∇')"  size="small"></p-button>
+        </div>
+        <textarea #questionTextarea pInputTextarea [(ngModel)]="questionText"
+          rows="4" placeholder="Enter your question"
+          class="w-full bg-slate-800 text-white border-slate-600">
+        </textarea>
+      </div>
+
+      <!-- MCQ OPTIONS -->
+      <div *ngIf="questionType === 'mcq'" class="flex flex-col gap-3">
+        <label class="text-slate-300 text-sm font-semibold">Options</label>
+        <div *ngFor="let opt of options; let i=index" class="flex items-center gap-3">
+          <input pInputText [(ngModel)]="opt.text" placeholder="Option {{i+1}}"
+            class="flex-1 bg-slate-800 text-white border-slate-600"/>
+          <p-radioButton name="correct" [value]="i" [(ngModel)]="correctOption"></p-radioButton>
+          <span class="text-slate-400 text-xs">Correct</span>
+          <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeOption(i)"></p-button>
+        </div>
+        <p-button label="+ Add Option" styleClass="bg-orange-500 border-none" (click)="addOption()"></p-button>
+      </div>
+
+      <!-- FILL ANSWER -->
+      <div *ngIf="questionType === 'fill'" class="flex flex-col gap-1">
+        <label class="text-slate-300 text-sm">Correct Answer *</label>
+        <input pInputText [(ngModel)]="fillAnswer" placeholder="Enter correct answer"
+          class="w-full bg-slate-800 text-white border-slate-600"/>
+      </div>
+
+      <!-- MATCH PAIRS -->
+      <div *ngIf="questionType === 'match'" class="flex flex-col gap-3">
+        <label class="text-slate-300 text-sm font-semibold">Match Pairs</label>
+        <div *ngFor="let pair of pairs; let i=index" class="grid grid-cols-[1fr_1fr_auto] gap-4">
+          <input pInputText [(ngModel)]="pair.left" placeholder="Left (Column A)"
+            class="bg-slate-800 text-white border-slate-600"/>
+          <input pInputText [(ngModel)]="pair.right" placeholder="Right (Column B)"
+            class="bg-slate-800 text-white border-slate-600"/>
+          <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removePair(i)"></p-button>
+        </div>
+        <p-button label="+ Add Pair" styleClass="bg-orange-500 border-none" (click)="addPair()"></p-button>
+      </div>
+
+      <!-- MAP UPLOAD -->
+      <div *ngIf="questionType === 'map'" class="flex flex-col gap-3">
+        <label class="text-slate-300 text-sm font-semibold">Upload Map Image *</label>
+
+        <div class="border-2 border-dashed border-slate-600 rounded-xl p-4 text-center hover:border-orange-400 transition-colors">
+          <input type="file" accept="image/*" (change)="onFileSelected($event)"
+            class="hidden" #mapFileInput/>
+          <p-button label="Choose Image" icon="pi pi-upload"
+            styleClass="bg-orange-500 border-none"
+            (click)="mapFileInput.click()">
+          </p-button>
+          <p class="text-slate-400 text-xs mt-2">PNG, JPG accepted</p>
+        </div>
+
+        <!-- Map preview + admin pin -->
+        <div *ngIf="selectedFile" class="flex flex-col gap-2">
+          <p class="text-slate-300 text-xs font-semibold">
+            <i class="pi pi-map-marker text-orange-400 mr-1"></i>
+            Click on the map below to mark the <span class="text-orange-400">correct answer location</span>.
+          </p>
+
+          <!-- *** KEY FIX: position:relative on the wrapper, not inline-block ***  -->
+          <div class="relative w-full cursor-crosshair border-2 border-orange-400 rounded-xl overflow-hidden"
+               (click)="captureCorrectMapPin($event)">
+
+            <img [src]="selectedFile"
+                 alt="Map"
+                 class="w-full block object-contain select-none"
+                 style="max-height:300px;"
+                 #adminMapImg/>
+
+            <!-- Red admin pin -->
+            <div *ngIf="correctMapPin"
+                 class="absolute pointer-events-none"
+                 [style.left]="correctMapPin.x + '%'"
+                 [style.top]="correctMapPin.y + '%'"
+                 style="transform:translate(-50%,-100%);">
+              <svg width="28" height="36" viewBox="0 0 32 40" fill="none">
+                <ellipse cx="16" cy="38" rx="5" ry="1.5" fill="rgba(0,0,0,0.3)"/>
+                <path d="M16 0C9.37 0 4 5.37 4 12c0 9 12 28 12 28S28 21 28 12C28 5.37 22.63 0 16 0z" fill="#ef4444"/>
+                <circle cx="16" cy="12" r="5" fill="white"/>
+              </svg>
+            </div>
+
+            <!-- Hint when no pin yet -->
+            <div *ngIf="!correctMapPin"
+                 class="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span class="px-3 py-1.5 rounded-full text-xs font-medium"
+                    style="background:rgba(0,0,0,0.5);color:#fff;">
+                <i class="pi pi-map-marker mr-1 text-orange-400"></i>Click to set correct location
+              </span>
+            </div>
+          </div>
+
+          <div *ngIf="correctMapPin"
+               class="flex items-center justify-between px-3 py-2 rounded-lg bg-green-900/30 border border-green-600/40">
+            <span class="text-green-400 text-xs font-semibold">
+              ✓ Pin set at {{ correctMapPin.x | number:'1.0-0' }}%, {{ correctMapPin.y | number:'1.0-0' }}%
+            </span>
+            <button (click)="correctMapPin = null"
+                    class="text-red-400 hover:text-red-300 text-xs cursor-pointer">
+              <i class="pi pi-times"></i> Remove
+            </button>
+          </div>
+          <p *ngIf="!correctMapPin" class="text-slate-500 text-xs italic">No pin set — click the map above.</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-4 mt-4">
+        <p-button label="Cancel" severity="secondary" (click)="drawerVisible = false"></p-button>
+        <p-button label="Save Question" styleClass="bg-green-500 border-none" (click)="saveQuestion()"></p-button>
+      </div>
+
+    </div>
+  </p-drawer>
+
+  <!-- ===================== PREVIEW / ANSWER DIALOG ===================== -->
+  <p-dialog [(visible)]="previewVisible"
+            [modal]="true" [closable]="true" [draggable]="false"
+            [style]="{ width: '700px' }"
+            styleClass="!bg-slate-900"
+            (onHide)="closePreview()">
+
+    <ng-template pTemplate="header">
+      <div class="flex items-center gap-3">
+        <span class="font-bold text-lg text-white">Preview Question</span>
+        <span *ngIf="previewQuestion"
+              class="px-2 py-0.5 rounded text-xs font-bold uppercase"
+              [ngStyle]="previewBadgeStyle(previewQuestion.question_type)">
+          {{ previewQuestion.question_type }}
+        </span>
+      </div>
+    </ng-template>
+
+    <div *ngIf="previewQuestion" class="flex flex-col gap-5 pb-4" style="color:#e2e8f0;">
+
+      <!-- Question text -->
+      <div class="px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white font-medium leading-relaxed">
+        {{ previewQuestion.question_text }}
+      </div>
+
+      <!-- MCQ -->
+      <div *ngIf="previewQuestion.question_type === 'mcq'" class="flex flex-col gap-3">
+        <button *ngFor="let opt of previewQuestion.answer_data?.options; let i=index"
+                (click)="selectPreviewMCQ(i)"
+                class="w-full text-left px-4 py-3 rounded-xl border font-medium text-sm
+                       transition-all duration-200 cursor-pointer flex items-center gap-3"
+                [style.background]="previewMCQSelected === i ? 'rgba(249,115,22,0.15)' : 'rgba(255,255,255,0.04)'"
+                [style.border-color]="previewMCQSelected === i ? '#f97316' : 'rgba(255,255,255,0.1)'"
+                [style.color]="previewMCQSelected === i ? '#fdba74' : 'rgba(255,255,255,0.7)'">
+          <span class="w-6 h-6 rounded-full border flex items-center justify-center text-xs font-black shrink-0"
+                [style.border-color]="previewMCQSelected === i ? '#f97316' : 'rgba(255,255,255,0.3)'">
+            {{ 'ABCD'[i] }}
+          </span>
+          {{ opt }}
+        </button>
+      </div>
+
+      <!-- FILL -->
+      <div *ngIf="previewQuestion.question_type === 'fill'" class="flex flex-col gap-2">
+        <label class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Your Answer</label>
+        <input pInputText [(ngModel)]="previewFillAnswer"
+          placeholder="Type your answer here…"
+          class="w-full bg-slate-800 text-white border-slate-600"/>
+      </div>
+
+      <!-- MATCH -->
+      <div *ngIf="previewQuestion.question_type === 'match'" class="flex flex-col gap-4">
+        <p class="text-slate-400 text-xs">
+          <i class="pi pi-info-circle mr-1"></i>
+          Drag items from <strong class="text-blue-400">Column B</strong> and drop them next to the matching item in Column A.
+        </p>
+        <div class="grid grid-cols-[1fr_auto_1fr] gap-4 items-start">
+          <div class="flex flex-col gap-3">
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Column A</p>
+            <div *ngFor="let pair of previewQuestion.answer_data?.pairs; let i=index"
+                 class="flex items-center gap-2">
+              <div class="flex-1 px-3 py-2.5 rounded-lg border border-white/10 bg-white/5 text-sm font-semibold text-white">
+                {{ i + 1 }}. {{ pair.left }}
+              </div>
+              <div class="w-32 min-h-[42px] rounded-lg border-2 border-dashed flex items-center
+                          justify-center px-2 py-1 text-xs font-medium transition-all duration-200 cursor-pointer"
+                   [style.border-color]="previewDragOverSlot === i ? '#f97316' : previewMatchAnswers[i] ? '#22c55e' : 'rgba(255,255,255,0.2)'"
+                   [style.background]="previewDragOverSlot === i ? 'rgba(249,115,22,0.1)' : previewMatchAnswers[i] ? 'rgba(34,197,94,0.1)' : 'transparent'"
+                   (dragover)="onPreviewDragOver($event, i)"
+                   (dragleave)="onPreviewDragLeave()"
+                   (drop)="onPreviewDrop($event, i)">
+                <span *ngIf="previewMatchAnswers[i]" class="text-green-300 flex items-center gap-1 w-full justify-between">
+                  <span class="truncate text-xs">{{ previewMatchAnswers[i] }}</span>
+                  <button (click)="clearPreviewSlot(i)" class="text-red-400 hover:text-red-300 cursor-pointer shrink-0 ml-1">
+                    <i class="pi pi-times text-xs"></i>
+                  </button>
+                </span>
+                <span *ngIf="!previewMatchAnswers[i]" class="text-white/25 italic text-xs">Drop here</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col pt-9 gap-3">
+            <div *ngFor="let p of previewQuestion.answer_data?.pairs"
+                 class="h-[42px] flex items-center text-orange-400/40 text-sm">→</div>
+          </div>
+          <div class="flex flex-col gap-3">
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Column B</p>
+            <div *ngFor="let opt of previewShuffledRight"
+                 class="px-3 py-2.5 rounded-lg border text-sm font-semibold transition-all duration-200 select-none"
+                 [style.cursor]="isPreviewOptionUsed(opt) ? 'not-allowed' : 'grab'"
+                 [style.opacity]="isPreviewOptionUsed(opt) ? '0.35' : '1'"
+                 [style.background]="isPreviewOptionUsed(opt) ? 'rgba(255,255,255,0.03)' : 'rgba(59,130,246,0.1)'"
+                 [style.border-color]="isPreviewOptionUsed(opt) ? 'rgba(255,255,255,0.1)' : 'rgba(59,130,246,0.5)'"
+                 [style.color]="isPreviewOptionUsed(opt) ? 'rgba(255,255,255,0.25)' : '#93c5fd'"
+                 [draggable]="!isPreviewOptionUsed(opt)"
+                 (dragstart)="onPreviewDragStart($event, opt)">
+              {{ opt }}
+            </div>
+          </div>
+        </div>
+        <button (click)="resetPreviewMatch()"
+                class="text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer flex items-center gap-1 w-fit">
+          <i class="pi pi-refresh"></i> Reset matches
+        </button>
+      </div>
+
+      <!-- MAP -->
+      <div *ngIf="previewQuestion.question_type === 'map'" class="flex flex-col gap-3">
+        <div class="flex items-start gap-3 px-4 py-3 rounded-xl"
+             style="background:rgba(249,115,22,0.08); border:1px solid rgba(249,115,22,0.2);">
+          <i class="pi pi-map-marker text-orange-400 mt-0.5 text-sm"></i>
+          <div>
+            <p class="text-orange-300 font-semibold text-sm">How to answer</p>
+            <p class="text-orange-200/60 text-xs mt-0.5 leading-relaxed">
+              Study the map, then <strong class="text-orange-300">click</strong> on the exact location. Click again to move your pin.
+            </p>
+          </div>
+        </div>
+
+        <!-- *** FIXED: position:relative on wrapper div, not inline-block *** -->
+        <div *ngIf="previewQuestion.map_image; else noMapImg"
+             class="relative w-full rounded-xl overflow-hidden border border-white/10 cursor-crosshair select-none"
+             (click)="capturePreviewMapPin($event)">
+
+          <img [src]="previewQuestion.map_image"
+               alt="Map"
+               class="w-full block object-contain select-none"
+               style="max-height:380px;"
+               draggable="false"/>
+
+          <!-- Orange student pin -->
+          <div *ngIf="previewMapPin"
+               class="absolute pointer-events-none"
+               [style.left]="previewMapPin.xPct + '%'"
+               [style.top]="previewMapPin.yPct + '%'"
+               style="transform:translate(-50%,-100%);">
+            <svg width="32" height="40" viewBox="0 0 32 40" fill="none">
+              <ellipse cx="16" cy="38" rx="6" ry="2" fill="rgba(0,0,0,0.25)"/>
+              <path d="M16 0C9.37 0 4 5.37 4 12c0 9 12 28 12 28S28 21 28 12C28 5.37 22.63 0 16 0z" fill="#f97316"/>
+              <circle cx="16" cy="12" r="5" fill="white"/>
+            </svg>
+          </div>
+
+          <!-- Hint when no pin -->
+          <div *ngIf="!previewMapPin"
+               class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span class="px-4 py-2 rounded-full text-sm"
+                  style="background:rgba(0,0,0,0.55);color:rgba(255,255,255,0.8);backdrop-filter:blur(6px);">
+              <i class="pi pi-map-marker mr-2 text-orange-400"></i>Click to place your pin
+            </span>
+          </div>
+        </div>
+
+        <ng-template #noMapImg>
+          <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-8 text-center text-red-400 text-sm">
+            <i class="pi pi-image text-2xl mb-2 block"></i>
+            No map image attached to this question.
+          </div>
+        </ng-template>
+
+        <div *ngIf="previewMapPin"
+             class="flex items-center justify-between px-4 py-2 rounded-lg"
+             style="background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2);">
+          <span class="text-green-400 text-sm font-medium flex items-center gap-2">
+            <i class="pi pi-check-circle"></i> Location marked
+          </span>
+          <button (click)="previewMapPin = null"
+                  class="text-red-400 hover:text-red-300 text-xs flex items-center gap-1 cursor-pointer transition-colors">
+            <i class="pi pi-times"></i> Clear pin
+          </button>
+        </div>
+      </div>
+
+      <!-- CHECK ANSWER + RESULT -->
+      <div class="flex justify-end gap-3 pt-2 border-t border-white/10">
+        <button (click)="closePreview()"
+                class="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white border border-white/10 hover:border-white/30 transition-all cursor-pointer">
+          Close
+        </button>
+        <p-button label="Check Answer" icon="pi pi-check"
+          styleClass="bg-orange-500 border-none" (click)="checkPreviewAnswer()">
+        </p-button>
+      </div>
+
+      <div *ngIf="previewResult !== null"
+           class="px-4 py-3 rounded-xl flex items-start gap-3"
+           [style.background]="previewResult ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)'"
+           [style.border]="previewResult ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)'">
+        <i class="text-lg mt-0.5 pi"
+           [class.pi-check-circle]="previewResult" [class.text-green-400]="previewResult"
+           [class.pi-times-circle]="!previewResult" [class.text-red-400]="!previewResult"></i>
+        <div>
+          <p class="font-bold text-sm"
+             [class.text-green-400]="previewResult" [class.text-red-400]="!previewResult">
+            {{ previewResult ? 'Correct! Well done.' : 'Incorrect.' }}
+          </p>
+          <p *ngIf="!previewResult && previewCorrectDisplay" class="text-slate-300 text-xs mt-1">
+            Correct answer: <strong class="text-white">{{ previewCorrectDisplay }}</strong>
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </p-dialog>
+
+</div>

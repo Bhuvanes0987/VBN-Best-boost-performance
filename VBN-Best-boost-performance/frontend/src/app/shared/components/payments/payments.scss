@@ -1,0 +1,1453 @@
+/* ============================================================
+   PayFlow · payments.component.scss
+   White & Orange Theme – Full UPI / Wallet / Card
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+// ── Variables ──────────────────────────────────────────────
+:host {
+    --o: #F97316;
+    --o2: #EA6C0A;
+    --o3: #FFF7ED;
+    --o4: #FEF3EA;
+    --text: #111827;
+    --sub: #6B7280;
+    --border: #E5E7EB;
+    --white: #ffffff;
+    --mono: 'JetBrains Mono', monospace;
+    --font: 'Plus Jakarta Sans', sans-serif;
+
+    display: block;
+    font-family: var(--font);
+}
+
+// ── Root ───────────────────────────────────────────────────
+.pf-root {
+    background: #fff;
+    min-height: 100vh;
+    color: var(--text);
+    font-family: var(--font);
+}
+
+// ── Top accent bar ──────────────────────────────────────────
+.pf-top-bar {
+    height: 4px;
+    background: linear-gradient(90deg, var(--o), #FBBF24);
+}
+
+// ── Header ─────────────────────────────────────────────────
+.pf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+}
+
+.pf-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pf-brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--o), #FBBF24);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+}
+
+.pf-brand-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.4px;
+}
+
+.pf-brand-sub {
+    font-size: 11px;
+    color: var(--sub);
+    margin-top: 1px;
+}
+
+.pf-secure-chip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--sub);
+    background: var(--o4);
+    border: 1px solid #FFD9B7;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.pf-chip-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--o);
+}
+
+// ── Main ───────────────────────────────────────────────────
+.pf-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px 56px;
+}
+
+// ── Card container ──────────────────────────────────────────
+.pf-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 36px;
+    width: 100%;
+    max-width: 460px;
+    position: relative;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+}
+
+// ── Order row ──────────────────────────────────────────────
+.pf-order-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--o4);
+    border: 1px solid #FFD9B7;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 28px;
+}
+
+.pf-order-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--o), #FBBF24);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.pf-order-info {
+    flex: 1;
+}
+
+.pf-order-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.pf-order-desc {
+    font-size: 12px;
+    color: var(--sub);
+    margin-top: 2px;
+}
+
+.pf-order-price {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--o);
+    letter-spacing: -0.5px;
+    text-align: right;
+    white-space: nowrap;
+
+    span {
+        display: block;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--sub);
+        text-align: right;
+    }
+}
+
+// ── Section label ───────────────────────────────────────────
+.pf-sec-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--sub);
+    margin-bottom: 10px;
+}
+
+// ── Full-width method button ─────────────────────────────────
+.pf-method-full {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    background: #fff;
+    cursor: pointer;
+    font-family: var(--font);
+    text-align: left;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 8px;
+
+    &:hover:not(:disabled) {
+        border-color: #FFB380;
+        background: var(--o4);
+    }
+
+    &.active {
+        border-color: var(--o);
+        background: var(--o4);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.pf-mf-icon {
+    font-size: 24px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.pf-mf-text {
+    flex: 1;
+}
+
+.pf-mf-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.pf-mf-sub {
+    font-size: 11px;
+    color: var(--sub);
+    font-weight: 400;
+    margin-top: 2px;
+}
+
+.pf-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--o);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ── UPI PANEL ────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+.pf-upi-panel {
+    background: linear-gradient(135deg, #FFFAF5, #FFF7ED);
+    border: 1px solid #FFE4CC;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 12px;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; max-height: 0; transform: translateY(-8px); }
+    to { opacity: 1; max-height: 800px; transform: translateY(0); }
+}
+
+// UPI Mode Tabs
+.pf-upi-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 18px;
+}
+
+.pf-upi-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--sub);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background: rgba(249, 115, 22, 0.06);
+        color: var(--o);
+    }
+
+    &.active {
+        background: #fff;
+        color: var(--o);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    span {
+        font-size: 14px;
+    }
+}
+
+// QR Section
+.pf-upi-qr-section {
+    text-align: center;
+}
+
+// QR Loading
+.pf-qr-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 40px 0;
+    color: var(--sub);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.pf-qr-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(249, 115, 22, 0.15);
+    border-top-color: var(--o);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+// Timer Ring
+.pf-timer-ring {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 16px;
+}
+
+.pf-timer-svg {
+    width: 80px;
+    height: 80px;
+    transform: rotate(-90deg);
+}
+
+.pf-timer-bg {
+    fill: none;
+    stroke: rgba(249, 115, 22, 0.12);
+    stroke-width: 6;
+}
+
+.pf-timer-progress {
+    fill: none;
+    stroke: var(--o);
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear, stroke 0.3s;
+
+    &.warning { stroke: #F59E0B; }
+    &.danger { stroke: #EF4444; }
+}
+
+.pf-timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--o);
+
+    &.warning { color: #F59E0B; }
+    &.danger { color: #EF4444; }
+}
+
+// QR Box
+.pf-qr-container {
+    animation: fadeIn 0.4s ease;
+}
+
+.pf-qr-box {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 14px;
+    background: #fff;
+    border-radius: 16px;
+    border: 2px solid var(--border);
+    padding: 12px;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.pf-qr-pattern {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.pf-qr-corner {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border: 4px solid var(--text);
+    border-radius: 4px;
+
+    &::after {
+        content: '';
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: var(--text);
+        border-radius: 2px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.pf-qr-tl { top: 0; left: 0; }
+.pf-qr-tr { top: 0; right: 0; }
+.pf-qr-bl { bottom: 0; left: 0; }
+
+.pf-qr-inner {
+    position: absolute;
+    top: 32px;
+    left: 32px;
+    right: 4px;
+    bottom: 4px;
+}
+
+.pf-qr-dots {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    width: 100%;
+    height: 100%;
+}
+
+.pf-qr-dot {
+    border-radius: 1px;
+    background: rgba(0, 0, 0, 0.06);
+
+    &.filled {
+        background: var(--text);
+    }
+}
+
+.pf-qr-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
+    background: var(--o);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+}
+
+.pf-qr-amount {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.pf-qr-hint {
+    font-size: 11px;
+    color: var(--sub);
+    margin-bottom: 14px;
+    line-height: 1.5;
+}
+
+.pf-upi-apps-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pf-upi-app-badge {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--sub);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+}
+
+// QR Expired
+.pf-qr-expired {
+    padding: 30px 0;
+    text-align: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.pf-expired-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.pf-expired-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.pf-expired-sub {
+    font-size: 12px;
+    color: var(--sub);
+    margin-bottom: 16px;
+}
+
+.pf-refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 22px;
+    border: 2px solid var(--o);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--o);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background: var(--o4);
+    }
+
+    span {
+        font-size: 16px;
+    }
+}
+
+// Generate QR Button
+.pf-generate-qr-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    border: 2px dashed #FFB380;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.6);
+    color: var(--o);
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background: #fff;
+        border-color: var(--o);
+        box-shadow: 0 4px 16px rgba(249, 115, 22, 0.15);
+    }
+
+    span { font-size: 18px; }
+}
+
+// UPI ID Section
+.pf-upi-id-section {
+    animation: fadeIn 0.3s ease;
+}
+
+.pf-upi-id-box {
+    margin-bottom: 14px;
+}
+
+.pf-upi-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.pf-upi-input-wrap {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 0 14px;
+    transition: border-color 0.2s;
+
+    &:focus-within {
+        border-color: var(--o);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
+}
+
+.pf-upi-at {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--o);
+    margin-right: 8px;
+}
+
+.pf-upi-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 14px 0;
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--text);
+    background: transparent;
+
+    &::placeholder {
+        color: #D1D5DB;
+    }
+}
+
+.pf-upi-valid {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #10B981;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+}
+
+.pf-upi-id-hint {
+    font-size: 11px;
+    color: var(--sub);
+    margin-top: 8px;
+    padding-left: 2px;
+}
+
+.pf-upi-pay-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--o) 0%, #FB923C 100%);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.35);
+
+    &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(249, 115, 22, 0.45);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ── WALLET PANEL ─────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+.pf-wallet-panel {
+    background: linear-gradient(135deg, #FFFAF5, #FFF7ED);
+    border: 1px solid #FFE4CC;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 12px;
+    animation: slideDown 0.3s ease;
+}
+
+.pf-wallet-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.pf-wallet-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    background: #fff;
+    cursor: pointer;
+    font-family: var(--font);
+    position: relative;
+    transition: all 0.2s;
+
+    &:hover {
+        border-color: #FFB380;
+        background: var(--o4);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    &.selected {
+        border-color: var(--o);
+        background: var(--o4);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12), 0 4px 12px rgba(249, 115, 22, 0.1);
+    }
+}
+
+.pf-wallet-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.pf-wallet-emoji {
+    font-size: 20px;
+}
+
+.pf-wallet-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.pf-wallet-check {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--o);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pf-wallet-selected-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 12px;
+
+    strong {
+        color: var(--o);
+        font-weight: 700;
+    }
+}
+
+.pf-wallet-pay-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--o) 0%, #FB923C 100%);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.35);
+
+    &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(249, 115, 22, 0.45);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+}
+
+// ── Or divider ──────────────────────────────────────────────
+.pf-or-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 14px;
+    font-size: 11px;
+    color: #D1D5DB;
+    font-weight: 500;
+
+    &::before,
+    &::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+
+    span {
+        white-space: nowrap;
+    }
+}
+
+// ── Card tabs ───────────────────────────────────────────────
+.pf-card-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.pf-card-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 14px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    background: #fff;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--sub);
+    position: relative;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        border-color: #FFB380;
+        background: var(--o4);
+        color: var(--o);
+    }
+
+    &.active {
+        border-color: var(--o);
+        background: var(--o4);
+        color: var(--o);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.pf-ct-icon {
+    font-size: 26px;
+    line-height: 1;
+}
+
+.pf-check-sm {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--o);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// ── 3D Card flip ────────────────────────────────────────────
+.pf-card-scene {
+    perspective: 1000px;
+    height: 192px;
+    cursor: pointer;
+    margin-bottom: 6px;
+}
+
+.pf-card-3d {
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+
+    &.flipped {
+        transform: rotateY(180deg);
+    }
+}
+
+.pf-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 18px;
+    padding: 22px;
+    overflow: hidden;
+}
+
+.pf-face-front {
+    background: linear-gradient(135deg, #1E0F00 0%, #3D1F00 50%, #5C2E00 100%);
+    border: 1px solid rgba(255, 140, 0, 0.3);
+    box-shadow: 0 16px 48px rgba(255, 107, 22, 0.15),
+        inset 0 1px 0 rgba(255, 200, 100, 0.12);
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -60%;
+        width: 40%;
+        height: 200%;
+        background: linear-gradient(105deg, transparent 30%, rgba(255, 200, 100, 0.06) 50%, transparent 70%);
+        animation: cardShimmer 4s ease-in-out infinite;
+    }
+}
+
+@keyframes cardShimmer {
+
+    0%,
+    100% {
+        left: -60%;
+        opacity: 0;
+    }
+
+    50% {
+        left: 120%;
+        opacity: 1;
+    }
+}
+
+.pf-face-back {
+    background: linear-gradient(135deg, #1a0a00 0%, #3a1800 60%, #502000 100%);
+    border: 1px solid rgba(255, 140, 0, 0.2);
+    transform: rotateY(180deg);
+}
+
+.pf-cf-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.pf-chip {
+    width: 40px;
+    height: 30px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #C8922A, #E8C060, #B07820);
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: rgba(0, 0, 0, 0.25);
+        transform: translateY(-50%);
+    }
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: rgba(0, 0, 0, 0.2);
+        transform: translateX(-50%);
+    }
+}
+
+.pf-nfc {
+    font-size: 20px;
+    color: rgba(255, 180, 80, 0.55);
+}
+
+.pf-card-num {
+    font-family: var(--mono);
+    font-size: 16px;
+    letter-spacing: 3px;
+    color: rgba(255, 240, 200, 0.9);
+    margin-bottom: 14px;
+}
+
+.pf-card-bot {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.pf-card-field-label {
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: rgba(255, 200, 100, 0.5);
+    margin-bottom: 3px;
+}
+
+.pf-card-field {
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: rgba(255, 220, 150, 0.8);
+    font-weight: 600;
+}
+
+.pf-card-brand {
+    font-size: 18px;
+    font-weight: 800;
+    color: rgba(255, 200, 80, 0.9);
+    font-style: italic;
+    letter-spacing: -0.5px;
+}
+
+// Back face elements
+.pf-mag-strip {
+    background: linear-gradient(90deg, #1a0a00, #3a1500, #1a0a00);
+    height: 44px;
+    margin: -22px -22px 18px;
+    border-bottom: 1px solid rgba(255, 100, 0, 0.12);
+}
+
+.pf-cvv-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.pf-cvv-strip {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.88);
+    border-radius: 4px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+}
+
+.pf-cvv-stars {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: #333;
+    letter-spacing: 3px;
+}
+
+.pf-cvv-right {
+    text-align: center;
+}
+
+.pf-cvv-label {
+    font-size: 10px;
+    color: rgba(255, 200, 100, 0.6);
+    margin-bottom: 2px;
+}
+
+.pf-cvv-val {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 200, 80, 0.9);
+}
+
+.pf-bank-text {
+    font-size: 10px;
+    color: rgba(255, 200, 100, 0.45);
+    font-style: italic;
+}
+
+.pf-flip-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--sub);
+    margin-bottom: 18px;
+}
+
+// ── Success overlay ─────────────────────────────────────────
+.pf-success-overlay {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 40px;
+    border-radius: 24px;
+    z-index: 10;
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.pf-s-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid var(--o);
+    background: var(--o4);
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: ringPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes ringPop {
+    from {
+        transform: scale(0);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.pf-s-svg {
+    width: 42px;
+    height: 42px;
+}
+
+.pf-s-circle {
+    stroke: var(--o);
+    stroke-width: 2;
+    fill: none;
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    animation: drawStroke 0.6s ease forwards;
+}
+
+.pf-s-check {
+    stroke: var(--o);
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: drawStroke 0.4s ease 0.55s forwards;
+}
+
+@keyframes drawStroke {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.pf-s-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.pf-s-amt {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--o);
+    margin-bottom: 8px;
+}
+
+.pf-s-sub {
+    font-size: 13px;
+    color: var(--sub);
+}
+
+.pf-s-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--sub);
+    background: var(--o4);
+    border: 1px solid #FFD9B7;
+    padding: 7px 16px;
+    border-radius: 8px;
+    margin-top: 14px;
+    word-break: break-all;
+}
+
+.pf-s-again {
+    margin-top: 20px;
+    padding: 12px 28px;
+    border: 2px solid var(--o);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--o);
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+        background: var(--o4);
+    }
+}
+
+// ── Error box ───────────────────────────────────────────────
+.pf-error-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #FFF5F5;
+    border: 1px solid #FCA5A5;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    animation: fadeIn 0.3s ease;
+}
+
+.pf-err-icon {
+    font-size: 16px;
+    color: #EF4444;
+}
+
+.pf-err-text {
+    font-size: 12px;
+    color: #DC2626;
+}
+
+// ── Pay button ──────────────────────────────────────────────
+.pf-pay-btn {
+    width: 100%;
+    padding: 17px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--o) 0%, #FB923C 100%);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    font-family: var(--font);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s;
+    letter-spacing: -0.2px;
+    box-shadow: 0 6px 24px rgba(249, 115, 22, 0.4);
+    margin-top: 8px;
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(105deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.18) 50%,
+                transparent 70%);
+        animation: btnGloss 2.5s ease infinite;
+    }
+
+    &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 32px rgba(249, 115, 22, 0.5);
+        filter: brightness(1.04);
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        transform: none;
+    }
+}
+
+@keyframes btnGloss {
+
+    0%,
+    100% {
+        transform: translateX(-100%);
+    }
+
+    50% {
+        transform: translateX(100%);
+    }
+}
+
+.pf-spinner {
+    display: inline-block;
+    width: 17px;
+    height: 17px;
+    border: 2.5px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// ── Note ────────────────────────────────────────────────────
+.pf-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #9CA3AF;
+    margin-top: 14px;
+}
+
+// ── Responsive ──────────────────────────────────────────────
+@media (max-width: 600px) {
+    .pf-header {
+        padding: 14px 16px;
+    }
+
+    .pf-main {
+        padding: 20px 12px 40px;
+    }
+
+    .pf-card {
+        padding: 24px 16px;
+        border-radius: 18px;
+    }
+
+    .pf-brand-sub {
+        display: none;
+    }
+
+    .pf-secure-chip {
+        padding: 4px 10px;
+        font-size: 10px;
+    }
+
+    .pf-wallet-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pf-qr-box {
+        width: 160px;
+        height: 160px;
+    }
+}
+
+// ── Card Inputs ─────────────────────────────────────────────
+.pf-card-num-input,
+.pf-card-input-field,
+.pf-cvv-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.pf-card-num-input {
+    font-family: var(--mono);
+    font-size: 16px;
+    letter-spacing: 3px;
+    color: rgba(255, 240, 200, 0.9);
+    margin-bottom: 14px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+
+    &:focus {
+        border-bottom-color: var(--o);
+    }
+}
+
+.pf-card-input-field {
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: rgba(255, 220, 150, 0.8);
+    font-weight: 600;
+    font-family: var(--font);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+
+    &.pf-expiry-input {
+        width: 60px;
+    }
+
+    &:focus {
+        border-bottom-color: var(--o);
+    }
+}
+
+.pf-cvv-input {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 200, 80, 0.9);
+    width: 50px;
+    text-align: center;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+
+    &:focus {
+        border-bottom-color: var(--o);
+    }
+}

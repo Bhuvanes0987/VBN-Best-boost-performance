@@ -1,0 +1,280 @@
+<p-toast position="top-right" />
+
+<div class="min-h-screen bg-slate-50 flex flex-col">
+  <div class="h-2 bg-gradient-to-r from-orange-500 to-orange-400"></div>
+
+  <div class="flex-1 flex items-center justify-center p-4">
+
+    <!-- LOADING -->
+    <div *ngIf="loading" class="text-center py-20">
+      <i class="pi pi-spin pi-spinner text-4xl text-orange-500 mb-4 block"></i>
+      <p class="text-slate-600 font-medium">Loading questions...</p>
+    </div>
+
+    <!-- NO QUESTIONS -->
+    <div *ngIf="!loading && noQuestions"
+      class="bg-white rounded-3xl shadow-xl p-12 text-center max-w-md w-full">
+      <i class="pi pi-question-circle text-6xl text-slate-300 mb-4 block"></i>
+      <h2 class="text-2xl font-bold text-slate-700 mb-2">No Questions Found</h2>
+      <p class="text-slate-500 mb-6">No questions available for this selection yet.</p>
+      <p-button label="Go Back" styleClass="bg-orange-500 border-none" (click)="goHome()"></p-button>
+    </div>
+
+    <!-- QUIZ CARD -->
+    <div *ngIf="!loading && !noQuestions && !quizDone"
+      class="bg-white rounded-3xl shadow-xl w-full max-w-2xl overflow-hidden">
+
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-orange-500 to-orange-400 p-6 text-white">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm font-semibold opacity-90">
+            Question {{ currentIndex + 1 }} of {{ questions.length }}
+          </span>
+          <span class="text-sm font-semibold opacity-90">
+            {{ quizMode === 'daily' ? '⚡ Daily Quiz' : '📘 Subject Quiz' }}
+          </span>
+        </div>
+        <p-progressBar [value]="progress" styleClass="h-2 rounded-full" [showValue]="false">
+        </p-progressBar>
+      </div>
+
+      <div class="p-8">
+        <p class="text-xl font-bold text-slate-800 mb-6 leading-relaxed">
+          {{ currentQuestion?.question_text }}
+        </p>
+
+        <!-- ── MCQ ── -->
+        <div *ngIf="currentQuestion?.question_type === 'mcq'" class="flex flex-col gap-3">
+          <div *ngFor="let opt of currentQuestion?.answer_data?.options; let i = index"
+            class="flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition"
+            [ngClass]="{
+              'border-orange-500 bg-orange-50': selectedAnswer === i,
+              'border-slate-200 hover:border-orange-300': selectedAnswer !== i
+            }"
+            (click)="selectAnswer(i)">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 font-bold text-sm"
+              [ngClass]="{
+                'border-orange-500 bg-orange-500 text-white': selectedAnswer === i,
+                'border-slate-300 text-slate-500': selectedAnswer !== i
+              }">
+              {{ ['A','B','C','D','E'][i] }}
+            </div>
+            <span class="text-slate-700 font-medium">{{ opt }}</span>
+          </div>
+        </div>
+
+        <!-- ── FILL ── -->
+        <div *ngIf="currentQuestion?.question_type === 'fill'" class="flex flex-col gap-2">
+          <label class="text-sm font-semibold text-slate-600">Your Answer:</label>
+          <input
+            class="w-full p-4 border-2 border-slate-200 rounded-xl text-slate-800
+                   focus:border-orange-400 outline-none text-lg"
+            placeholder="Type your answer here..."
+            [value]="selectedAnswer || ''"
+            (input)="selectAnswer($any($event.target).value)"/>
+        </div>
+
+        <!-- ── MATCH (drag & drop) ── -->
+        <div *ngIf="currentQuestion?.question_type === 'match'" class="flex flex-col gap-4">
+          <p class="text-sm text-slate-500 flex items-center gap-2">
+            <i class="pi pi-info-circle text-orange-400"></i>
+            Drag items from <strong class="text-blue-600">Column B</strong> and drop them next to the correct item in Column A.
+          </p>
+
+          <div class="grid grid-cols-[1fr_auto_1fr] gap-4 items-start">
+
+            <!-- Column A + drop zones -->
+            <div class="flex flex-col gap-3">
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Column A</p>
+              <div *ngFor="let pair of currentQuestion?.answer_data?.pairs; let i = index"
+                   class="flex items-center gap-2">
+                <div class="flex-1 bg-orange-50 border border-orange-200 text-orange-800
+                            px-3 py-2.5 rounded-xl text-sm font-semibold">
+                  {{ i + 1 }}. {{ pair.left }}
+                </div>
+                <div class="w-32 min-h-[42px] rounded-xl border-2 border-dashed flex items-center
+                            justify-center px-2 py-1.5 text-xs font-medium transition-all duration-200 cursor-pointer"
+                     [ngClass]="{
+                       'border-orange-400 bg-orange-50': dragOverSlot === i,
+                       'border-green-400 bg-green-50':   matchAnswers[i] && dragOverSlot !== i,
+                       'border-slate-300':               !matchAnswers[i] && dragOverSlot !== i
+                     }"
+                     (dragover)="onDragOver($event, i)"
+                     (dragleave)="onDragLeave()"
+                     (drop)="onDrop($event, i)">
+                  <span *ngIf="matchAnswers[i]"
+                        class="text-green-700 flex items-center gap-1 w-full justify-between font-semibold">
+                    <span class="truncate text-xs">{{ matchAnswers[i] }}</span>
+                    <button (click)="clearSlot(i)"
+                            class="text-red-400 hover:text-red-600 cursor-pointer shrink-0 ml-1">
+                      <i class="pi pi-times text-xs"></i>
+                    </button>
+                  </span>
+                  <span *ngIf="!matchAnswers[i]" class="text-slate-400 italic text-xs">Drop here</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="flex flex-col pt-8 gap-3">
+              <div *ngFor="let p of currentQuestion?.answer_data?.pairs"
+                   class="h-[42px] flex items-center text-slate-400 text-sm">→</div>
+            </div>
+
+            <!-- Column B — draggable chips -->
+            <div class="flex flex-col gap-3">
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Column B</p>
+              <div *ngFor="let opt of shuffledRight"
+                   class="px-3 py-2.5 rounded-xl border-2 text-sm font-semibold
+                          transition-all duration-200 select-none"
+                   [style.cursor]="isOptionUsed(opt) ? 'not-allowed' : 'grab'"
+                   [ngClass]="{
+                     'border-blue-200 bg-blue-50 text-blue-700': !isOptionUsed(opt),
+                     'border-slate-100 bg-slate-50 text-slate-300 opacity-40': isOptionUsed(opt)
+                   }"
+                   [draggable]="!isOptionUsed(opt)"
+                   (dragstart)="onDragStart($event, opt)">
+                {{ opt }}
+              </div>
+            </div>
+          </div>
+
+          <button (click)="resetMatch()"
+                  class="text-xs text-slate-400 hover:text-slate-600 transition-colors
+                         cursor-pointer flex items-center gap-1 w-fit mt-1">
+            <i class="pi pi-refresh"></i> Reset matches
+          </button>
+        </div>
+
+        <!-- ── MAP ── -->
+        <div *ngIf="currentQuestion?.question_type === 'map'" class="flex flex-col gap-4">
+
+          <!-- Instruction -->
+          <div class="flex items-start gap-3 px-4 py-3 rounded-xl bg-orange-50 border border-orange-200">
+            <i class="pi pi-map-marker text-orange-500 mt-0.5"></i>
+            <div>
+              <p class="text-orange-700 font-semibold text-sm">How to answer</p>
+              <p class="text-orange-600 text-xs mt-0.5 leading-relaxed">
+                Study the map carefully, then <strong>click</strong> on the exact location
+                that answers the question. Click again to move your pin.
+              </p>
+            </div>
+          </div>
+
+          <!-- Map with image check -->
+          <ng-container *ngIf="currentQuestion?.map_image; else noMap">
+
+            <!--
+              KEY FIX: position:relative lives on this div wrapper.
+              The pin's [style.left/top] are percentages of the image's rendered size,
+              computed in captureMapPin() using img.getBoundingClientRect().
+            -->
+            <div class="relative w-full rounded-2xl overflow-hidden border-2 border-slate-200
+                        cursor-crosshair select-none"
+                 (click)="captureMapPin($event)">
+
+              <img [src]="currentQuestion?.map_image"
+                   alt="Map"
+                   class="w-full block object-contain select-none"
+                   style="max-height:400px; display:block;"
+                   draggable="false"/>
+
+              <!-- Orange student pin — position driven by % relative to img -->
+              <div *ngIf="mapPin"
+                   class="absolute pointer-events-none"
+                   [style.left]="mapPin.xPct + '%'"
+                   [style.top]="mapPin.yPct + '%'"
+                   style="transform:translate(-50%,-100%);">
+                <svg width="32" height="40" viewBox="0 0 32 40" fill="none">
+                  <ellipse cx="16" cy="38" rx="6" ry="2" fill="rgba(0,0,0,0.2)"/>
+                  <path d="M16 0C9.37 0 4 5.37 4 12c0 9 12 28 12 28S28 21 28 12C28 5.37 22.63 0 16 0z"
+                        fill="#f97316"/>
+                  <circle cx="16" cy="12" r="5" fill="white"/>
+                </svg>
+              </div>
+
+              <!-- Hint overlay when no pin -->
+              <div *ngIf="!mapPin"
+                   class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span class="px-4 py-2 rounded-full text-sm font-medium"
+                      style="background:rgba(0,0,0,0.45);color:rgba(255,255,255,0.9);">
+                  <i class="pi pi-map-marker mr-2 text-orange-400"></i>Click to place your pin
+                </span>
+              </div>
+            </div>
+
+          </ng-container>
+
+          <ng-template #noMap>
+            <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center text-slate-400">
+              <i class="pi pi-image text-3xl mb-2 block"></i>
+              <p class="text-sm">Map image not available for this question.</p>
+            </div>
+          </ng-template>
+
+          <!-- Pin status bar -->
+          <div *ngIf="mapPin"
+               class="flex items-center justify-between px-4 py-2.5 rounded-xl
+                      bg-green-50 border border-green-200">
+            <span class="text-green-700 text-sm font-semibold flex items-center gap-2">
+              <i class="pi pi-check-circle text-green-500"></i> Location marked
+            </span>
+            <button (click)="mapPin = null; selectAnswer(null)"
+                    class="text-red-400 hover:text-red-600 text-xs flex items-center gap-1
+                           cursor-pointer transition-colors font-medium">
+              <i class="pi pi-times"></i> Clear pin
+            </button>
+          </div>
+
+        </div>
+
+      </div><!-- /p-8 -->
+
+      <!-- NAVIGATION -->
+      <div class="px-8 pb-8 flex justify-between items-center">
+        <p-button label="← Previous" severity="secondary"
+          [disabled]="currentIndex === 0" (click)="prev()">
+        </p-button>
+        <span class="text-sm text-slate-400">{{ currentIndex + 1 }} / {{ questions.length }}</span>
+        <p-button
+          [label]="isLastQuestion ? 'Submit Quiz ✓' : 'Next →'"
+          [styleClass]="isLastQuestion ? 'bg-green-500 border-none' : 'bg-orange-500 border-none'"
+          (click)="next()">
+        </p-button>
+      </div>
+
+    </div><!-- /quiz card -->
+
+    <!-- RESULTS -->
+    <div *ngIf="quizDone"
+      class="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden">
+      <div class="bg-gradient-to-r from-orange-500 to-orange-400 p-8 text-center text-white">
+        <p class="text-lg font-semibold mb-2">Quiz Complete!</p>
+        <div class="text-7xl font-black mb-2" [class]="getScoreColor()">{{ scorePercent }}%</div>
+        <p class="text-xl opacity-90">{{ getScoreMessage() }}</p>
+      </div>
+      <div class="p-8">
+        <div class="grid grid-cols-3 gap-4 mb-8">
+          <div class="text-center bg-slate-50 rounded-xl p-4">
+            <p class="text-2xl font-black text-slate-800">{{ questions.length }}</p>
+            <p class="text-xs text-slate-500 mt-1">Total</p>
+          </div>
+          <div class="text-center bg-green-50 rounded-xl p-4">
+            <p class="text-2xl font-black text-green-600">{{ correctCount }}</p>
+            <p class="text-xs text-slate-500 mt-1">Correct</p>
+          </div>
+          <div class="text-center bg-red-50 rounded-xl p-4">
+            <p class="text-2xl font-black text-red-500">{{ questions.length - correctCount }}</p>
+            <p class="text-xs text-slate-500 mt-1">Wrong</p>
+          </div>
+        </div>
+        <div class="flex flex-col gap-3">
+          <p-button label="🔄 Retake Quiz" styleClass="w-full bg-orange-500 border-none" (click)="retakeQuiz()"></p-button>
+          <p-button label="📊 View All Results" styleClass="w-full" severity="secondary" (click)="router.navigate(['/results'])"></p-button>
+          <p-button label="🏠 Back to Home" styleClass="w-full" severity="secondary" (click)="goHome()"></p-button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
