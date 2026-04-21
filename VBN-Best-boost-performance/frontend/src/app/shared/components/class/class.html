@@ -60,9 +60,15 @@
 
       <div class="flex flex-col gap-1">
         <label class="text-sm font-semibold text-gray-700">School *</label>
-        <p-select [options]="schools" [(ngModel)]="selectedSchool"
-          optionLabel="name" optionValue="id"
-          placeholder="Select School" styleClass="w-full"/>
+        <p-multiSelect 
+        [options]="schools"
+        [(ngModel)]="selectedSchools"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Select Schools"
+        display="chip"
+        styleClass="w-full">
+      </p-multiSelect>
       </div>
 
       <div class="flex flex-col gap-1">

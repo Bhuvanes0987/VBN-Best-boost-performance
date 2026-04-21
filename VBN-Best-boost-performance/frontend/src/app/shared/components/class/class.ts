@@ -13,14 +13,15 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ClassService } from '../../services/class.service';
 import { HttpClient } from '@angular/common/http';
+import { MultiSelectModule } from 'primeng/multiselect';
 
 @Component({
   selector: 'app-class',
   standalone: true,
   imports: [CommonModule, DialogModule, TableModule, FormsModule,
             ButtonModule, InputTextModule, SelectModule,
-            ConfirmPopupModule, ToastModule, TooltipModule],
-  providers: [ConfirmationService, MessageService],
+            ConfirmPopupModule, ToastModule, TooltipModule,MultiSelectModule],
+  providers: [ConfirmationService, MessageService ],
   templateUrl: './class.html',
   styleUrl: './class.scss'
 })
@@ -29,7 +30,7 @@ export class Class implements OnInit {
   classes: any[] = [];
   schools: any[] = [];       
   className = "";
-  selectedSchool: any = null; 
+  selectedSchools: number[] = [];
   showDialog = false;
   editMode = false;
   selectedId: number | null = null;
@@ -59,53 +60,57 @@ export class Class implements OnInit {
   }
 
   openAdd() {
-    this.className = "";
-    this.selectedSchool = null;
-    this.selectedId = null;
-    this.editMode = false;
-    this.showDialog = true;
-  }
-
+  this.className = "";
+  this.selectedSchools = [];
+  this.selectedId = null;
+  this.editMode = false;
+  this.showDialog = true;
+}
   editClass(c: any) {
-    this.editMode = true;
-    this.selectedId = c.id;
-    this.className = c.name;
-    this.selectedSchool = c.school_id;
-    this.showDialog = true;
-  }
+  this.editMode = true;
+  this.selectedId = c.id;
+  this.className = c.name;
+  this.selectedSchools = [c.school_id];
+  this.showDialog = true;
+}
 
   saveClass() {
-    if (!this.className.trim()) {
-      this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Class name is required', life: 3000 });
-      return;
-    }
-    if (!this.selectedSchool) {
-      this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please select a school', life: 3000 });
-      return;
-    }
-
-    const payload = { name: this.className, school_id: this.selectedSchool };
-
-    if (this.editMode) {
-      this.classService.updateClass(this.selectedId!, payload).subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Updated', detail: 'Class updated successfully', life: 3000 });
-          this.loadClasses();
-          this.showDialog = false;
-        },
-        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Update failed', life: 3000 })
-      });
-    } else {
-      this.classService.createClass(payload).subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Created', detail: 'Class created successfully', life: 3000 });
-          this.loadClasses();
-          this.showDialog = false;
-        },
-        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Failed to create', life: 3000 })
-      });
-    }
+  if (!this.className.trim()) {
+    this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Class name is required', life: 3000 });
+    return;
   }
+  if (!this.selectedSchools || this.selectedSchools.length === 0) {
+    this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please select at least one school', life: 3000 });
+    return;
+  }
+
+  const requests = this.selectedSchools.map(schoolId => {
+    return this.classService.createClass({
+      name: this.className,
+      school_id: schoolId
+    });
+  });
+
+  Promise.all(requests.map(req => req.toPromise()))
+    .then(() => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Created',
+        detail: 'Class created for selected schools',
+        life: 3000
+      });
+      this.loadClasses();
+      this.showDialog = false;
+    })
+    .catch(() => {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to create classes',
+        life: 3000
+      });
+    });
+}
 
   getSchoolName(schoolId: number): string {
     const school = this.schools.find(s => s.id === schoolId);
