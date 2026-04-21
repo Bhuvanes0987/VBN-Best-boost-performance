@@ -95,8 +95,9 @@ export class Quiz implements OnInit {
         this.loading = false;
         if (!res.questions || res.questions.length === 0) { this.noQuestions = true; return; }
         this.questions = res.questions;
-        this.answers   = new Array(this.questions.length).fill(null);
-        this.initQuestionState();   // set up match shuffle & map for q[0]
+this.answers   = new Array(this.questions.length).fill(null);
+  this.initQuestionState();
+  setTimeout(() => this.renderMath(), 100);
       },
       error: () => { this.loading = false; this.noQuestions = true; }
     });
@@ -269,14 +270,16 @@ export class Quiz implements OnInit {
       this.submitQuiz();
     } else {
       this.currentIndex++;
-      this.initQuestionState();
+this.initQuestionState();
+setTimeout(() => this.renderMath(), 50);
     }
   }
 
   prev() {
     if (this.currentIndex > 0) {
-      this.currentIndex--;
-      this.initQuestionState();
+   this.currentIndex--;
+  this.initQuestionState();
+  setTimeout(() => this.renderMath(), 50);
     }
   }
 
@@ -325,6 +328,7 @@ export class Quiz implements OnInit {
 
     this.scorePercent = Math.round((this.correctCount / this.questions.length) * 100);
     this.quizDone = true;
+    setTimeout(() => this.renderMath(), 100);
     this.saveResult();
   }
 
@@ -380,4 +384,38 @@ export class Quiz implements OnInit {
     if (this.scorePercent >= 40) return '📚 Keep practicing!';
     return "💪 Don't give up, try again!";
   }
+  
+  isCorrect(q: any, i: number): boolean {
+  const userAnswer = this.answers[i];
+  const data = q.answer_data;
+
+  switch (q.question_type) {
+    case 'mcq':
+      return userAnswer === data.correct;
+
+    case 'fill':
+      return userAnswer?.toLowerCase().trim() ===
+             data.answer?.toLowerCase().trim();
+
+    case 'match':
+      return data.pairs.every((p: any, idx: number) =>
+        userAnswer?.[idx] === p.right
+      );
+
+    case 'map':
+      return !!userAnswer; 
+
+    default:
+      return false;
+  }
+}
+
+renderMath() {
+  setTimeout(() => {
+    if ((window as any).MathJax) {
+      (window as any).MathJax.typesetClear();   // 🔥 important
+      (window as any).MathJax.typesetPromise();
+    }
+  }, 50);
+}
 }

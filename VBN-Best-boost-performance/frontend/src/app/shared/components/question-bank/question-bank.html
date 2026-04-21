@@ -111,7 +111,7 @@
           <tr>
             <td>{{ q.id }}</td>
             <td class="max-w-xs">
-              <span class="line-clamp-2 text-sm">{{ q.question_text }}</span>
+<span class="line-clamp-2 text-sm" [innerHTML]="q.question_text"></span>
             </td>
             <td>
               <span class="px-2 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-600">
@@ -253,10 +253,17 @@
           <p-button label="∂" pTooltip="Partial derivative" (click)="insertSymbol('∂')"  size="small"></p-button>
           <p-button label="∇" pTooltip="Nabla"              (click)="insertSymbol('∇')"  size="small"></p-button>
         </div>
-        <textarea #questionTextarea pInputTextarea [(ngModel)]="questionText"
-          rows="4" placeholder="Enter your question"
-          class="w-full bg-slate-800 text-white border-slate-600">
-        </textarea>
+        <textarea #questionTextarea pInputTextarea
+  [(ngModel)]="questionText"
+  (ngModelChange)="onQuestionChange()"
+  rows="4"
+  placeholder="Enter your question"
+  class="w-full bg-slate-800 text-white border-slate-600">
+</textarea>
+  <div *ngIf="questionText"
+      class="mt-3 p-3 rounded-lg bg-white text-black border"
+      [innerHTML]="questionText">
+  </div>
       </div>
 
       <!-- MCQ OPTIONS -->
@@ -390,7 +397,7 @@
 
       <!-- Question text -->
       <div class="px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white font-medium leading-relaxed">
-        {{ previewQuestion.question_text }}
+      <div [innerHTML]="previewQuestion.question_text"></div>
       </div>
 
       <!-- MCQ -->

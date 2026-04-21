@@ -127,8 +127,10 @@ export class QuestionBank implements OnInit {
       : `${this.api}/questions`;
 
     this.http.get(url)
-      .subscribe((res: any) => this.questions = res.questions);
-  }
+    .subscribe((res: any) => {
+      this.questions = res.questions;
+      setTimeout(() => this.renderMath(), 100);
+    });  }
 
   // ─── Multi-select filter handlers ─────────────────────────────────────────
 
@@ -311,7 +313,7 @@ export class QuestionBank implements OnInit {
       unit_id:    this.selectedUnit?.id || null,
       school_id:  this.selectedSchool,
       type:       this.questionType,
-      question:   this.questionText,
+    question: this.autoFormatMath(this.questionText),
       answer_data,
       map_image:  this.questionType === 'map' ? this.selectedFile : null
     };
@@ -423,6 +425,7 @@ export class QuestionBank implements OnInit {
       this.previewShuffledRight = this.shuffle([...rights]);
     }
     this.previewVisible = true;
+    setTimeout(() => this.renderMath(), 100);
   }
 
   closePreview() { this.previewVisible = false; this.previewQuestion = null; this.previewResult = null; }
@@ -516,6 +519,39 @@ export class QuestionBank implements OnInit {
     };
     return map[type] ?? {};
   }
+  
+  autoFormatMath(text: string): string {
+  if (!text) return '';
+  if (text.includes('\\(') || text.includes('\\begin')) {
+    return text;
+  }
+
+  text = text.replace(/\[([^\]]+)\]/g, (match, content) => {
+    const rows = content.split(';')
+      .map((row: string) =>
+        row.trim().split(/\s+/).join(' & ')
+      )
+      .join(' \\\\ ');
+
+    return `\\(\\begin{bmatrix}${rows}\\end{bmatrix}\\)`;
+  });
+
+  return text;
+}
+onQuestionChange() {
+  setTimeout(() => {
+    if ((window as any).MathJax) {
+      (window as any).MathJax.typesetPromise();
+    }
+  }, 50);
+}
+renderMath() {
+  setTimeout(() => {
+    if ((window as any).MathJax) {
+      (window as any).MathJax.typesetPromise();
+    }
+  });
+}
 
   // ─── Toasts ───────────────────────────────────────────────────────────────
 
