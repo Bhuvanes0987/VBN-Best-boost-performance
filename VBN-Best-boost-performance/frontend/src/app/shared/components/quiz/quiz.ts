@@ -118,9 +118,13 @@ this.answers   = new Array(this.questions.length).fill(null);
     if (q.question_type === 'match') {
       // Build shuffled Column B once per question (cache it)
       if (!this.shuffleCache[this.currentIndex]) {
-        const rights: string[] = (q.answer_data?.pairs ?? []).map((p: any) => p.right);
-        this.shuffleCache[this.currentIndex] = this.shuffle([...rights]);
-      }
+      const rights: string[] = [
+        ...(q.answer_data?.pairs ?? []).map((p: any) => p.right),
+        ...(q.answer_data?.options ?? [])
+      ];
+
+      this.shuffleCache[this.currentIndex] = this.shuffle([...new Set(rights)]);
+}
       this.shuffledRight = this.shuffleCache[this.currentIndex];
       // Restore saved match slots
       this.matchAnswers  = saved ? { ...saved } : {};

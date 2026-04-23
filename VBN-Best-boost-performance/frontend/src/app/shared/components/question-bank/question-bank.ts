@@ -34,6 +34,7 @@ import { TextareaModule } from 'primeng/textarea';
 export class QuestionBank implements OnInit {
 
   @ViewChild('questionTextarea') questionTextareaRef!: ElementRef<HTMLTextAreaElement>;
+  matchOptions: string[] = [];
 
   constructor(
     private questionService: QuestionService,
@@ -295,10 +296,16 @@ export class QuestionBank implements OnInit {
       answer_data = { answer: this.fillAnswer };
     }
     if (this.questionType === 'match') {
-      const validPairs = this.pairs.filter(p => (p.left || '').trim() && (p.right || '').trim());
-      if (validPairs.length < 1) { this.warn('Add at least one match pair'); return; }
-      answer_data = { pairs: validPairs };
+    const validPairs = this.pairs.filter(p => (p.left || '').trim() && (p.right || '').trim());
+    if (validPairs.length < 1) {
+      this.warn('Add at least one match pair');
+      return;
     }
+    answer_data = {
+      pairs: validPairs,
+      options: this.matchOptions.filter(o => o.trim()) 
+    };
+  }
     if (this.questionType === 'map') {
       if (!this.selectedFile) { this.warn('Please upload a map image'); return; }
       answer_data = {
@@ -360,7 +367,7 @@ export class QuestionBank implements OnInit {
     const data = q.answer_data;
     if (this.questionType === 'mcq')   { this.options = data.options.map((o: any) => ({ text: o })); this.correctOption = data.correct; }
     if (this.questionType === 'fill')  { this.fillAnswer = data.answer; }
-    if (this.questionType === 'match') { this.pairs = data?.pairs?.length ? data.pairs.map((p: any) => ({ ...p })) : [{ left: '', right: '' }]; }
+    if (this.questionType === 'match') { this.pairs = data?.pairs?.length ? data.pairs.map((p: any) => ({ ...p })) : [{ left: '', right: '' }]; this.matchOptions = data?.options || [];  }
     if (this.questionType === 'map') {
       this.selectedFile  = q.map_image || null;
       this.correctMapPin = data?.correct_pin ? { x: data.correct_pin.xPct, y: data.correct_pin.yPct } : null;
@@ -397,6 +404,7 @@ export class QuestionBank implements OnInit {
     this.options = [{ text: '' }, { text: '' }]; this.correctOption = 0;
     this.pairs = [{ left: '', right: '' }]; this.fillAnswer = '';
     this.selectedFile = null; this.correctMapPin = null;
+     this.matchOptions = []; 
   }
 
   openDrawer() { this.resetForm(); this.drawerVisible = true; }
@@ -421,8 +429,12 @@ export class QuestionBank implements OnInit {
     this.previewCorrectDisplay = '';
 
     if (q.question_type === 'match') {
-      const rights: string[] = (q.answer_data?.pairs ?? []).map((p: any) => p.right);
-      this.previewShuffledRight = this.shuffle([...rights]);
+        const rights = [
+          ...(q.answer_data?.pairs ?? []).map((p: any) => p.right),
+          ...(q.answer_data?.options ?? [])
+        ];
+
+        this.previewShuffledRight = this.shuffle(rights);
     }
     this.previewVisible = true;
     setTimeout(() => this.renderMath(), 100);
@@ -552,7 +564,13 @@ renderMath() {
     }
   });
 }
+  addMatchOption() {
+    this.matchOptions.push('');
+  }
 
+  removeMatchOption(i: number) {
+    this.matchOptions.splice(i, 1);
+  }
   // ─── Toasts ───────────────────────────────────────────────────────────────
 
   private warn(d: string)    { this.messageService.add({ severity: 'warn',    summary: 'Required', detail: d, life: 3000 }); }

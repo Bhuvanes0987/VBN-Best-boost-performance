@@ -298,6 +298,27 @@
         </div>
         <p-button label="+ Add Pair" styleClass="bg-orange-500 border-none" (click)="addPair()"></p-button>
       </div>
+<div *ngIf="questionType === 'match'" class="flex flex-col gap-3">
+    <label class="text-slate-300 text-sm font-semibold">
+    Extra Options (Column B)
+  </label>
+
+  <div *ngFor="let opt of matchOptions; let i=index" class="flex gap-3">
+    <input pInputText [(ngModel)]="matchOptions[i]"
+      placeholder="Extra option"
+      class="flex-1 bg-slate-800 text-white border-slate-600"/>
+
+    <p-button icon="pi pi-trash"
+      severity="danger" [text]="true"
+      (click)="removeMatchOption(i)">
+    </p-button>
+  </div>
+
+  <p-button label="+ Add Option"
+    (click)="addMatchOption()"
+    styleClass="bg-orange-500 border-none">
+  </p-button>
+</div>
 
       <!-- MAP UPLOAD -->
       <div *ngIf="questionType === 'map'" class="flex flex-col gap-3">
