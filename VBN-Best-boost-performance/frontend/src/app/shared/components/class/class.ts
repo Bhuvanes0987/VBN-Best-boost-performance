@@ -55,8 +55,8 @@ export class Class implements OnInit {
 
   loadClasses() {
     this.classService.getClasses().subscribe((res: any) => {
-      this.classes = res.classes;
-    });
+   this.classes = [...res.classes];
+      });
   }
 
   openAdd() {
@@ -74,44 +74,76 @@ export class Class implements OnInit {
   this.showDialog = true;
 }
 
-  saveClass() {
+saveClass() {
   if (!this.className.trim()) {
     this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Class name is required', life: 3000 });
     return;
   }
+
   if (!this.selectedSchools || this.selectedSchools.length === 0) {
     this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please select at least one school', life: 3000 });
     return;
   }
 
-  const requests = this.selectedSchools.map(schoolId => {
-    return this.classService.createClass({
+  // 🔥 EDIT MODE
+  if (this.editMode && this.selectedId) {
+    // ⚠️ only allow ONE school during edit (important)
+    const schoolId = this.selectedSchools[0];
+
+    this.classService.updateClass(this.selectedId, {
       name: this.className,
       school_id: schoolId
+    }).subscribe({
+      next: () => {
+        this.showDialog = false;
+        this.loadClasses();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Updated',
+          detail: 'Class updated successfully',
+          life: 3000
+        });
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err.error?.message || 'Update failed',
+          life: 3000
+        });
+      }
     });
-  });
 
-  Promise.all(requests.map(req => req.toPromise()))
-    .then(() => {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Created',
-        detail: 'Class created for selected schools',
-        life: 3000
-      });
-      this.loadClasses();
-      this.showDialog = false;
-    })
-    .catch(() => {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to create classes',
-        life: 3000
-      });
+  } else {
+    // 🔥 CREATE MODE (multi-school)
+    const requests = this.selectedSchools.map(schoolId => {
+      return this.classService.createClass({
+        name: this.className,
+        school_id: schoolId
+      }).toPromise();
     });
+
+    Promise.all(requests)
+      .then(() => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Created',
+          detail: 'Class created for selected schools',
+          life: 3000
+        });
+        this.loadClasses();
+        this.showDialog = false;
+      })
+      .catch(() => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to create classes',
+          life: 3000
+        });
+      });
+  }
 }
-
   getSchoolName(schoolId: number): string {
     const school = this.schools.find(s => s.id === schoolId);
     return school ? school.name : '-';

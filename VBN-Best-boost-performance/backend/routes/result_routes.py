@@ -87,10 +87,47 @@ def save_result():
         test_type       = data.get("test_type", "daily_random"),
         taken_at        = datetime.now(timezone.utc)
     )
+
     db.session.add(result)
     db.session.commit()
-    return jsonify({"message": "Result saved", "id": result.id}), 201
 
+    try:
+        user = User.query.get(data["user_id"])
+        subject = Subject.query.get(data.get("subject_id")) if data.get("subject_id") else None
+        school = School.query.get(data.get("school_id")) if data.get("school_id") else None
+
+        teacher_email = None
+
+        # 🎯 Decide email based on test type
+        if data.get("test_type") == "subject":
+            # Example: subject teacher
+            teacher_email = subject.teacher_email if subject else None
+        else:
+            # Daily test → school teacher/admin
+            teacher_email = school.email if school else None
+
+        if teacher_email:
+            msg = Message(
+                subject="Student Test Result",
+                recipients=[teacher_email],
+                body=f"""
+Student: {user.name if user else 'Unknown'}
+
+Test Type: {data.get('test_type')}
+Subject: {subject.subject_name if subject else 'General'}
+
+Score: {percent}%
+Correct Answers: {correct}/{total}
+
+Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}
+"""
+            )
+            mail.send(msg)
+
+    except Exception as e:
+        print("Email sending failed:", str(e))
+
+    return jsonify({"message": "Result saved", "id": result.id}), 201
 
 # ── NEW: leaderboard ──────────────────────────────────────────────────────────
 
