@@ -311,8 +311,6 @@
                   class="px-4 py-3 align-middle text-left min-w-[120px]">
                   <div class="custom-header-wrap group">
                     <span class="custom-header-icon">
-                      <i *ngIf="col === 3" class="pi pi-paperclip text-xs"></i>
-                      <i *ngIf="col === 4" class="pi pi-link text-xs"></i>
                     </span>
                     <input *ngIf="canEditHomeTable; else readonlyHeader" [(ngModel)]="customTableHeaders[col]"
                       (blur)="saveCustomHeaders()"
@@ -323,7 +321,7 @@
                       <span class="custom-header-text">{{ customTableHeaders[col] }}</span>
                     </ng-template>
                     <span class="custom-header-edit">
-                      <i *ngIf="canEditHomeTable" class="pi pi-pencil text-xs text-slate-300 group-hover:text-slate-400 shrink-0 transition-colors"></i>
+                      <i *ngIf="canEditHomeTable" ></i>
                     </span>
                   </div>
                 </th>
