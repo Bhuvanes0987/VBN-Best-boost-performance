@@ -16,6 +16,7 @@ from models.unit_model import Unit
 from models.question_model import Question
 from models.test_result_model import TestResult  
 from models.payment_model import Payment
+from models.custom_table_model import CustomTableHeader, CustomTableRow, CustomTableFile
 
 from routes.question_routes import question_bp
 from routes.user_routes import user_bp
@@ -28,6 +29,7 @@ from routes.school_routes import school_bp
 from routes.result_routes import result_bp
 from routes.profile_routes import profile_bp
 from routes.payment_routes import payment_bp
+from routes.custom_table_routes import custom_table_bp
 
 
 app = Flask(__name__)
@@ -48,6 +50,7 @@ app.register_blueprint(school_bp)
 app.register_blueprint(result_bp)  
 app.register_blueprint(profile_bp)
 app.register_blueprint(payment_bp)
+app.register_blueprint(custom_table_bp)
 
 with app.app_context():
     db.create_all()

@@ -34,7 +34,9 @@ import { TextareaModule } from 'primeng/textarea';
 export class QuestionBank implements OnInit {
 
   @ViewChild('questionTextarea') questionTextareaRef!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('questionPreviewRef') questionPreviewRef!: ElementRef<HTMLElement>;
   matchOptions: string[] = [];
+  private questionMathDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private questionService: QuestionService,
@@ -44,6 +46,9 @@ export class QuestionBank implements OnInit {
   ) {}
 
   private api = environment.apiUrl;
+  currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  userPosition = Number(localStorage.getItem('position') || this.currentUser?.position || 0);
+  canEditQuestionBank = this.userPosition === 1;
 
   // ─── Drawer ───────────────────────────────────────────────────────────────
   drawerVisible = false;
@@ -86,7 +91,6 @@ export class QuestionBank implements OnInit {
   pairs: any[]   = [{ left: '', right: '' }];
   fillAnswer     = '';
   selectedFile: string | null = null;
-  correctMapPin: { x: number; y: number } | null = null;
 
   // ─── Preview dialog ───────────────────────────────────────────────────────
   previewVisible:  boolean = false;
@@ -98,7 +102,6 @@ export class QuestionBank implements OnInit {
   previewDraggedValue  = '';
   previewDragOverSlot  = -1;
   previewShuffledRight: string[] = [];
-  previewMapPin: { xPct: number; yPct: number } | null = null;
   previewResult: boolean | null = null;
   previewCorrectDisplay = '';
 
@@ -249,6 +252,7 @@ export class QuestionBank implements OnInit {
   removeOption(i: number) { if (this.options.length > 1) this.options.splice(i, 1); }
   addPair()               { this.pairs.push({ left: '', right: '' }); }
   removePair(i: number)   { if (this.pairs.length > 1) this.pairs.splice(i, 1); }
+  trackByIndex(index: number): number { return index; }
 
   getSchoolName(schoolId: number): string {
     const s = this.schools.find(s => s.id === schoolId);
@@ -261,24 +265,14 @@ export class QuestionBank implements OnInit {
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => { this.selectedFile = reader.result as string; this.correctMapPin = null; };
+    reader.onload = () => { this.selectedFile = reader.result as string; };
     reader.readAsDataURL(file);
-  }
-
-  captureCorrectMapPin(event: MouseEvent) {
-    const wrapper = event.currentTarget as HTMLElement;
-    const img     = wrapper.querySelector('img') as HTMLImageElement;
-    if (!img) return;
-    const rect = img.getBoundingClientRect();
-    // Clamp to image bounds
-    const x = Math.min(Math.max(((event.clientX - rect.left) / rect.width)  * 100, 0), 100);
-    const y = Math.min(Math.max(((event.clientY - rect.top)  / rect.height) * 100, 0), 100);
-    this.correctMapPin = { x, y };
   }
 
   // ─── Save ─────────────────────────────────────────────────────────────────
 
   saveQuestion() {
+    if (!this.canEditQuestionBank) { this.warn('Only admin can edit question bank'); return; }
     if (!this.selectedSchool)      { this.warn('Please select a school');      return; }
     if (!this.selectedClass)       { this.warn('Please select a class');       return; }
     if (!this.selectedSubject)     { this.warn('Please select a subject');     return; }
@@ -308,9 +302,14 @@ export class QuestionBank implements OnInit {
   }
     if (this.questionType === 'map') {
       if (!this.selectedFile) { this.warn('Please upload a map image'); return; }
+      const validPairs = this.pairs.filter(p => (p.left || '').trim() && (p.right || '').trim());
+      if (validPairs.length < 1) {
+        this.warn('Add at least one match pair for map');
+        return;
+      }
       answer_data = {
-        correct_pin: this.correctMapPin ? { xPct: this.correctMapPin.x, yPct: this.correctMapPin.y } : null,
-        tolerance: 5
+        pairs: validPairs,
+        options: this.matchOptions.filter(o => o.trim())
       };
     }
 
@@ -341,6 +340,7 @@ export class QuestionBank implements OnInit {
   // ─── Edit ─────────────────────────────────────────────────────────────────
 
   editQuestion(q: any) {
+    if (!this.canEditQuestionBank) { this.warn('Only admin can edit question bank'); return; }
     this.resetForm();
     this.drawerVisible = true; this.editMode = true;
     this.selectedQuestionId = q.id;
@@ -370,13 +370,15 @@ export class QuestionBank implements OnInit {
     if (this.questionType === 'match') { this.pairs = data?.pairs?.length ? data.pairs.map((p: any) => ({ ...p })) : [{ left: '', right: '' }]; this.matchOptions = data?.options || [];  }
     if (this.questionType === 'map') {
       this.selectedFile  = q.map_image || null;
-      this.correctMapPin = data?.correct_pin ? { x: data.correct_pin.xPct, y: data.correct_pin.yPct } : null;
+      this.pairs = data?.pairs?.length ? data.pairs.map((p: any) => ({ ...p })) : [{ left: '', right: '' }];
+      this.matchOptions = data?.options || [];
     }
   }
 
   // ─── Delete ───────────────────────────────────────────────────────────────
 
   confirmDelete(event: Event, id: number) {
+    if (!this.canEditQuestionBank) { this.warn('Only admin can edit question bank'); return; }
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       message: 'Delete this question?',
@@ -403,16 +405,19 @@ export class QuestionBank implements OnInit {
     this.questionText = ''; this.questionType = '';
     this.options = [{ text: '' }, { text: '' }]; this.correctOption = 0;
     this.pairs = [{ left: '', right: '' }]; this.fillAnswer = '';
-    this.selectedFile = null; this.correctMapPin = null;
+    this.selectedFile = null;
      this.matchOptions = []; 
   }
 
-  openDrawer() { this.resetForm(); this.drawerVisible = true; }
+  openDrawer() {
+    if (!this.canEditQuestionBank) { this.warn('Only admin can edit question bank'); return; }
+    this.resetForm(); this.drawerVisible = true;
+  }
 
   onTypeChange() {
     this.options = [{ text: '' }, { text: '' }]; this.correctOption = 0;
     this.pairs = [{ left: '', right: '' }]; this.fillAnswer = '';
-    this.selectedFile = null; this.correctMapPin = null;
+    this.selectedFile = null;
   }
 
   // ─── Preview ──────────────────────────────────────────────────────────────
@@ -424,11 +429,10 @@ export class QuestionBank implements OnInit {
     this.previewMatchAnswers  = {};
     this.previewDragOverSlot  = -1;
     this.previewDraggedValue  = '';
-    this.previewMapPin        = null;
     this.previewResult        = null;
     this.previewCorrectDisplay = '';
 
-    if (q.question_type === 'match') {
+    if (q.question_type === 'match' || q.question_type === 'map') {
         const rights = [
           ...(q.answer_data?.pairs ?? []).map((p: any) => p.right),
           ...(q.answer_data?.options ?? [])
@@ -462,17 +466,6 @@ export class QuestionBank implements OnInit {
   resetPreviewMatch() { this.previewMatchAnswers = {}; this.previewResult = null; }
   isPreviewOptionUsed(value: string): boolean { return Object.values(this.previewMatchAnswers).includes(value); }
 
-  capturePreviewMapPin(event: MouseEvent) {
-    const wrapper = event.currentTarget as HTMLElement;
-    const img     = wrapper.querySelector('img') as HTMLImageElement;
-    if (!img) return;
-    const rect = img.getBoundingClientRect();
-    const xPct = Math.min(Math.max(((event.clientX - rect.left) / rect.width)  * 100, 0), 100);
-    const yPct = Math.min(Math.max(((event.clientY - rect.top)  / rect.height) * 100, 0), 100);
-    this.previewMapPin = { xPct, yPct };
-    this.previewResult = null;
-  }
-
   checkPreviewAnswer() {
     const q = this.previewQuestion; const data = q.answer_data;
     let correct = false; this.previewCorrectDisplay = '';
@@ -498,14 +491,10 @@ export class QuestionBank implements OnInit {
         break;
       }
       case 'map': {
-        if (!this.previewMapPin) { this.warn('Please click on the map to place your pin'); return; }
-        const cp = data?.correct_pin; const tol = data?.tolerance ?? 5;
-        if (cp) {
-          const dx = this.previewMapPin.xPct - cp.xPct;
-          const dy = this.previewMapPin.yPct - cp.yPct;
-          correct  = Math.sqrt(dx * dx + dy * dy) <= tol;
-        }
-        if (!correct) this.previewCorrectDisplay = 'The correct location is marked on the map by the teacher.';
+        const pairs = data?.pairs ?? [];
+        if (!pairs.every((_: any, i: number) => !!this.previewMatchAnswers[i])) { this.warn('Please match all items'); return; }
+        correct = pairs.every((p: any, i: number) => this.previewMatchAnswers[i] === p.right);
+        if (!correct) this.previewCorrectDisplay = pairs.map((p: any) => `${p.left} → ${p.right}`).join(', ');
         break;
       }
     }
@@ -551,11 +540,17 @@ export class QuestionBank implements OnInit {
   return text;
 }
 onQuestionChange() {
-  setTimeout(() => {
-    if ((window as any).MathJax) {
-      (window as any).MathJax.typesetPromise();
+  if (this.questionMathDebounceTimer) {
+    clearTimeout(this.questionMathDebounceTimer);
+  }
+
+  this.questionMathDebounceTimer = setTimeout(() => {
+    const mj = (window as any).MathJax;
+    const previewEl = this.questionPreviewRef?.nativeElement;
+    if (mj && previewEl) {
+      mj.typesetPromise([previewEl]);
     }
-  }, 50);
+  }, 250);
 }
 renderMath() {
   setTimeout(() => {

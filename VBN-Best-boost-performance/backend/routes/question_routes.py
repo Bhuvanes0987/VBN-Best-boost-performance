@@ -10,6 +10,30 @@ import random as rnd
 question_bp = Blueprint("questions", __name__)
 
 
+def _normalize_match_like_answer_data(answer_data):
+    """Normalize match-style payload into {'pairs': [...], 'options': [...]} format."""
+    data = answer_data or {}
+    pairs = data.get("pairs") if isinstance(data, dict) else []
+    options = data.get("options") if isinstance(data, dict) else []
+
+    clean_pairs = []
+    for p in pairs or []:
+        if not isinstance(p, dict):
+            continue
+        left = (p.get("left") or "").strip()
+        right = (p.get("right") or "").strip()
+        if left and right:
+            clean_pairs.append({"left": left, "right": right})
+
+    clean_options = []
+    for o in options or []:
+        txt = (o or "").strip()
+        if txt:
+            clean_options.append(txt)
+
+    return {"pairs": clean_pairs, "options": clean_options}
+
+
 def serialize_question(q, include_map=True):
     """Shared serializer so map_image is never forgotten."""
     unit_name = None
@@ -43,17 +67,27 @@ def create_question():
     if not any(c.id == data["class_id"] for c in subject.classes):
         return jsonify({"error": "Subject not assigned to this class"}), 400
 
+    q_type = data.get("type")
     answer_data = data.get("answer_data")
+    map_image = data.get("map_image")
+
+    if q_type in ("match", "map"):
+        answer_data = _normalize_match_like_answer_data(answer_data)
+        if len(answer_data["pairs"]) < 1:
+            return jsonify({"error": "At least one valid pair is required"}), 400
+
+    if q_type == "map" and not map_image:
+        return jsonify({"error": "Map image is required for map questions"}), 400
 
     question = Question(
         question_text=data["question"],
-        question_type=data["type"],
+        question_type=q_type,
         class_id=data["class_id"],
         subject_id=data["subject_id"],
         unit_id=data.get("unit_id"),
         school_id=data.get("school_id"),
         answer_data=json.dumps(answer_data) if answer_data else None,
-        map_image=data.get("map_image"),
+        map_image=map_image,
         status=1,
         created_by="admin",
         created_at=datetime.now(timezone.utc)
@@ -91,14 +125,26 @@ def update_question(id):
     question = Question.query.get_or_404(id)
     data = request.json
 
+    q_type = data.get("type")
+    answer_data = data.get("answer_data")
+    map_image = data.get("map_image")
+
+    if q_type in ("match", "map"):
+        answer_data = _normalize_match_like_answer_data(answer_data)
+        if len(answer_data["pairs"]) < 1:
+            return jsonify({"error": "At least one valid pair is required"}), 400
+
+    if q_type == "map" and not map_image:
+        return jsonify({"error": "Map image is required for map questions"}), 400
+
     question.question_text = data["question"]
-    question.question_type = data["type"]
+    question.question_type = q_type
     question.class_id      = data["class_id"]
     question.subject_id    = data["subject_id"]
     question.unit_id       = data.get("unit_id")
     question.school_id     = data.get("school_id")
-    question.answer_data   = json.dumps(data.get("answer_data")) if data.get("answer_data") else None
-    question.map_image     = data.get("map_image")
+    question.answer_data   = json.dumps(answer_data) if answer_data else None
+    question.map_image     = map_image
     question.updated_at    = datetime.now(timezone.utc)
     question.updated_by    = "admin"
 

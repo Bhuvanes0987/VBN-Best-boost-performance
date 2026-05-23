@@ -6,7 +6,7 @@
     <h2 class="text-center text-4xl font-bold text-orange-500 mb-2">Create Account</h2>
     <p class="text-center text-gray-500 text-sm mb-8">Fill in your details to register</p>
 
-    <div class="flex flex-col gap-4">
+    <form class="flex flex-col gap-4" (ngSubmit)="signup()">
 
       <div class="flex flex-col gap-1">
         <label class="text-xs text-orange-400 uppercase font-bold tracking-widest">Full Name *</label>
@@ -58,9 +58,10 @@
 
       <button pButton
         [label]="loading ? 'Creating Account...' : 'Create Account'"
+        type="submit"
         [disabled]="loading"
         class="w-full mt-2 bg-orange-500 border-none"
-        (click)="signup()">
+        >
       </button>
 
       <p class="text-center text-sm mt-2">
@@ -68,6 +69,6 @@
         <a routerLink="/login" class="text-orange-500 font-semibold">Login</a>
       </p>
 
-    </div>
+    </form>
   </div>
 </div>

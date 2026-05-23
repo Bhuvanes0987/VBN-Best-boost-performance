@@ -55,7 +55,8 @@
   </div>
 
   <p-dialog [header]="editMode ? 'Edit Class' : 'Add Class'"
-    [(visible)]="showDialog" [modal]="true" [style]="{width:'420px'}">
+    [(visible)]="showDialog" [modal]="true" [style]="{width:'420px'}"
+    [draggable]="false" [dismissableMask]="false" [blockScroll]="true">
     <div class="flex flex-col gap-4 pt-2">
 
       <div class="flex flex-col gap-1">
@@ -67,6 +68,8 @@
   optionLabel="name"
   optionValue="id"
   placeholder="Select School"
+          scrollHeight="220px"
+          appendTo="body"
   class="w-full">
 </p-select>
 
@@ -78,6 +81,8 @@
   optionValue="id"
   placeholder="Select Schools"
   display="chip"
+  scrollHeight="220px"
+          appendTo="body"
   class="w-full">
 </p-multiSelect>
       </div>

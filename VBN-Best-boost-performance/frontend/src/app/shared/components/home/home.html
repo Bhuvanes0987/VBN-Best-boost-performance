@@ -275,6 +275,146 @@
         </div>
       </div>
 
+      <!-- hidden file input for col-3 uploads -->
+      <input type="file" id="customTableFileInput" multiple accept=".pdf,.doc,.docx,.zip,.png,.jpg,.jpeg"
+        style="display:none" (change)="onCustomFileUpload($event)">
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-10">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <div>
+            <p class="font-bold text-slate-800">Data</p>
+            <!-- <p class="text-xs text-slate-500">Edit columns, rows, and cell data directly</p> -->
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- <button class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+              title="Add Column" (click)="addCustomColumn()">
+              <i class="pi pi-plus"></i>
+            </button>
+            <button class="w-9 h-9 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition"
+              title="Add Row" (click)="addCustomRow()">
+              <i class="pi pi-plus-circle"></i>
+            </button> -->
+            <button class="w-9 h-9 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 transition"
+              *ngIf="canEditHomeTable"
+              title="Configure Rows / Columns" (click)="openCustomTableConfig()">
+              <i class="pi pi-cog"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[720px] table-fixed custom-home-table">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200">
+                <th class="text-left px-4 py-3 align-middle text-xs font-bold uppercase tracking-wide text-slate-500 w-12">#</th>
+                <th *ngFor="let header of customTableHeaders; let col = index; trackBy: trackByIndex"
+                  class="px-4 py-3 align-middle text-left min-w-[120px]">
+                  <div class="custom-header-wrap group">
+                    <span class="custom-header-icon">
+                      <i *ngIf="col === 3" class="pi pi-paperclip text-xs"></i>
+                      <i *ngIf="col === 4" class="pi pi-link text-xs"></i>
+                    </span>
+                    <input *ngIf="canEditHomeTable; else readonlyHeader" [(ngModel)]="customTableHeaders[col]"
+                      (blur)="saveCustomHeaders()"
+                      class="custom-header-input"
+                      [placeholder]="'Column ' + (col + 1)"
+                      title="Click to rename column">
+                    <ng-template #readonlyHeader>
+                      <span class="custom-header-text">{{ customTableHeaders[col] }}</span>
+                    </ng-template>
+                    <span class="custom-header-edit">
+                      <i *ngIf="canEditHomeTable" class="pi pi-pencil text-xs text-slate-300 group-hover:text-slate-400 shrink-0 transition-colors"></i>
+                    </span>
+                  </div>
+                </th>
+                <th *ngIf="canEditHomeTable" class="px-4 py-3 align-middle text-left text-xs font-bold uppercase tracking-wide text-slate-500 w-28">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of customTableData; let rowIndex = index; trackBy: trackByIndex"
+                class="border-b border-slate-100 hover:bg-slate-50/70">
+                <td class="px-4 py-3 text-sm font-semibold text-slate-500">{{ rowIndex + 1 }}</td>
+
+                <td *ngFor="let _ of customTableHeaders; let colIndex = index; trackBy: trackByIndex" class="px-4 py-3">
+
+                  <!-- ── Regular text columns (not col 3 or col 4) ── -->
+                  <ng-container *ngIf="colIndex !== 3 && colIndex !== 4">
+                    <ng-container *ngIf="canEditHomeTable && customTableRowEditFlags[rowIndex]; else viewTextCell">
+                      <input [(ngModel)]="customTableData[rowIndex][colIndex]"
+                        (blur)="autoSaveRow(rowIndex)"
+                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700"
+                        placeholder="Enter value">
+                    </ng-container>
+                    <ng-template #viewTextCell>
+                      <span class="text-sm text-slate-700">{{ customTableData[rowIndex][colIndex] || '\u2014' }}</span>
+                    </ng-template>
+                  </ng-container>
+
+                  <!-- ── Col 3: File upload (PDF / Doc / Folder) ── -->
+                  <ng-container *ngIf="colIndex === 3">
+                    <div class="flex flex-col gap-1">
+                      <a *ngFor="let f of getCustomFiles(rowIndex); let fi = index"
+                        [href]="f.url" target="_blank"
+                        class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 transition max-w-full truncate"
+                        [title]="f.name">
+                        <i class="pi pi-file text-xs"></i>
+                        <span class="truncate max-w-[110px]">{{ f.name }}</span>
+                        <span *ngIf="canEditHomeTable && customTableRowEditFlags[rowIndex]"
+                          (click)="$event.preventDefault(); removeCustomFile(rowIndex, fi)"
+                          class="ml-1 text-red-400 hover:text-red-600 cursor-pointer font-bold">\u2715</span>
+                      </a>
+                      <button *ngIf="canEditHomeTable && customTableRowEditFlags[rowIndex]"
+                        (click)="triggerCustomFileUpload(rowIndex)"
+                        class="mt-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200 transition w-fit">
+                        <i class="pi pi-upload text-xs"></i> Upload
+                      </button>
+                      <span *ngIf="!customTableRowEditFlags[rowIndex] && getCustomFiles(rowIndex).length === 0"
+                        class="text-sm text-slate-400">\u2014</span>
+                    </div>
+                  </ng-container>
+
+                  <!-- ── Col 4: Link input ── -->
+                  <ng-container *ngIf="colIndex === 4">
+                    <ng-container *ngIf="canEditHomeTable && customTableRowEditFlags[rowIndex]; else viewLinkCell">
+                      <input [(ngModel)]="customTableData[rowIndex][4]"
+                        (blur)="autoSaveRow(rowIndex)"
+                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700"
+                        placeholder="https://...">
+                    </ng-container>
+                    <ng-template #viewLinkCell>
+                      <a *ngIf="customTableData[rowIndex]?.[4]"
+                        [href]="customTableData[rowIndex][4]" target="_blank"
+                        class="text-blue-600 underline text-sm truncate block max-w-[160px]"
+                        [title]="customTableData[rowIndex][4]">
+                        {{ customTableData[rowIndex][4] }}
+                      </a>
+                      <span *ngIf="!customTableData[rowIndex]?.[4]" class="text-sm text-slate-400">\u2014</span>
+                    </ng-template>
+                  </ng-container>
+
+                </td>
+
+                <td *ngIf="canEditHomeTable" class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <button
+                      class="h-8 px-3 rounded-lg text-xs font-semibold transition"
+                      [class]="customTableRowEditFlags[rowIndex] ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'"
+                      (click)="toggleCustomRowEdit(rowIndex)">
+                      <i class="pi" [ngClass]="customTableRowEditFlags[rowIndex] ? 'pi-check' : 'pi-pencil'"></i>
+                      {{ customTableRowEditFlags[rowIndex] ? 'Done' : 'Edit' }}
+                    </button>
+                    <button class="w-8 h-8 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition"
+                      title="Delete row" (click)="deleteCustomRow(rowIndex)">
+                      <i class="pi pi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     
     </div>
     <!-- /left column -->
@@ -342,13 +482,36 @@
   </main>
 </div>
 
+<p-dialog header="Configure Table" [(visible)]="customTableConfigDialog" [modal]="true" [draggable]="false"
+  [style]="{ width: '360px' }">
+  <div class="flex flex-col gap-4 pt-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-semibold text-slate-700">Rows</label>
+      <input type="number" min="1" max="100" [(ngModel)]="customTableRowInput"
+        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-semibold text-slate-700">Columns</label>
+      <input type="number" min="1" max="20" [(ngModel)]="customTableColInput"
+        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <p class="text-xs text-slate-500">Changing size keeps existing values where possible.</p>
+    <div class="flex justify-end gap-2">
+      <p-button label="Cancel" severity="secondary" (click)="customTableConfigDialog = false"></p-button>
+      <p-button label="Apply" styleClass="bg-orange-500 border-none" (click)="applyCustomTableSize()"></p-button>
+    </div>
+  </div>
+</p-dialog>
+
 <!-- QUIZ DIALOG -->
 <p-dialog
   [header]="quizMode === 'daily' ? '⚡ Daily Quiz' : '📘 Subject / Unit Quiz'"
   [(visible)]="dialogVisible"
   [modal]="true"
   [style]="{width:'440px'}"
-  [draggable]="false">
+  [draggable]="false"
+  [dismissableMask]="false"
+  [blockScroll]="true">
 
   <div class="flex flex-col gap-4 pt-2">
 
@@ -356,7 +519,9 @@
       <label class="text-sm font-semibold text-gray-700">Class</label>
       <p-select [options]="classes" optionLabel="name"
         [(ngModel)]="selectedClass" (onChange)="onClassChange()"
-        placeholder="Select Class">
+        placeholder="Select Class"
+        appendTo="body"
+        scrollHeight="220px">
       </p-select>
     </div>
 
@@ -376,7 +541,9 @@
       <label class="text-sm font-semibold text-gray-700">Subject *</label>
       <p-select [options]="subjects" optionLabel="subject_name"
         [(ngModel)]="selectedSubject" (onChange)="onSubjectChange()"
-        placeholder="Select Subject" [disabled]="!selectedClass">
+        placeholder="Select Subject" [disabled]="!selectedClass"
+        appendTo="body"
+        scrollHeight="220px">
       </p-select>
     </div>
 
@@ -387,7 +554,9 @@
         <span class="text-gray-400 font-normal text-xs ml-1">(optional)</span>
       </label>
       <p-select [options]="units" optionLabel="unit_name"
-        [(ngModel)]="selectedUnit" placeholder="All Units">
+        [(ngModel)]="selectedUnit" placeholder="All Units"
+        appendTo="body"
+        scrollHeight="220px">
       </p-select>
     </div>
 
