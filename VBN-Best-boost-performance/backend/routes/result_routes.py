@@ -7,6 +7,7 @@ from models.user_model import User
 from models.school_model import School
 from sqlalchemy import func, desc
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 result_bp = Blueprint("results", __name__)
 
@@ -23,12 +24,20 @@ def get_results():
     for r in results:
         subject_name = None
         unit_name    = None
-        if r.subject_id:
-            s = Subject.query.get(r.subject_id)
-            subject_name = s.subject_name if s else None
-        if r.unit_id:
-            u = Unit.query.get(r.unit_id)
-            unit_name = f"Unit {u.unit_number}: {u.unit_name}" if u else None
+        if r.test_type == "daily_random":
+            subject_name = "All Subjects"
+            unit_name = "All Units"
+
+        else:
+            if r.subject_id:
+                s = Subject.query.get(r.subject_id)
+                subject_name = s.subject_name if s else None
+            if r.unit_id:
+                u = Unit.query.get(r.unit_id)
+                unit_name = (
+                    f"Unit {u.unit_number}: {u.unit_name}"
+                    if u else None
+                )
 
         data.append({
             "id":               r.id,
@@ -38,7 +47,13 @@ def get_results():
             "correct_answers":  r.correct_answers,
             "score_percent":    round(r.score_percent, 1) if r.score_percent else 0,
             "test_type":        r.test_type,
-            "taken_at":         r.taken_at.isoformat() if r.taken_at else None
+            "taken_at": (
+            r.taken_at
+            .replace(tzinfo=timezone.utc)
+            .astimezone(ZoneInfo("Asia/Kolkata"))
+            .isoformat()
+            if r.taken_at else None
+        )
         })
     return jsonify({"results": data})
 

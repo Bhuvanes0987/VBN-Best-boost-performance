@@ -47,9 +47,8 @@ export class Results implements OnInit {
   }
 
   getTestTypeLabel(type: string): string {
-    if (type === 'daily_random') return '⚡ Daily';
-    if (type === 'subject_test') return '📘 Subject';
-    if (type === 'unit_test') return '📋 Unit';
-    return type || '-';
-  }
+  if (type === 'daily_random') return '⚡ Daily Quiz';
+  if (type === 'subject') return '📘 Subject Quiz';
+  return type || '-';
+}
 }
