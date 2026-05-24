@@ -79,7 +79,7 @@ export class Home implements OnInit {
   // col-3 file store keyed by row index
   customTableFileStore: { [rowIndex: number]: CustomFileItem[] } = {};
   private _customFileActiveRow: number | null = null;
-
+  dailyQuizTaken = false;
   // ─── Lifecycle ────────────────────────────────────────────────────────────
 
   ngOnInit() {
@@ -87,8 +87,10 @@ export class Home implements OnInit {
     this.loadStats();
     this.loadLeaderboard();
     this.loadCustomTable();
-  }
-
+    this.dailyQuizTaken =
+      localStorage.getItem('dailyQuizTaken') === 'true';
+    this.checkDailyQuizStatus();
+}
   // ─── Stats ────────────────────────────────────────────────────────────────
 
   loadStats() {
@@ -644,4 +646,24 @@ export class Home implements OnInit {
     ];
     return colors[(rank - 1) % colors.length];
   }
+  checkDailyQuizStatus() {
+  const userId = this.currentUser?.id;
+
+  if (!userId) return;
+
+  this.http.get(`${this.api}/results/check-daily?user_id=${userId}`)
+    .subscribe({
+      next: (res: any) => {
+        this.dailyQuizTaken = res.attended;
+
+        localStorage.setItem(
+          'dailyQuizTaken',
+          String(res.attended)
+        );
+      },
+      error: () => {
+        this.dailyQuizTaken = false;
+      }
+    });
+}
 }

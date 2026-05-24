@@ -75,6 +75,21 @@ def save_result():
     correct = data["correct_answers"]
     percent = round((correct / total) * 100, 1) if total > 0 else 0
 
+
+    if data.get("test_type") == "daily_random":
+
+        today = datetime.utcnow().date()
+
+        already_exists = TestResult.query.filter(
+            TestResult.user_id == int(data["user_id"]),
+            TestResult.test_type == "daily_random",
+            db.func.date(TestResult.taken_at) == today
+        ).first()
+
+        if already_exists:
+            return jsonify({
+                "message": "Daily quiz already completed"
+            }), 400
     result = TestResult(
         user_id         = data["user_id"],
         school_id       = data.get("school_id"),
@@ -93,18 +108,29 @@ def save_result():
 
     try:
         user = User.query.get(data["user_id"])
-        subject = Subject.query.get(data.get("subject_id")) if data.get("subject_id") else None
-        school = School.query.get(data.get("school_id")) if data.get("school_id") else None
+        subject = (
+            Subject.query.get(data.get("subject_id"))
+            if data.get("subject_id")
+            else None
+        )
+        school = (
+            School.query.get(data.get("school_id"))
+            if data.get("school_id")
+            else None
+        )
 
         teacher_email = None
 
-        # 🎯 Decide email based on test type
         if data.get("test_type") == "subject":
-            # Example: subject teacher
-            teacher_email = subject.teacher_email if subject else None
+            teacher_email = (
+                subject.teacher_email
+                if subject else None
+            )
         else:
-            # Daily test → school teacher/admin
-            teacher_email = school.email if school else None
+            teacher_email = (
+                school.email
+                if school else None
+            )
 
         if teacher_email:
             msg = Message(
@@ -122,12 +148,16 @@ Correct Answers: {correct}/{total}
 Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 """
             )
+
             mail.send(msg)
 
     except Exception as e:
         print("Email sending failed:", str(e))
 
-    return jsonify({"message": "Result saved", "id": result.id}), 201
+    return jsonify({
+        "message": "Result saved",
+        "id": result.id
+    }), 201
 
 # ── NEW: leaderboard ──────────────────────────────────────────────────────────
 
@@ -185,3 +215,25 @@ def leaderboard():
         })
 
     return jsonify({"leaderboard": board})
+
+@result_bp.route("/results/check-daily", methods=["GET"])
+def check_daily():
+
+    user_id = request.args.get("user_id")
+
+    if not user_id:
+        return jsonify({
+            "attended": False
+        })
+
+    today = datetime.utcnow().date()
+
+    exists = TestResult.query.filter(
+        TestResult.user_id == int(user_id),
+        TestResult.test_type == "daily_random",
+        db.func.date(TestResult.taken_at) == today
+    ).first()
+
+    return jsonify({
+        "attended": exists is not None
+    })

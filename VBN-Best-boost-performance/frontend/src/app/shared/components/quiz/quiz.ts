@@ -351,7 +351,13 @@ setTimeout(() => this.renderMath(), 50);
     };
 
     this.http.post(`${this.api}/results`, payload).subscribe({
-      next: () => console.log('Result saved ✅'),
+      next: () => {
+  if (this.quizMode === 'daily') {
+      localStorage.setItem('dailyQuizTaken', 'true');
+  }
+
+  console.log('Result saved ✅');
+},
       error: (err) => console.error('Failed to save result:', err)
     });
   }
