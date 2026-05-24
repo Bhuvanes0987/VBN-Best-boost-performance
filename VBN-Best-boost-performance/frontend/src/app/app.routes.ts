@@ -19,6 +19,7 @@ import { ForgotPassword } from './shared/components/forgot-password/forgot-passw
 import { Results } from './shared/components/results/results';
 import { Payments } from './shared/components/payments/payments';
 import { Profile } from './shared/components/profile/profile';
+import { StudentResult } from './shared/components/student-result/student-result';
 
 
 export const routes: Routes = [
@@ -57,6 +58,7 @@ export const routes: Routes = [
   { path: 'questions', component: QuestionBank, canActivate: [authGuard, permissionGuard], data: { page: 'questions' } },
   { path: 'import', component: ImportQuestions, canActivate: [authGuard, permissionGuard], data: { page: 'questions' } },
   { path: 'units', component: UnitComponent, canActivate: [authGuard, permissionGuard], data: { page: 'subjects' } },
+  { path: 'student-results', component: StudentResult, canActivate: [authGuard, permissionGuard] },
   {
   path: 'profile',
   component: Profile,

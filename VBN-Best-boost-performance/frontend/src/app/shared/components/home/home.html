@@ -500,7 +500,18 @@
           (click)="goTo('/results')">
           📊 View Results
         </button>
+<div *ngIf="isTeacher">
 
+<button
+class="w-full bg-blue-500 text-white text-sm font-bold py-3 rounded-xl hover:bg-blue-600 transition mt-2"
+
+(click)="goTo('/student-results')">
+
+👨‍🎓 Student Results
+
+</button>
+
+</div>
       </div>
     </div>
 

@@ -40,7 +40,10 @@ export class Home implements OnInit {
   currentUser    = JSON.parse(localStorage.getItem('user') || '{}');
   userPosition   = parseInt(localStorage.getItem('position') || '2');
   isStudent      = this.userPosition === 2;
-  canEditHomeTable = this.userPosition === 1;
+  isTeacher = this.userPosition === 3;
+  isAdmin = this.userPosition === 1;
+
+canEditHomeTable = this.isAdmin;
 
   // ─── Quiz dialog ──────────────────────────────────────────────────────────
   dialogVisible  = false;

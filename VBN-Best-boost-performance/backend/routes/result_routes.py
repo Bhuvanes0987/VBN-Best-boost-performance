@@ -8,6 +8,7 @@ from models.school_model import School
 from sqlalchemy import func, desc
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
+from models.class_model import Class
 
 result_bp = Blueprint("results", __name__)
 
@@ -251,4 +252,165 @@ def check_daily():
 
     return jsonify({
         "attended": exists is not None
+    })
+
+@result_bp.route("/teacher/student-results", methods=["GET"])
+def teacher_results():
+
+    teacher_id = request.args.get("teacher_id")
+
+    if not teacher_id:
+        return jsonify({"results":[]})
+
+    teacher = User.query.get(
+        int(teacher_id)
+    )
+
+    if not teacher:
+        return jsonify({"results":[]})
+
+    # selected_subjects example:
+    # "1,3,5"
+
+    teacher_subject_ids=[]
+
+    if teacher.selected_subjects:
+
+        teacher_subject_ids=[
+
+            int(x)
+
+            for x in
+            teacher.selected_subjects
+            .split(",")
+
+            if x.strip()
+
+        ]
+
+    results=(
+
+        TestResult.query
+
+        .filter(
+
+            TestResult.school_id
+            ==teacher.school_id,
+
+            TestResult.subject_id.in_(
+                teacher_subject_ids
+            )
+
+        )
+
+        .order_by(
+            TestResult.taken_at.desc()
+        )
+
+        .all()
+
+    )
+
+    data=[]
+
+    for r in results:
+
+        student=User.query.get(
+            r.user_id
+        )
+
+        # only students
+        if not student or student.position != 2:
+            continue
+
+        # class restriction
+        if (
+            student.student_class
+            != teacher.student_class
+        ):
+            continue
+
+        subject=(
+            Subject.query.get(
+                r.subject_id
+            )
+            if r.subject_id
+            else None
+        )
+
+        class_obj=(
+            Class.query.get(
+                r.class_id
+            )
+            if r.class_id
+            else None
+        )
+
+        class_name="-"
+
+        if class_obj:
+
+            class_name=(
+                getattr(
+                    class_obj,
+                    "class_name",
+                    None
+                )
+
+                or
+
+                getattr(
+                    class_obj,
+                    "name",
+                    None
+                )
+
+                or
+
+                f"Class {r.class_id}"
+            )
+
+        data.append({
+
+            "student_name":
+            student.name,
+
+            "class_name":
+            class_name,
+
+            "subject_name":
+            (
+                subject.subject_name
+                if subject
+                else "-"
+            ),
+
+            "score_percent":
+            round(
+                r.score_percent or 0,
+                1
+            ),
+
+            "correct_answers":
+            r.correct_answers,
+
+            "total_questions":
+            r.total_questions,
+
+            "taken_at":
+            r.taken_at
+            .replace(
+                tzinfo=timezone.utc
+            )
+            .astimezone(
+                ZoneInfo(
+                    "Asia/Kolkata"
+                )
+            )
+            .isoformat()
+
+        })
+
+    return jsonify({
+        "results":data
     })

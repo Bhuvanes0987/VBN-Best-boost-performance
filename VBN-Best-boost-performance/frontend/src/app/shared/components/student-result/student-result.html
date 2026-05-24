@@ -1,0 +1,97 @@
+<div class="min-h-screen bg-slate-50">
+
+<div class="h-32
+bg-gradient-to-r
+from-orange-600
+to-orange-400">
+
+</div>
+
+<div class="relative max-w-6xl mx-auto p-4">
+
+<div class="bg-white rounded-3xl shadow">
+
+<div class="p-6 border-b">
+
+<h1 class="text-3xl font-black">
+
+Student Results
+
+</h1>
+
+<p class="text-slate-500">
+
+All student performance
+
+</p>
+
+</div>
+
+<div
+class="flex gap-3 p-6">
+
+<input
+[(ngModel)]="search"
+(input)="applyFilter()"
+placeholder="Search student..."
+class="border rounded-lg px-4 py-2">
+
+<p-select
+[options]="classes"
+[(ngModel)]="classFilter"
+(onChange)="applyFilter()">
+</p-select>
+
+<p-select
+[options]="subjects"
+[(ngModel)]="subjectFilter"
+(onChange)="applyFilter()">
+</p-select>
+
+</div>
+
+<p-table
+[value]="filtered"
+[paginator]="true"
+[rows]="10">
+
+<ng-template
+pTemplate="header">
+
+<tr>
+
+<th>Name</th>
+<th>Class</th>
+<th>Subject</th>
+<th>Score</th>
+<th>Date</th>
+
+</tr>
+
+</ng-template>
+
+<ng-template
+pTemplate="body"
+let-r>
+
+<tr>
+
+<td>{{r.student_name}}</td>
+<td>{{r.class_name}}</td>
+<td>{{r.subject_name}}</td>
+<td>{{r.score_percent}}%</td>
+<td>
+{{r.taken_at|date}}
+</td>
+
+</tr>
+
+</ng-template>
+
+</p-table>
+
+</div>
+
+</div>
+
+</div>
