@@ -30,14 +30,53 @@ from routes.result_routes import result_bp
 from routes.profile_routes import profile_bp
 from routes.payment_routes import payment_bp
 from routes.custom_table_routes import custom_table_bp
+from apscheduler.schedulers.background import BackgroundScheduler
+import os
 
+from routes.daily_quiz_report import (
+    send_daily_quiz_report
+)
 
+from routes.subject_quiz_report import (
+    send_subject_quiz_report
+)
 app = Flask(__name__)
 app.config.from_object(Config)
 CORS(app)
 db.init_app(app)
 migrate.init_app(app, db)
 mail.init_app(app)
+scheduler = BackgroundScheduler(
+    timezone="Asia/Kolkata"
+)
+
+scheduler.add_job(
+    func=lambda:
+        send_daily_quiz_report(app),
+
+    trigger="cron",
+    hour=18,    
+    minute=46
+)
+
+scheduler.add_job(
+    func=lambda:
+        send_subject_quiz_report(app),
+
+    trigger="cron",
+    hour=18,
+    minute=38
+)
+
+if os.environ.get(
+    "WERKZEUG_RUN_MAIN"
+) == "true":
+
+    scheduler.start()
+
+    print(
+        "Quiz report scheduler started..."
+    )
 
 app.register_blueprint(question_bp)
 app.register_blueprint(user_bp)
@@ -63,12 +102,13 @@ with app.app_context():
         db.session.execute(db.text(
             "INSERT INTO roles (id, name, description, status) VALUES "
             "(1, 'Admin', 'Full access to all features', 1), "
-            "(2, 'Student', 'Default user access', 1)"
+            "(2, 'Student', 'Default user access', 1),"
+            "(3,'Teacher','Teacher access',1)"
         ))
         db.session.commit()
         print("Default roles seeded")
 
-    db.session.execute(db.text("ALTER TABLE roles AUTO_INCREMENT = 3"))  
+    db.session.execute(db.text("ALTER TABLE roles AUTO_INCREMENT = 4"))  
     db.session.commit()
     print("Default roles ready")
 
@@ -89,4 +129,12 @@ with app.app_context():
         print("Permissions seeded")
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8900)
+
+    print(
+        "Server starting..."
+    )
+
+    app.run(
+        debug=True,
+        port=8900
+    )
