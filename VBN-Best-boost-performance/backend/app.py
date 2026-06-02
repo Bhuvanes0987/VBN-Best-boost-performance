@@ -55,8 +55,8 @@ scheduler.add_job(
         send_daily_quiz_report(app),
 
     trigger="cron",
-    hour=18,    
-    minute=46
+    hour=21,    
+    minute=0
 )
 
 scheduler.add_job(
