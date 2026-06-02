@@ -61,41 +61,9 @@ def send_daily_quiz_report(app):
 
                 wb = Workbook()
 
-                # Sheet 1
                 ws1 = wb.active
-                ws1.title = "Not Attended"
+                ws1.title = "Daily Test Report"
 
-                ws1.append(["Student Name"])
-
-                for s in absent_students:
-                    ws1.append([s.name])
-
-                # Sheet 2
-                ws2 = wb.create_sheet(
-                    "Attended"
-                )
-
-                ws2.append([
-                    "Student Name",
-                    "Score %",
-                    "Correct",
-                    "Total"
-                ])
-
-                for r in results:
-
-                    user = User.query.get(
-                        r.user_id
-                    )
-
-                    ws2.append([
-                        user.name,
-                        r.score_percent,
-                        r.correct_answers,
-                        r.total_questions
-                    ])
-
-                # Sheet 3 Summary
                 total_students = len(students)
 
                 attended_count = len(
@@ -110,29 +78,70 @@ def send_daily_quiz_report(app):
                     1
                 ) if total_students else 0
 
-                ws3 = wb.create_sheet(
-                    "Summary"
-                )
+                ws1.append([
+                    "Class",
+                    class_id
+                ])
 
-                ws3.append([
+                ws1.append([
                     "Total Students",
                     total_students
                 ])
 
-                ws3.append([
+                ws1.append([
                     "Attended",
                     attended_count
                 ])
 
-                ws3.append([
+                ws1.append([
                     "Not Attended",
                     len(absent_students)
                 ])
 
-                ws3.append([
+                ws1.append([
                     "Attendance %",
-                    attendance_percent
+                    f"{attendance_percent}%"
                 ])
+
+                ws1.append([])
+                ws1.append([
+                    "Not Attended Students"
+                ])
+                ws1.append([
+                    "Student Name"
+                ])
+
+                for s in absent_students:
+                    ws1.append([
+                        s.name
+                    ])
+
+                ws1.append([])
+                ws1.append([
+                    "Attended Students"
+                ])
+                ws1.append([
+                    "Student Name",
+                    "Score %",
+                    "Correct",
+                    "Total"
+                ])
+
+                for r in results:
+
+                    user = User.query.get(
+                        r.user_id
+                    )
+
+                    if not user:
+                        continue
+
+                    ws1.append([
+                        user.name,
+                        r.score_percent,
+                        r.correct_answers,
+                        r.total_questions
+                    ])
 
                 filename = (
                     f"report_"
@@ -164,24 +173,29 @@ def send_daily_quiz_report(app):
                     if emails:
 
                         msg = Message(
-                            subject=f"Daily Quiz Report Class {class_id}",
+                            subject=f"Daily Test ({school.name})",
                             recipients=emails
                         )
 
                         msg.body = f"""
-Daily Quiz Summary
+Respected Teacher,
 
-Total Students:
-{total_students}
+We hope this message finds you well.
 
-Attended:
-{attended_count}
+We are pleased to inform you that the marks obtained by students in today's daily test have been compiled and are now available for your review.
 
-Not Attended:
-{len(absent_students)}
+Please find the result Excel attached for your reference.
 
-Attendance:
-{attendance_percent}%
+Class: {class_id}
+Total Students: {total_students}
+Attended: {attended_count}
+Not Attended: {len(absent_students)}
+Attendance: {attendance_percent}%
+
+Thank you for your continued support and dedication.
+
+Yours sincerely,
+VBN Boost Performance Team
 """
 
                         with open(
