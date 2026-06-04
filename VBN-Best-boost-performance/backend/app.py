@@ -94,6 +94,21 @@ app.register_blueprint(custom_table_bp)
 with app.app_context():
     db.create_all()
 
+    # Ensure large map images can be stored without truncation.
+    try:
+        col_type = db.session.execute(db.text(
+            "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
+            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'questions' "
+            "AND COLUMN_NAME = 'map_image'"
+        )).scalar()
+        if col_type and col_type.lower() == 'text':
+            db.session.execute(db.text(
+                "ALTER TABLE questions MODIFY map_image MEDIUMTEXT"
+            ))
+            print('Upgraded questions.map_image to MEDIUMTEXT')
+    except Exception as e:
+        print('Could not verify/upgrade questions.map_image type:', e)
+
     db.session.execute(db.text("SET SESSION sql_mode = ''"))
     db.session.commit()
 

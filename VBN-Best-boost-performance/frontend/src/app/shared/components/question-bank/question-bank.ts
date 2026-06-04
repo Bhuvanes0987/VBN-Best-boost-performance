@@ -90,11 +90,16 @@ export class QuestionBank implements OnInit {
   correctOption = 0;
   pairs: any[]   = [{ left: '', right: '' }];
   fillAnswer     = '';
-  selectedFile: string | null = null;
+  // `selectedFileBase64` holds the data URL payload for upload; `selectedFilePreview` is a blob URL or data URL for preview
+  selectedFileBase64: string | null = null;
+  selectedFilePreview: string | null = null;
+  selectedFileObject: File | null = null;
 
   // ─── Preview dialog ───────────────────────────────────────────────────────
   previewVisible:  boolean = false;
   previewQuestion: any     = null;
+  previewImageSrc: string | null = null;
+  private _previewObjectUrl: string | null = null;
 
   previewMCQSelected: number | null = null;
   previewFillAnswer   = '';
@@ -105,11 +110,18 @@ export class QuestionBank implements OnInit {
   previewResult: boolean | null = null;
   previewCorrectDisplay = '';
 
+  // ─── Timer configuration (persisted in localStorage) ──────────────────────
+  timerDialogVisible = false;
+  timerConfig: { allSubjects: number; dailyTest: number } = { allSubjects: 20, dailyTest: 20 };
+  // optional: store which question row opened the dialog (not required but kept)
+  timerTargetQuestion: any = null;
+
   // ─── Lifecycle ────────────────────────────────────────────────────────────
 
   ngOnInit() {
     this.loadSchools();
     this.loadQuestions();
+    this.loadTimerConfig();
   }
 
   // ─── Load ─────────────────────────────────────────────────────────────────
@@ -264,14 +276,41 @@ export class QuestionBank implements OnInit {
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (!file) return;
+    this.selectedFileObject = file;
+    // Use object URL for preview and keep base64 in `selectedFileBase64` for upload payload
+    try{
+      if (this.selectedFilePreview && this.selectedFilePreview.startsWith('blob:')){
+        try{ URL.revokeObjectURL(this.selectedFilePreview); }catch(e){}
+      }
+      const obj = URL.createObjectURL(file);
+      this.selectedFilePreview = obj;
+    }catch(e){
+      this.selectedFilePreview = null;
+    }
+
     const reader = new FileReader();
-    reader.onload = () => { this.selectedFile = reader.result as string; };
+    reader.onload = () => { this.selectedFileBase64 = reader.result as string; };
     reader.readAsDataURL(file);
   }
 
   // ─── Save ─────────────────────────────────────────────────────────────────
 
-  saveQuestion() {
+  saveQuestion(): any {
+    // ensure map image base64 is ready before sending
+    const ensureBase64 = (file: File) => new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = (e) => reject(e);
+      r.readAsDataURL(file);
+    });
+
+    if (this.questionType === 'map' && !this.selectedFileBase64 && this.selectedFileObject) {
+      // synchronous wait before proceeding
+      return ensureBase64(this.selectedFileObject).then((dataUrl) => {
+        this.selectedFileBase64 = dataUrl;
+        return this.saveQuestion();
+      }).catch(() => { this.error('Failed to read image'); return; });
+    }
     if (!this.canEditQuestionBank) { this.warn('Only admin can edit question bank'); return; }
     if (!this.selectedSchool)      { this.warn('Please select a school');      return; }
     if (!this.selectedClass)       { this.warn('Please select a class');       return; }
@@ -301,7 +340,7 @@ export class QuestionBank implements OnInit {
     };
   }
     if (this.questionType === 'map') {
-      if (!this.selectedFile) { this.warn('Please upload a map image'); return; }
+      if (!this.selectedFileBase64 && !this.selectedFilePreview) { this.warn('Please upload a map image'); return; }
       const validPairs = this.pairs.filter(p => (p.left || '').trim() && (p.right || '').trim());
       if (validPairs.length < 1) {
         this.warn('Add at least one match pair for map');
@@ -313,6 +352,7 @@ export class QuestionBank implements OnInit {
       };
     }
 
+    const sanitizedMapImage = this.selectedFileBase64 ? this.sanitizeDataUrl(this.selectedFileBase64) : null;
     const payload = {
       class_id:   this.selectedClass.id,
       subject_id: this.selectedSubject.id,
@@ -321,7 +361,7 @@ export class QuestionBank implements OnInit {
       type:       this.questionType,
     question: this.autoFormatMath(this.questionText),
       answer_data,
-      map_image:  this.questionType === 'map' ? this.selectedFile : null
+      map_image:  this.questionType === 'map' ? (sanitizedMapImage || this.selectedFileBase64) : null
     };
 
     if (this.editMode) {
@@ -369,7 +409,19 @@ export class QuestionBank implements OnInit {
     if (this.questionType === 'fill')  { this.fillAnswer = data.answer; }
     if (this.questionType === 'match') { this.pairs = data?.pairs?.length ? data.pairs.map((p: any) => ({ ...p })) : [{ left: '', right: '' }]; this.matchOptions = data?.options || [];  }
     if (this.questionType === 'map') {
-      this.selectedFile  = q.map_image || null;
+      // normalize server-provided map_image into a data URL for preview and payload
+      let img = q.map_image || null;
+      if (img) {
+        if (typeof img === 'string' && !img.startsWith('data:') && !img.startsWith('blob:')) {
+          img = 'data:image/png;base64,' + img;
+        }
+        const sanitized = this.sanitizeDataUrl(img as string);
+        this.selectedFileBase64 = sanitized || img;
+        this.selectedFilePreview = sanitized || img;
+      } else {
+        this.selectedFileBase64 = null;
+        this.selectedFilePreview = null;
+      }
       this.pairs = data?.pairs?.length ? data.pairs.map((p: any) => ({ ...p })) : [{ left: '', right: '' }];
       this.matchOptions = data?.options || [];
     }
@@ -405,7 +457,12 @@ export class QuestionBank implements OnInit {
     this.questionText = ''; this.questionType = '';
     this.options = [{ text: '' }, { text: '' }]; this.correctOption = 0;
     this.pairs = [{ left: '', right: '' }]; this.fillAnswer = '';
-    this.selectedFile = null;
+    this.selectedFileBase64 = null;
+    this.selectedFileObject = null;
+    if (this.selectedFilePreview && this.selectedFilePreview.startsWith('blob:')){
+      try{ URL.revokeObjectURL(this.selectedFilePreview); }catch(e){}
+    }
+    this.selectedFilePreview = null;
      this.matchOptions = []; 
   }
 
@@ -417,7 +474,11 @@ export class QuestionBank implements OnInit {
   onTypeChange() {
     this.options = [{ text: '' }, { text: '' }]; this.correctOption = 0;
     this.pairs = [{ left: '', right: '' }]; this.fillAnswer = '';
-    this.selectedFile = null;
+    this.selectedFileBase64 = null;
+    if (this.selectedFilePreview && this.selectedFilePreview.startsWith('blob:')){
+      try{ URL.revokeObjectURL(this.selectedFilePreview); }catch(e){}
+    }
+    this.selectedFilePreview = null;
   }
 
   // ─── Preview ──────────────────────────────────────────────────────────────
@@ -440,11 +501,65 @@ export class QuestionBank implements OnInit {
 
         this.previewShuffledRight = this.shuffle(rights);
     }
+    // normalize preview image source
+    let img: string | null = q?.map_image || null;
+    if (img) {
+      if (typeof img === 'string' && !img.startsWith('data:') && !img.startsWith('blob:')) {
+        img = 'data:image/png;base64,' + img;
+      }
+      const sanitized = this.sanitizeDataUrl(img);
+      if (sanitized) {
+        img = sanitized;
+      }
+    }
+    // convert very large data: URLs into object URLs to avoid browser limits
+    try{
+      if (img && img.startsWith('data:')){
+        const MAX_DATA_URL = 60000; // safe threshold below Chrome's 64KB cutoff
+        if (img.length > MAX_DATA_URL){
+          const blob = this.dataUrlToBlob(img);
+          if (blob){
+            if (this._previewObjectUrl){ try{ URL.revokeObjectURL(this._previewObjectUrl); }catch(e){} }
+            this._previewObjectUrl = URL.createObjectURL(blob);
+            this.previewImageSrc = this._previewObjectUrl;
+          } else {
+            this.previewImageSrc = img;
+          }
+        } else {
+          this.previewImageSrc = img;
+        }
+      } else {
+        this.previewImageSrc = img;
+      }
+    }catch(e){ this.previewImageSrc = img; }
+
+    console.log('[preview] opening question', q?.id, 'previewImageSrc length', this.previewImageSrc?.length);
     this.previewVisible = true;
     setTimeout(() => this.renderMath(), 100);
   }
 
   closePreview() { this.previewVisible = false; this.previewQuestion = null; this.previewResult = null; }
+  
+  // revoke object URL when closing preview to avoid leaks
+  closePreviewAndRevoke() {
+    this.closePreview();
+    if (this._previewObjectUrl) {
+      try{ URL.revokeObjectURL(this._previewObjectUrl); }catch(e){}
+      this._previewObjectUrl = null;
+    }
+    this.previewImageSrc = null;
+  }
+
+  // revoke any object URL when preview modal closes
+  ngOnDestroy(): void {
+    if (this._previewObjectUrl) {
+      try{ URL.revokeObjectURL(this._previewObjectUrl); }catch(e){}
+      this._previewObjectUrl = null;
+    }
+    if (this.selectedFilePreview && this.selectedFilePreview.startsWith('blob:')){
+      try{ URL.revokeObjectURL(this.selectedFilePreview); }catch(e){}
+    }
+  }
 
   selectPreviewMCQ(i: number) { this.previewMCQSelected = i; this.previewResult = null; }
 
@@ -499,6 +614,68 @@ export class QuestionBank implements OnInit {
       }
     }
     this.previewResult = correct;
+  }
+
+  private dataUrlToBlob(dataUrl: string): Blob | null {
+    try{
+      const cleaned = this.sanitizeDataUrl(dataUrl);
+      if (!cleaned) return null;
+      const comma = cleaned.indexOf(',');
+      const header = cleaned.substring(0, comma);
+      const payload = cleaned.substring(comma + 1);
+      const mimeMatch = header.match(/^data:([^;]+);/i);
+      const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+      const binary = atob(payload);
+      const len = binary.length;
+      const array = new Uint8Array(len);
+      for (let i = 0; i < len; i++) array[i] = binary.charCodeAt(i);
+      return new Blob([array], { type: mime });
+    }catch(e){
+      console.error('dataUrlToBlob failed', e);
+      return null;
+    }
+  }
+
+  private sanitizeDataUrl(input: string | null): string | null {
+    if (!input) return null;
+    let s = String(input).trim();
+    // if missing header, assume png base64 payload
+    if (!s.startsWith('data:')){
+      if (/^[A-Za-z0-9+/=\s]+$/.test(s)) {
+        s = 'data:image/png;base64,' + s;
+      } else {
+        return null;
+      }
+    }
+    const comma = s.indexOf(',');
+    if (comma === -1) return null;
+    const header = s.substring(0, comma);
+    let payload = s.substring(comma + 1);
+    // remove trailing :<digits> artifacts and whitespace/newlines
+    payload = payload.replace(/\s+/g, '').replace(/:\d+$/, '');
+    // strip any non-base64 chars
+    payload = payload.replace(/[^A-Za-z0-9+/=]/g, '');
+    const base64Regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$/;
+    if (!base64Regex.test(payload)) return null;
+    return header + ',' + payload;
+  }
+
+  onPreviewImageLoad(ev: Event) {
+    console.log('[preview] image loaded', { srcPreview: this.previewImageSrc?.slice?.(0,200), length: this.previewImageSrc?.length });
+  }
+
+  onPreviewImageError(ev: Event) {
+    console.error('[preview] image failed to load', { srcPreview: this.previewImageSrc?.slice?.(0,200), length: this.previewImageSrc?.length });
+    this.messageService.add({ severity: 'error', summary: 'Preview image failed', detail: 'Image did not load. Check console for src details.', life: 5000 });
+  }
+
+  onAdminPreviewImageLoad(ev: Event) {
+    console.log('[admin preview] image loaded', { srcPreview: this.selectedFilePreview?.slice?.(0,200), length: this.selectedFilePreview?.length });
+  }
+
+  onAdminPreviewImageError(ev: Event) {
+    console.error('[admin preview] image failed to load', { srcPreview: this.selectedFilePreview?.slice?.(0,200), length: this.selectedFilePreview?.length });
+    this.messageService.add({ severity: 'error', summary: 'Admin preview failed', detail: 'Map preview failed to load. Check console for details.', life: 5000 });
   }
 
   // ─── Shuffle / badge ──────────────────────────────────────────────────────
@@ -559,6 +736,49 @@ renderMath() {
     }
   });
 }
+  // ─── Timer dialog methods ───────────────────────────────────────────────
+  openTimerDialogFor(q: any) {
+    this.timerTargetQuestion = q;
+    // load stored config if any
+    this.loadTimerConfig();
+    this.timerDialogVisible = true;
+  }
+
+  openTimerDialog() {
+    this.timerTargetQuestion = null;
+    this.loadTimerConfig();
+    this.timerDialogVisible = true;
+  }
+
+  saveTimerConfig() {
+    try {
+      const toStore = {
+        allSubjects: Number(this.timerConfig.allSubjects) || 0,
+        dailyTest: Number(this.timerConfig.dailyTest) || 0
+      };
+      localStorage.setItem('questionTimerConfig', JSON.stringify(toStore));
+      this.timerConfig = toStore;
+      this.timerDialogVisible = false;
+      this.success('Timer settings saved');
+    } catch (e) {
+      this.error('Failed to save timer settings');
+    }
+  }
+
+  loadTimerConfig() {
+    try {
+      const raw = localStorage.getItem('questionTimerConfig');
+      if (raw) {
+        const obj = JSON.parse(raw);
+        this.timerConfig.allSubjects = obj.allSubjects ?? 20;
+        this.timerConfig.dailyTest   = obj.dailyTest ?? 20;
+      } else {
+        this.timerConfig = { allSubjects: 20, dailyTest: 20 };
+      }
+    } catch {
+      this.timerConfig = { allSubjects: 20, dailyTest: 20 };
+    }
+  }
   addMatchOption() {
     this.matchOptions.push('');
   }

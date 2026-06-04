@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
@@ -19,7 +19,7 @@ import { MessageService } from 'primeng/api';
   providers: [MessageService],
   templateUrl: './quiz.html'
 })
-export class Quiz implements OnInit {
+export class Quiz implements OnInit, OnDestroy {
 
   private api = 'http://127.0.0.1:8900';
   currentUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -51,6 +51,17 @@ export class Quiz implements OnInit {
 
   // ── Map pin state ────────────────────────────────────────────────────────
   mapPin: { xPct: number; yPct: number } | null = null;
+  currentMapImageSrc: string | null = null;
+  private currentMapImageObjectUrl: string | null = null;
+  private readonly MAX_MAP_DATA_URL_LENGTH = 60000;
+
+  // ── Timer state ──────────────────────────────────────────────────────────
+  timerSecondsRemaining: number = 0;
+  timerInterval: any = null;
+  timerRunning: boolean = false;
+  timerConfig: { allSubjects: number; dailyTest: number } = { allSubjects: 20, dailyTest: 20 };
+  // storage key for persisting timer across reloads
+  private timerStorageKey: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -67,7 +78,13 @@ export class Quiz implements OnInit {
     this.unitId    = this.route.snapshot.queryParamMap.get('unit')   || 'all';
     this.quizMode  = this.route.snapshot.queryParamMap.get('mode')   || 'daily';
     this.schoolId  = this.route.snapshot.queryParamMap.get('school') || '';
+    this.loadTimerConfig();
     this.loadQuestions();
+  }
+
+  private getTimerStorageKey(): string {
+    const uid = this.currentUser?.id ?? 'anon';
+    return `quizTimer_${uid}_${this.quizMode}_${this.classId}_${this.subjectId}_${this.unitId}`;
   }
 
   // ─── Load ─────────────────────────────────────────────────────────────────
@@ -95,9 +112,17 @@ export class Quiz implements OnInit {
         this.loading = false;
         if (!res.questions || res.questions.length === 0) { this.noQuestions = true; return; }
         this.questions = res.questions;
-this.answers   = new Array(this.questions.length).fill(null);
-  this.initQuestionState();
-  setTimeout(() => this.renderMath(), 100);
+        this.answers   = new Array(this.questions.length).fill(null);
+        console.group('[Quiz] Loaded questions');
+        this.questions.forEach((q: any, idx: number) => {
+          console.log(`Q${idx + 1}: id=${q.id} type=${q.question_type} map_image=${q.map_image ? 'present' : 'missing'}`);
+        });
+        console.groupEnd();
+        this.initQuestionState();
+        setTimeout(() => this.renderMath(), 100);
+        // start or resume timer for this quiz
+        this.timerStorageKey = this.getTimerStorageKey();
+        this.startTimerForMode();
       },
       error: () => { this.loading = false; this.noQuestions = true; }
     });
@@ -110,6 +135,9 @@ this.answers   = new Array(this.questions.length).fill(null);
    * Restores saved match / map state or initialises fresh state.
    */
   private initQuestionState() {
+    this.revokeMapObjectUrl();
+    this.currentMapImageSrc = null;
+
     const q = this.currentQuestion;
     if (!q) return;
 
@@ -135,8 +163,17 @@ this.answers   = new Array(this.questions.length).fill(null);
 
     if (q.question_type === 'map') {
       this.mapPin = saved ?? null;
+      this.currentMapImageSrc = this.normalizeMapImage(q.map_image);
+      console.group('[Quiz] Current map question');
+      console.log('question id:', q.id);
+      console.log('raw map_image present:', !!q.map_image);
+      console.log('raw map_image type:', typeof q.map_image);
+      console.log('normalized map image src length:', this.currentMapImageSrc ? this.currentMapImageSrc.length : 'null');
+      console.log('normalized map image src preview:', this.currentMapImageSrc ? this.currentMapImageSrc.slice(0, 80) : 'null');
+      console.groupEnd();
     } else {
       this.mapPin = null;
+      this.currentMapImageSrc = null;
     }
 
     // Restore selectedAnswer for MCQ / fill
@@ -159,6 +196,68 @@ this.answers   = new Array(this.questions.length).fill(null);
   // ─── Getters ──────────────────────────────────────────────────────────────
 
   get currentQuestion() { return this.questions[this.currentIndex]; }
+
+  private normalizeMapImage(raw: string | null): string | null {
+    if (!raw || typeof raw !== 'string') return null;
+    let img = raw.trim();
+    if (!img.startsWith('data:') && !img.startsWith('blob:')) {
+      img = 'data:image/png;base64,' + img;
+    }
+    img = img.replace(/\s+/g, '').replace(/:\d+$/, '');
+
+    const comma = img.indexOf(',');
+    if (comma < 0) return null;
+
+    const header = img.substring(0, comma);
+    let payload = img.substring(comma + 1);
+    payload = payload.replace(/[^A-Za-z0-9+/=]/g, '');
+
+    const base64Regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$/;
+    if (!base64Regex.test(payload)) return null;
+
+    const dataUrl = `${header},${payload}`;
+    if (dataUrl.length > this.MAX_MAP_DATA_URL_LENGTH) {
+      return this.createMapObjectUrl(dataUrl) || dataUrl;
+    }
+    return dataUrl;
+  }
+
+  private createMapObjectUrl(dataUrl: string): string | null {
+    const blob = this.dataUrlToBlob(dataUrl);
+    if (!blob) return null;
+
+    if (this.currentMapImageObjectUrl) {
+      try { URL.revokeObjectURL(this.currentMapImageObjectUrl); } catch {}
+      this.currentMapImageObjectUrl = null;
+    }
+    this.currentMapImageObjectUrl = URL.createObjectURL(blob);
+    return this.currentMapImageObjectUrl;
+  }
+
+  private revokeMapObjectUrl(): void {
+    if (this.currentMapImageObjectUrl) {
+      try { URL.revokeObjectURL(this.currentMapImageObjectUrl); } catch {}
+      this.currentMapImageObjectUrl = null;
+    }
+  }
+
+  private dataUrlToBlob(dataUrl: string): Blob | null {
+    try {
+      const comma = dataUrl.indexOf(',');
+      if (comma < 0) return null;
+      const payload = dataUrl.substring(comma + 1);
+      const mimeMatch = dataUrl.substring(0, comma).match(/^data:([^;]+);/i);
+      const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+      const binary = atob(payload);
+      const len = binary.length;
+      const array = new Uint8Array(len);
+      for (let i = 0; i < len; i++) array[i] = binary.charCodeAt(i);
+      return new Blob([array], { type: mime });
+    } catch (e) {
+      console.error('Quiz dataUrlToBlob failed', e);
+      return null;
+    }
+  }
 
   get progress() {
     if (!this.questions.length) return 0;
@@ -290,6 +389,9 @@ setTimeout(() => this.renderMath(), 50);
   // ─── Submit & grade ───────────────────────────────────────────────────────
 
   submitQuiz() {
+    // stop the countdown and clear persisted state when submitting
+    this.stopTimer();
+    this.clearTimerState();
     this.correctCount = 0;
 
     this.questions.forEach((q, i) => {
@@ -365,6 +467,7 @@ setTimeout(() => this.renderMath(), 50);
   // ─── Retake / navigation ──────────────────────────────────────────────────
 
   retakeQuiz() {
+    this.clearTimerState();
     this.currentIndex   = 0;
     this.selectedAnswer = null;
     this.answers        = [];
@@ -379,6 +482,12 @@ setTimeout(() => this.renderMath(), 50);
   }
 
   goHome() { this.router.navigate(['/home']); }
+
+  // When user navigates back to home explicitly, clear persisted timer
+  goHomeAndClearTimer() {
+    this.clearTimerState();
+    this.router.navigate(['/home']);
+  }
 
   // ─── Score helpers ────────────────────────────────────────────────────────
 
@@ -428,4 +537,103 @@ renderMath() {
     }
   }, 50);
 }
+
+
+  // ─── Timer helpers ──────────────────────────────────────────────────────
+  loadTimerConfig() {
+    try {
+      const raw = localStorage.getItem('questionTimerConfig');
+      if (raw) {
+        const obj = JSON.parse(raw);
+        this.timerConfig.allSubjects = obj.allSubjects ?? 20;
+        this.timerConfig.dailyTest   = obj.dailyTest ?? 20;
+      }
+    } catch {
+      // keep defaults
+    }
+  }
+
+  startTimerForMode() {
+    // clear any existing interval but DO NOT clear persisted state here
+    if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; }
+
+    // try to resume from persisted expiresAt
+    const key = this.timerStorageKey || this.getTimerStorageKey();
+    let expiresAt: number | null = null;
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const obj = JSON.parse(raw);
+        expiresAt = typeof obj.expiresAt === 'number' ? obj.expiresAt : null;
+      }
+    } catch { expiresAt = null; }
+
+    if (expiresAt && expiresAt > Date.now()) {
+      // resume
+      this.timerSecondsRemaining = Math.ceil((expiresAt - Date.now()) / 1000);
+    } else if (expiresAt && expiresAt <= Date.now()) {
+      // timer already expired while away — submit immediately
+      this.timerSecondsRemaining = 0;
+      this.messageService.add({ severity: 'warn', summary: 'Time Up', detail: 'Time expired while you were away — submitting', life: 4000 });
+      this.submitQuiz();
+      return;
+    } else {
+      // no persisted state — start fresh from config
+      const minutes = this.quizMode === 'daily' ? (this.timerConfig.dailyTest || 20) : (this.timerConfig.allSubjects || 20);
+      this.timerSecondsRemaining = Math.max(0, Math.floor(minutes) * 60);
+      // persist expiry
+      const newExpires = Date.now() + this.timerSecondsRemaining * 1000;
+      try { localStorage.setItem(key, JSON.stringify({ expiresAt: newExpires })); } catch {}
+    }
+
+    if (this.timerSecondsRemaining > 0) {
+      this.timerRunning = true;
+      // ensure storage key is set
+      this.timerStorageKey = key;
+      this.timerInterval = setInterval(() => {
+        this.timerSecondsRemaining--;
+        // update persisted expiry occasionally (every 5 seconds)
+        if (this.timerSecondsRemaining % 5 === 0) {
+          try {
+            const expires = Date.now() + this.timerSecondsRemaining * 1000;
+            localStorage.setItem(this.timerStorageKey!, JSON.stringify({ expiresAt: expires }));
+          } catch {}
+        }
+        if (this.timerSecondsRemaining <= 0) {
+          this.clearTimerState();
+          this.stopTimer();
+          this.messageService.add({ severity: 'warn', summary: 'Time Up', detail: 'Time is up — submitting your answers', life: 4000 });
+          this.submitQuiz();
+        }
+      }, 1000);
+    }
+  }
+
+  stopTimer() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+    this.timerRunning = false;
+    // do not clear persisted state here by default; keep it until submission
+  }
+
+  clearTimerState() {
+    try {
+      const key = this.timerStorageKey || this.getTimerStorageKey();
+      localStorage.removeItem(key);
+    } catch {}
+  }
+
+  formatTimer(): string {
+    const s = Math.max(0, this.timerSecondsRemaining || 0);
+    const mm = Math.floor(s / 60).toString().padStart(2, '0');
+    const ss = (s % 60).toString().padStart(2, '0');
+    return `${mm}:${ss}`;
+  }
+
+  ngOnDestroy() {
+    this.stopTimer();
+    this.revokeMapObjectUrl();
+  }
 }

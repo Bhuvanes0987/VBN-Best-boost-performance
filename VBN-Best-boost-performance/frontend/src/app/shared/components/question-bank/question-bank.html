@@ -11,11 +11,16 @@
         <h1 class="text-3xl font-extrabold text-white">Question Bank</h1>
         <p class="text-orange-100 text-sm">Manage questions by school, class, subject and unit</p>
       </div>
-      <p-button label="Add Question" icon="pi pi-plus"
-        *ngIf="canEditQuestionBank"
-        styleClass="bg-white text-orange-600 border-none shadow"
-        (click)="openDrawer()">
-      </p-button>
+      <div class="flex items-center gap-3">
+        <p-button *ngIf="canEditQuestionBank" icon="pi pi-clock" [text]="true" severity="secondary"
+          pTooltip="Configure Timer" (click)="openTimerDialog()">
+        </p-button>
+        <p-button label="Add Question" icon="pi pi-plus"
+          *ngIf="canEditQuestionBank"
+          styleClass="bg-white text-orange-600 border-none shadow"
+          (click)="openDrawer()">
+        </p-button>
+      </div>
     </div>
 
     <!-- MULTI-SELECT FILTERS -->
@@ -136,6 +141,7 @@
                 <p-button icon="pi pi-play" [text]="true" severity="success"
                   pTooltip="Preview & Answer" (click)="openPreview(q)">
                 </p-button>
+                <!-- per-question timer removed; top timer remains -->
                 <p-button *ngIf="canEditQuestionBank" icon="pi pi-pencil" [text]="true" severity="secondary"
                   pTooltip="Edit" (click)="editQuestion(q)">
                 </p-button>
@@ -337,7 +343,7 @@
         </div>
 
         <!-- Map preview + admin pin -->
-        <div *ngIf="selectedFile" class="flex flex-col gap-2">
+        <div *ngIf="selectedFilePreview" class="flex flex-col gap-2">
           <p class="text-slate-300 text-xs font-semibold">
             <i class="pi pi-image text-orange-400 mr-1"></i>
             Map preview
@@ -345,11 +351,13 @@
 
           <div class="relative w-full border-2 border-orange-400 rounded-xl overflow-hidden">
 
-            <img [src]="selectedFile"
+              <img [src]="selectedFilePreview"
                  alt="Map"
                  class="w-full block object-contain select-none"
-                 style="max-height:300px;"
-                 #adminMapImg/>
+                style="max-height:300px;"
+                #adminMapImg
+                (load)="onAdminPreviewImageLoad($event)"
+                (error)="onAdminPreviewImageError($event)"/>
           </div>
         </div>
 
@@ -399,7 +407,7 @@
             [modal]="true" [closable]="true" [draggable]="false"
             [style]="{ width: '700px' }"
             styleClass="!bg-slate-900"
-            (onHide)="closePreview()">
+            (onHide)="closePreviewAndRevoke()">
 
     <ng-template pTemplate="header">
       <div class="flex items-center gap-3">
@@ -514,14 +522,16 @@
         </div>
 
         <!-- *** FIXED: position:relative on wrapper div, not inline-block *** -->
-        <div *ngIf="previewQuestion.map_image; else noMapImg"
+        <div *ngIf="previewImageSrc; else noMapImg"
              class="relative w-full rounded-xl overflow-hidden border border-white/10 select-none">
 
-          <img [src]="previewQuestion.map_image"
-               alt="Map"
-               class="w-full block object-contain select-none"
-               style="max-height:380px;"
-               draggable="false"/>
+          <img [src]="previewImageSrc"
+            alt="Map"
+            class="w-full block object-contain select-none"
+            style="max-height:380px;"
+            draggable="false"
+            (load)="onPreviewImageLoad($event)"
+            (error)="onPreviewImageError($event)"/>
         </div>
 
         <ng-template #noMapImg>
@@ -588,7 +598,7 @@
 
       <!-- CHECK ANSWER + RESULT -->
       <div class="flex justify-end gap-3 pt-2 border-t border-white/10">
-        <button (click)="closePreview()"
+        <button (click)="closePreviewAndRevoke()"
                 class="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white border border-white/10 hover:border-white/30 transition-all cursor-pointer">
           Close
         </button>
@@ -615,6 +625,29 @@
         </div>
       </div>
 
+    </div>
+  </p-dialog>
+
+  <!-- ===================== TIMER CONFIG DIALOG ===================== -->
+  <p-dialog [(visible)]="timerDialogVisible" [modal]="true" [closable]="true"
+            [draggable]="false" [style]="{ width: '420px' }" header="Configure Exam Timer"
+            styleClass="!bg-slate-900">
+
+    <div class="flex flex-col gap-4 p-4 text-white">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-slate-300">All Subjects (minutes)</label>
+        <input pInputText type="number" [(ngModel)]="timerConfig.allSubjects" min="0" class="w-full bg-slate-800 text-white border-slate-600" />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-slate-300">Daily Test (minutes)</label>
+        <input pInputText type="number" [(ngModel)]="timerConfig.dailyTest" min="0" class="w-full bg-slate-800 text-white border-slate-600" />
+      </div>
+
+      <div class="flex justify-end gap-3 mt-2">
+        <p-button label="Cancel" severity="secondary" (click)="timerDialogVisible = false"></p-button>
+        <p-button label="Save" styleClass="bg-green-500 border-none" (click)="saveTimerConfig()"></p-button>
+      </div>
     </div>
   </p-dialog>
 
