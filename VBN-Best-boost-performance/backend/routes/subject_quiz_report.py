@@ -4,6 +4,7 @@ from openpyxl import Workbook
 from models.user_model import User
 from models.subject_model import Subject
 from models.test_result_model import TestResult
+from models.school_model import School
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import os
@@ -143,14 +144,36 @@ def send_subject_quiz_report(app):
                     filename
                 )
 
+                school=School.query.get(
+                    teacher.school_id
+                )
+
+                school_name=(
+                    school.name
+                    if school else "School"
+                )
+
                 msg=Message(
                     subject=
-                    f"{subject.subject_name} Report",
+                    f"Subject Test ({school_name})",
 
                     recipients=[
                         teacher.email
                     ]
                 )
+
+                msg.body=f"""
+Respected Teacher,
+
+We hope this message finds you well.
+
+We are pleased to inform you that the marks obtained by students in today's subject test have been compiled and are now available for your review.
+
+Thank you for your continued support and dedication.
+
+Yours sincerely,
+VBN Boost Performance Team
+"""
 
                 with open(
                     filename,
