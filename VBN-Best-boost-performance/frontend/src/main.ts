@@ -6,6 +6,13 @@ import CustomPreset from './app/custom-preset';
 import { MessageService } from 'primeng/api';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
+import { environment } from './app/Environment/Environment';
+
+// Dev-only: install data URL watcher to log stack traces when data: URLs are assigned
+if (!environment.production) {
+  import('./app/debug/data-url-watcher').catch(()=>{});
+  import('./app/debug/data-url-sanitizer').catch(()=>{});
+}
 
 bootstrapApplication(App, {
   providers: [

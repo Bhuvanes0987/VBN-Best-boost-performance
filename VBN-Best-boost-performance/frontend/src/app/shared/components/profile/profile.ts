@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { ToastModule } from 'primeng/toast';
 import { AvatarModule } from 'primeng/avatar';
+import { SafeDataUrlPipe } from '../../pipes/safe-data-url.pipe';
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -16,7 +17,8 @@ import { MessageService } from 'primeng/api';
   standalone: true,
   imports: [
     CommonModule, FormsModule, ButtonModule,
-    InputTextModule, MultiSelectModule, ToastModule, AvatarModule
+    InputTextModule, MultiSelectModule, ToastModule, AvatarModule,
+    SafeDataUrlPipe
   ],
   providers: [MessageService],
   templateUrl: './profile.html'
@@ -109,9 +111,22 @@ export class Profile implements OnInit {
       return;
     }
 
+    // create an object URL for preview to avoid large data: URLs being assigned directly
+    try{
+      // revoke old preview if it was an object URL
+      if (this.previewPic && this.previewPic.startsWith('blob:')) {
+        try{ URL.revokeObjectURL(this.previewPic); }catch(e){}
+      }
+      const obj = URL.createObjectURL(file);
+      this.previewPic = obj;
+    }catch(e){
+      // fallback to FileReader if createObjectURL fails
+      this.previewPic = null;
+    }
+
+    // still read base64 for server payload, but do not assign it to preview
     const reader = new FileReader();
     reader.onload = (e: any) => {
-      this.previewPic = e.target.result;
       this.profilePic = e.target.result;
     };
     reader.readAsDataURL(file);

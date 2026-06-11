@@ -1,5 +1,6 @@
 from extension import db
 from datetime import datetime
+from sqlalchemy.dialects.mysql import MEDIUMTEXT
 
 class Question(db.Model):
     __tablename__ = "questions"
@@ -12,7 +13,7 @@ class Question(db.Model):
     unit_id = db.Column(db.Integer, db.ForeignKey("units.id"))  
     school_id = db.Column(db.Integer, db.ForeignKey("schools.id"))
     answer_data = db.Column(db.Text)
-    map_image = db.Column(db.Text)
+    map_image = db.Column(MEDIUMTEXT)
     status = db.Column(db.Integer, default=1)
     created_by = db.Column(db.String(100))
     updated_by = db.Column(db.String(100))

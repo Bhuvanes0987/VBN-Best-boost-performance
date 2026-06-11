@@ -6,6 +6,7 @@ from models.unit_model import Unit
 from datetime import datetime, timezone
 import json
 import random as rnd
+import re
 
 question_bp = Blueprint("questions", __name__)
 
@@ -34,6 +35,32 @@ def _normalize_match_like_answer_data(answer_data):
     return {"pairs": clean_pairs, "options": clean_options}
 
 
+BASE64_REGEX = re.compile(r'^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$')
+
+def _sanitize_map_image(value):
+    if not value or not isinstance(value, str):
+        return None
+
+    cleaned = value.strip()
+    cleaned = re.sub(r'\s+', '', cleaned)
+    cleaned = re.sub(r':\d+$', '', cleaned)
+
+    if cleaned.startswith('data:'):
+        parts = cleaned.split(',', 1)
+        if len(parts) != 2:
+            return None
+        header, payload = parts
+        payload = re.sub(r'[^A-Za-z0-9+/=]', '', payload)
+        if not BASE64_REGEX.match(payload):
+            return None
+        return f'{header},{payload}'
+
+    payload = re.sub(r'[^A-Za-z0-9+/=]', '', cleaned)
+    if not BASE64_REGEX.match(payload):
+        return None
+    return f'data:image/png;base64,{payload}'
+
+
 def serialize_question(q, include_map=True):
     """Shared serializer so map_image is never forgotten."""
     unit_name = None
@@ -51,8 +78,8 @@ def serialize_question(q, include_map=True):
         "unit_name": unit_name,
         "school_id": q.school_id,
         "answer_data": json.loads(q.answer_data) if q.answer_data else None,
-        # Always include map_image so the frontend can render it
-        "map_image": q.map_image if include_map else None,
+        # Always include sanitized map_image so the frontend can render it
+        "map_image": _sanitize_map_image(q.map_image) if include_map else None,
     }
 
 
@@ -69,7 +96,7 @@ def create_question():
 
     q_type = data.get("type")
     answer_data = data.get("answer_data")
-    map_image = data.get("map_image")
+    map_image = _sanitize_map_image(data.get("map_image"))
 
     if q_type in ("match", "map"):
         answer_data = _normalize_match_like_answer_data(answer_data)
@@ -127,7 +154,7 @@ def update_question(id):
 
     q_type = data.get("type")
     answer_data = data.get("answer_data")
-    map_image = data.get("map_image")
+    map_image = _sanitize_map_image(data.get("map_image"))
 
     if q_type in ("match", "map"):
         answer_data = _normalize_match_like_answer_data(answer_data)

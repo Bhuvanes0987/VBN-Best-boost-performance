@@ -17,7 +17,7 @@
         <i class="pi pi-question-circle text-6xl text-slate-300 mb-4 block"></i>
         <h2 class="text-2xl font-bold text-slate-700 mb-2">No Questions Found</h2>
         <p class="text-slate-500 mb-6">No questions available for this selection yet.</p>
-        <p-button label="Go Back" styleClass="bg-orange-500 border-none" (click)="goHome()"></p-button>
+        <p-button label="Go Back" styleClass="bg-orange-500 border-none" (click)="goHomeAndClearTimer()"></p-button>
       </div>
 
       <!-- QUIZ CARD -->
@@ -25,7 +25,7 @@
         class="bg-white rounded-3xl shadow-xl w-full max-w-2xl overflow-hidden">
 
         <!-- Header -->
-        <div class="bg-gradient-to-r from-orange-500 to-orange-400 p-6 text-white">
+        <div class="relative bg-gradient-to-r from-orange-500 to-orange-400 p-6 text-white">
           <div class="flex justify-between items-center mb-3">
             <span class="text-sm font-semibold opacity-90">
               Question {{ currentIndex + 1 }} of {{ questions.length }}
@@ -33,6 +33,15 @@
             <span class="text-sm font-semibold opacity-90">
               {{ quizMode === 'daily' ? '⚡ Daily Quiz' : '📘 Subject Quiz' }}
             </span>
+          </div>
+
+          <!-- Large timer (moved to fixed right side) -->
+          <!-- (kept here as a fallback in case CSS fails) -->
+          <div *ngIf="false && timerSecondsRemaining > 0" class="absolute right-4 top-4">
+            <div class="flex items-center gap-3 bg-white/10 text-white px-4 py-2 rounded-full shadow-lg border border-white/20">
+              <i class="pi pi-clock text-2xl"></i>
+              <span class="text-xl font-semibold tracking-wider">{{ formatTimer() }}</span>
+            </div>
           </div>
           <p-progressBar [value]="progress" styleClass="h-2 rounded-full" [showValue]="false">
           </p-progressBar>
@@ -162,7 +171,7 @@
             </div>
 
             <!-- Map with image check -->
-            <ng-container *ngIf="currentQuestion?.map_image; else noMap">
+            <ng-container *ngIf="currentMapImageSrc; else noMap">
 
               <!--
                 KEY FIX: position:relative lives on this div wrapper.
@@ -173,7 +182,7 @@
                           cursor-crosshair select-none"
                   (click)="captureMapPin($event)">
 
-                <img [src]="currentQuestion?.map_image"
+                <img [src]="currentMapImageSrc"
                     alt="Map"
                     class="w-full block object-contain select-none"
                     style="max-height:400px; display:block;"
@@ -245,6 +254,20 @@
 
       </div><!-- /quiz card -->
 
+      <!-- Fixed right-side timer badge -->
+      <div *ngIf="timerSecondsRemaining > 0"
+           class="hidden lg:flex items-center justify-center"
+           style="position:fixed; right:32px; top:140px; z-index:60;">
+        <div [ngClass]="{ 'border-red-400 bg-red-50': timerSecondsRemaining <= 60, 'border-white/20 bg-white/90': timerSecondsRemaining > 60 }"
+             style="display:flex; align-items:center; gap:12px; padding:14px 18px; border-radius:14px; box-shadow:0 6px 20px rgba(0,0,0,0.12); border:1px solid rgba(0,0,0,0.06);">
+          <i class="pi pi-clock text-3xl" [style.color]="timerSecondsRemaining <= 60 ? '#dc2626' : '#f97316'"></i>
+          <div style="display:flex; flex-direction:column; align-items:flex-start;">
+            <div style="font-size:14px; color:#334155; opacity:0.9; font-weight:600;">{{ quizMode === 'daily' ? 'Daily Quiz' : 'Subject Quiz' }}</div>
+            <div style="font-size:26px; font-weight:700; color:#0f172a;">{{ formatTimer() }}</div>
+          </div>
+        </div>
+      </div>
+
       <!-- RESULTS -->
       <div *ngIf="quizDone"
         class="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden">
@@ -277,7 +300,7 @@
                       (click)="retakeQuiz()">
             </p-button>
             <p-button label="📊 View All Results" styleClass="w-full" severity="secondary" (click)="router.navigate(['/results'])"></p-button>
-            <p-button label="🏠 Back to Home" styleClass="w-full" severity="secondary" (click)="goHome()"></p-button>
+            <p-button label="🏠 Back to Home" styleClass="w-full" severity="secondary" (click)="goHomeAndClearTimer()"></p-button>
           </div>
           </div>
         <div class="mt-8">
