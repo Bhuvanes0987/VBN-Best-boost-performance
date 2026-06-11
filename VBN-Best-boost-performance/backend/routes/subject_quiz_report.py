@@ -6,42 +6,70 @@ from models.subject_model import Subject
 from models.test_result_model import TestResult
 from models.school_model import School
 from datetime import datetime
-from zoneinfo import ZoneInfo
 import os
+import json
 
+
+def _parse_subject_ids(selected_subjects):
+
+    if not selected_subjects:
+        return []
+
+    text = str(selected_subjects).strip()
+
+    try:
+        parsed = json.loads(text)
+
+        if isinstance(parsed, list):
+            return [int(x) for x in parsed if str(x).strip()]
+
+    except Exception:
+        pass
+
+    ids = []
+
+    for x in text.split(","):
+
+        token = x.strip()
+
+        if token.isdigit():
+            ids.append(int(token))
+
+    return ids
 
 def send_subject_quiz_report(app):
 
     with app.app_context():
 
-        today=datetime.now(
-            ZoneInfo(
-                "Asia/Kolkata"
-            )
-        ).date()
+        today = datetime.utcnow().date()
 
         teachers=User.query.filter_by(
             position=3
         ).all()
+        print("Teachers found:", len(teachers))
 
         for teacher in teachers:
 
-            if not teacher.selected_subjects:
+            if not teacher.email:
                 continue
 
-            ids=[
-                int(x)
-                for x in
+            ids = _parse_subject_ids(
                 teacher.selected_subjects
-                .split(",")
-                if x.strip()
-            ]
+            )
+
+            if not ids:
+                print(
+                    "No valid selected subjects for teacher:",
+                    teacher.id
+                )
+                continue
 
             for subject_id in ids:
+                subject = Subject.query.get(
+                subject_id)
 
-                subject=Subject.query.get(
-                    subject_id
-                )
+                if not subject:
+                    continue
 
                 results=(
                     TestResult.query
@@ -58,9 +86,13 @@ def send_subject_quiz_report(app):
                     )
                     .all()
                 )
-
-                if not results:
-                    continue
+                print(
+                "Subject:",
+                subject_id,
+                "Results:",
+                len(results)
+            )
+                
 
                 wb=Workbook()
 
@@ -73,6 +105,10 @@ def send_subject_quiz_report(app):
                     "Correct",
                     "Total"
                 ])
+                if not results:
+                    ws1.append([
+                        "No students attended today's test"
+                    ])
 
                 attended=[]
 
@@ -124,6 +160,7 @@ def send_subject_quiz_report(app):
                 ws3=wb.create_sheet(
                     "Summary"
                 )
+                total_students = len(students)
 
                 ws3.append([
                     "Subject",
@@ -131,8 +168,28 @@ def send_subject_quiz_report(app):
                 ])
 
                 ws3.append([
+                    "Total Students",
+                    total_students
+                ])
+
+                ws3.append([
                     "Attended",
                     len(attended)
+                ])
+
+                ws3.append([
+                    "Not Attended",
+                    total_students - len(attended)
+                ])
+
+                attendance_percent = round(
+                    (len(attended) / total_students) * 100,
+                    1
+                ) if total_students else 0
+
+                ws3.append([
+                    "Attendance %",
+                    f"{attendance_percent}%"
                 ])
 
                 filename=(
@@ -162,12 +219,19 @@ def send_subject_quiz_report(app):
                     ]
                 )
 
-                msg.body=f"""
+                msg.body = f"""
 Respected Teacher,
 
 We hope this message finds you well.
 
-We are pleased to inform you that the marks obtained by students in today's subject test have been compiled and are now available for your review.
+Please find attached the subject test report for today.
+
+Subject: {subject.subject_name}
+
+Total Students: {total_students}
+Attended: {len(attended)}
+Not Attended: {total_students - len(attended)}
+Attendance: {attendance_percent}%
 
 Thank you for your continued support and dedication.
 
@@ -175,19 +239,37 @@ Yours sincerely,
 VBN Boost Performance Team
 """
 
-                with open(
-                    filename,
-                    "rb"
-                ) as fp:
-
-                    msg.attach(
+                try:
+                    with open(
                         filename,
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        fp.read()
+                        "rb"
+                    ) as fp:
+
+                        msg.attach(
+                            filename,
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            fp.read()
+                        )
+
+                    mail.send(msg)
+
+                    print(
+                        "Subject report mail sent to:",
+                        teacher.email,
+                        "subject:",
+                        subject_id
                     )
 
-                mail.send(msg)
+                except Exception as e:
+                    print(
+                        "Subject report mail failed:",
+                        str(e),
+                        "teacher:",
+                        teacher.id,
+                        "subject:",
+                        subject_id
+                    )
 
-                os.remove(
-                    filename
-                )
+                finally:
+                    if os.path.exists(filename):
+                        os.remove(filename)

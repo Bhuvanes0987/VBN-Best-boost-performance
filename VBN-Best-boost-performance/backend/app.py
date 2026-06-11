@@ -64,8 +64,8 @@ scheduler.add_job(
         send_subject_quiz_report(app),
 
     trigger="cron",
-    hour=18,
-    minute=38
+    hour=21,
+    minute=0
 )
 
 if os.environ.get(
@@ -97,37 +97,68 @@ with app.app_context():
     db.session.execute(db.text("SET SESSION sql_mode = ''"))
     db.session.commit()
 
-    role_count = db.session.execute(db.text("SELECT COUNT(*) FROM roles")).scalar()
-    if role_count == 0:
-        db.session.execute(db.text(
-            "INSERT INTO roles (id, name, description, status) VALUES "
-            "(1, 'Admin', 'Full access to all features', 1), "
-            "(2, 'Student', 'Default user access', 1),"
-            "(3,'Teacher','Teacher access',1)"
-        ))
+    # Roles
+    if Role.query.count() == 0:
+        db.session.add_all([
+            Role(id=1, name="Admin", description="Full access to all features", status=1),
+            Role(id=2, name="Student", description="Default user access", status=1),
+            Role(id=3, name="Teacher", description="Teacher access", status=1),
+            Role(id=4, name="Principal", description="Principal access", status=1)
+        ])
         db.session.commit()
         print("Default roles seeded")
 
-    db.session.execute(db.text("ALTER TABLE roles AUTO_INCREMENT = 4"))  
+    db.session.execute(
+        db.text("ALTER TABLE roles AUTO_INCREMENT = 5")
+    )
     db.session.commit()
-    print("Default roles ready")
 
+    # School
+    if School.query.count() == 0:
+        default_school = School(
+            id=1,
+            name="Default",
+            code="DEFAULT",
+            status=1,
+            created_by="admin"
+        )
+
+        db.session.add(default_school)
+        db.session.commit()
+
+        print("Default school seeded")
+
+    # Class
+    if Class.query.count() == 0:
+        default_class = Class(
+            id=1,
+            class_name="Default Class",
+            school_id=1,
+            status=1,
+            created_by="admin"
+        )
+
+        db.session.add(default_class)
+        db.session.commit()
+
+        print("Default class seeded")
+
+    # Permissions
     if Permission.query.count() == 0:
         permissions = [
-            Permission(name="Users",     page="users",     scope="global"),
-            Permission(name="Schools",   page="schools",   scope="global"),
-            Permission(name="Roles",     page="roles",     scope="global"),
-            Permission(name="Classes",   page="classes",   scope="school"),
-            Permission(name="Subjects",  page="subjects",  scope="school"),
+            Permission(name="Users", page="users", scope="global"),
+            Permission(name="Schools", page="schools", scope="global"),
+            Permission(name="Roles", page="roles", scope="global"),
+            Permission(name="Classes", page="classes", scope="school"),
+            Permission(name="Subjects", page="subjects", scope="school"),
             Permission(name="Questions", page="questions", scope="school"),
-            Permission(name="Results",   page="results",   scope="school"),
-            Permission(name="Payments",  page="payments",  scope="school"),
-            Permission(name="Quiz",      page="quiz",      scope="class"),
+            Permission(name="Results", page="results", scope="school"),
+            Permission(name="Payments", page="payments", scope="school"),
+            Permission(name="Quiz", page="quiz", scope="class"),
         ]
         db.session.add_all(permissions)
         db.session.commit()
         print("Permissions seeded")
-
 if __name__ == "__main__":
 
     print(

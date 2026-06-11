@@ -36,15 +36,16 @@ def create_user():
     assigned_role = int(data.get("selectedRole", 2))
 
     user = User(
-        name=data["fullName"],
-        email=data["email"],
-        password_hash=generate_password_hash(temp_password),
-        position=assigned_role,
-        student_class=data.get("selectedClass"),
-        school_id=data.get("schoolId"),   
-        status=1,
-        created_by="admin",
-        created_at=datetime.utcnow()
+    name=data["fullName"],
+    email=data["email"],
+    password_hash=generate_password_hash(temp_password),
+    position=assigned_role,
+    student_class=data.get("selectedClass"),
+    school_id=data.get("schoolId"),
+    selected_subjects=str(data.get("selectedSubject", "")),
+    status=1,
+    created_by="admin",
+    created_at=datetime.utcnow()
     )
     db.session.add(user)
     db.session.commit()
@@ -134,7 +135,9 @@ def update_user(id):
     user.email = data["email"]
     user.phone = data.get("phone")
     user.student_class = data.get("selectedClass")
-    user.school_id = data.get("schoolId")  
+    user.selected_subjects = str(
+    data.get("selectedSubject", "")
+    )
     user.updated_by = "admin"
     user.updated_at = datetime.utcnow()
 
