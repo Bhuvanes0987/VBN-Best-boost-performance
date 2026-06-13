@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 
 from config import Config
@@ -40,7 +40,52 @@ from routes.daily_quiz_report import (
 from routes.subject_quiz_report import (
     send_subject_quiz_report
 )
+from logger import logger as app_logger
+
 app = Flask(__name__)
+app.logger.handlers = app_logger.handlers
+app.logger.setLevel(app_logger.level)
+
+SENSITIVE_KEYS = {"password", "token", "authorization", "auth", "secret"}
+
+def redact_payload(payload):
+    if isinstance(payload, dict):
+        return {
+            key: ("***REDACTED***" if key.lower() in SENSITIVE_KEYS else redact_payload(value))
+            for key, value in payload.items()
+        }
+    if isinstance(payload, list):
+        return [redact_payload(item) for item in payload]
+    return payload
+
+
+@app.before_request
+def log_request():
+    try:
+        data = request.get_json(silent=True)
+    except Exception:
+        data = None
+
+    payload = redact_payload(data) if isinstance(data, dict) else None
+    app.logger.info(
+        "Incoming request: %s %s from %s args=%s json=%s",
+        request.method,
+        request.path,
+        request.remote_addr,
+        request.args.to_dict(flat=False),
+        payload,
+    )
+
+
+@app.after_request
+def log_response(response):
+    app.logger.info(
+        "Response: %s %s status=%s",
+        request.method,
+        request.path,
+        response.status,
+    )
+    return response
 app.config.from_object(Config)
 CORS(app)
 db.init_app(app)

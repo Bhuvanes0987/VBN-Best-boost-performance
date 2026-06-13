@@ -1,0 +1,40 @@
+html, body {
+  min-height: 100%;
+  background-color: #f8fafc;
+  overscroll-behavior-x: none;
+  overflow-x: hidden;
+}
+
+body {
+  min-width: 320px;
+}
+
+main, .min-h-screen, .flex-1, .overflow-hidden, .overflow-auto {
+  min-width: 0;
+}
+
+.p-datatable table {
+  width: 100% !important;
+  table-layout: auto !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th,
+.p-datatable .p-datatable-tbody > tr > td {
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+.custom-home-table th,
+.custom-home-table td {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.p-datatable .p-datatable-wrapper {
+  overflow-x: auto;
+}
+
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}

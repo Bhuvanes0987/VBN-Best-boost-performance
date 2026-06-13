@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
+from flask_mail import Message
 from extension import db
+from logger import logger
 from models.test_result_model import TestResult
 from models.subject_model import Subject
 from models.unit_model import Unit
@@ -122,6 +124,21 @@ def save_result():
     db.session.add(result)
     db.session.commit()
 
+    logger.info(
+        "Result saved: user_id=%s school_id=%s class_id=%s subject_id=%s unit_id=%s total=%s correct=%s percent=%s test_type=%s result_id=%s",
+        data.get("user_id"),
+        data.get("school_id"),
+        data.get("class_id"),
+        data.get("subject_id"),
+        data.get("unit_id"),
+        total,
+        correct,
+        percent,
+        data.get("test_type"),
+        result.id,
+    )
+
+    email_error = None
     try:
         user = User.query.get(data["user_id"])
         subject = (
@@ -144,11 +161,12 @@ def save_result():
             )
         else:
             teacher_email = (
-                school.email
+                getattr(school, "email", None)
                 if school else None
             )
 
         if teacher_email:
+            logger.info("Sending result email to %s for result_id=%s", teacher_email, result.id)
             msg = Message(
                 subject="Student Test Result",
                 recipients=[teacher_email],
@@ -166,14 +184,21 @@ Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}
             )
 
             mail.send(msg)
+        else:
+            logger.info("No teacher email available for result notification for result_id=%s", result.id)
 
     except Exception as e:
-        print("Email sending failed:", str(e))
+        email_error = str(e)
+        logger.exception("Email sending failed while saving result")
 
-    return jsonify({
+    response = {
         "message": "Result saved",
         "id": result.id
-    }), 201
+    }
+    if email_error:
+        response["email_warning"] = email_error
+
+    return jsonify(response), 201
 
 # ── NEW: leaderboard ──────────────────────────────────────────────────────────
 

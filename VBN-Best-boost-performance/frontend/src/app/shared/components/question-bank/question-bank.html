@@ -25,8 +25,7 @@
 
     <!-- MULTI-SELECT FILTERS -->
     <div class="bg-white rounded-xl shadow p-4 mb-4">
-      <div class="grid grid-cols-4 gap-3">
-
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
         <div class="flex flex-col gap-1">
           <label class="text-xs text-slate-500 font-semibold uppercase tracking-wide">School</label>
           <p-multiselect
@@ -99,8 +98,7 @@
 
     <!-- TABLE -->
     <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
-      <p-table [value]="questions" [paginator]="true" [rows]="10"
-        styleClass="p-datatable-hoverable-rows">
+      <p-table [value]="questions" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-hoverable-rows w-full">
 
         <ng-template pTemplate="header">
           <tr>
@@ -172,7 +170,7 @@
   <!-- ===================== ADD / EDIT DRAWER ===================== -->
   <p-drawer [(visible)]="drawerVisible" position="right"
     *ngIf="canEditQuestionBank"
-    [style]="{ width: '900px' }"
+    [style]="{ width: 'min(95vw, 900px)' }"
     styleClass="!bg-slate-900 !text-white">
 
     <ng-template pTemplate="header">
@@ -183,7 +181,7 @@
 
     <div class="flex flex-col gap-5 overflow-y-auto pr-2 pb-6">
 
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="flex flex-col gap-1">
           <label class="text-slate-300 text-sm">School *</label>
           <p-select [options]="schools" optionLabel="name" optionValue="id"
@@ -200,7 +198,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="flex flex-col gap-1">
           <label class="text-slate-300 text-sm">Subject *</label>
           <p-select [options]="subjects" optionLabel="subject_name"
@@ -405,13 +403,14 @@
   <!-- ===================== PREVIEW / ANSWER DIALOG ===================== -->
   <p-dialog [(visible)]="previewVisible"
             [modal]="true" [closable]="true" [draggable]="false"
-            [style]="{ width: '700px' }"
-            styleClass="!bg-slate-900"
+            [style]="{ width: '95vw', maxWidth: '1100px' }"
+            [contentStyle]="{ maxHeight: '85vh', overflow: 'auto' }"
+            styleClass="!bg-white"
             (onHide)="closePreviewAndRevoke()">
 
     <ng-template pTemplate="header">
       <div class="flex items-center gap-3">
-        <span class="font-bold text-lg text-white">Preview Question</span>
+        <span class="font-bold text-lg text-slate-900">Preview Question</span>
         <span *ngIf="previewQuestion"
               class="px-2 py-0.5 rounded text-xs font-bold uppercase"
               [ngStyle]="previewBadgeStyle(previewQuestion.question_type)">
@@ -420,10 +419,10 @@
       </div>
     </ng-template>
 
-    <div *ngIf="previewQuestion" class="flex flex-col gap-5 pb-4" style="color:#e2e8f0;">
+    <div *ngIf="previewQuestion" class="flex flex-col gap-5 pb-4 text-slate-900">
 
       <!-- Question text -->
-      <div class="px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white font-medium leading-relaxed">
+      <div class="px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 font-medium leading-relaxed">
       <div [innerHTML]="previewQuestion.question_text"></div>
       </div>
 
@@ -458,7 +457,7 @@
           <i class="pi pi-info-circle mr-1"></i>
           Drag items from <strong class="text-blue-400">Column B</strong> and drop them next to the matching item in Column A.
         </p>
-        <div class="grid grid-cols-[1fr_auto_1fr] gap-4 items-start">
+        <div class="grid gap-4 lg:grid-cols-[1fr_auto_1fr] items-start">
           <div class="flex flex-col gap-3">
             <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Column A</p>
             <div *ngFor="let pair of previewQuestion.answer_data?.pairs; let i=index"
@@ -509,92 +508,120 @@
       </div>
 
       <!-- MAP -->
-      <div *ngIf="previewQuestion.question_type === 'map'" class="flex flex-col gap-3">
-        <div class="flex items-start gap-3 px-4 py-3 rounded-xl"
-             style="background:rgba(249,115,22,0.08); border:1px solid rgba(249,115,22,0.2);">
-          <i class="pi pi-map-marker text-orange-400 mt-0.5 text-sm"></i>
-          <div>
-            <p class="text-orange-300 font-semibold text-sm">Map Preview</p>
-            <p class="text-orange-200/60 text-xs mt-0.5 leading-relaxed">
-              Marking is disabled. This map is shown for preview only.
+      <div *ngIf="previewQuestion.question_type === 'map'" class="flex flex-col gap-4">
+        <div class="grid gap-4 lg:grid-cols-[1.4fr_1fr] items-start">
+          <div class="flex flex-col gap-3">
+            <div class="flex items-start gap-3 px-4 py-3 rounded-xl"
+                 style="background:rgba(249,115,22,0.08); border:1px solid rgba(249,115,22,0.2);">
+              <i class="pi pi-map-marker text-orange-400 mt-0.5 text-sm"></i>
+              <div>
+                <p class="text-orange-300 font-semibold text-sm">Map Preview</p>
+                <p class="text-orange-200/60 text-xs mt-0.5 leading-relaxed">
+                  Marking is disabled. This map is shown for preview only.
+                </p>
+              </div>
+            </div>
+
+            <div *ngIf="previewImageSrc; else noMapImg"
+                 class="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 select-none cursor-pointer"
+                 style="min-height:320px;"
+                 (click)="openPreviewMapDialog()">
+              <img [src]="previewImageSrc"
+                   alt="Map"
+                   class="w-full h-full object-contain select-none"
+                   draggable="false"
+                   (load)="onPreviewImageLoad($event)"
+                   (error)="onPreviewImageError($event)"/>
+              <div class="absolute inset-0 bg-white/70 opacity-0 hover:opacity-100 transition flex items-center justify-center text-slate-900 text-sm font-semibold">
+                Click to enlarge
+              </div>
+            </div>
+
+            <ng-template #noMapImg>
+              <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-8 text-center text-red-400 text-sm">
+                <i class="pi pi-image text-2xl mb-2 block"></i>
+                No map image attached to this question.
+              </div>
+            </ng-template>
+
+            <p class="text-slate-400 text-xs">
+              <i class="pi pi-info-circle mr-1"></i>
+              Match items below exactly like Match Pairs.
             </p>
           </div>
+
+          <div class="flex flex-col gap-4">
+            <p class="text-sm font-semibold text-slate-200">Match pairs</p>
+            <div class="grid grid-cols-[1.35fr_auto_1.15fr] gap-3 items-start">
+              <div class="flex flex-col gap-3">
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Column A</p>
+                <div *ngFor="let pair of previewQuestion.answer_data?.pairs; let i=index"
+                     class="flex items-center gap-3">
+                  <div class="flex-1 px-3 py-3 rounded-lg border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-900">
+                    {{ i + 1 }}. {{ pair.left }}
+                  </div>
+                  <div class="w-32 min-h-[46px] rounded-lg border-2 border-dashed flex items-center
+                              justify-center px-3 py-2 text-xs font-medium transition-all duration-200 cursor-pointer"
+                       [style.border-color]="previewDragOverSlot === i ? '#f97316' : previewMatchAnswers[i] ? '#22c55e' : 'rgba(148,163,184,0.5)'"
+                       [style.background]="previewDragOverSlot === i ? 'rgba(249,115,22,0.1)' : previewMatchAnswers[i] ? 'rgba(34,197,94,0.1)' : 'transparent'"
+                       (dragover)="onPreviewDragOver($event, i)"
+                       (dragleave)="onPreviewDragLeave()"
+                       (drop)="onPreviewDrop($event, i)">
+                    <span *ngIf="previewMatchAnswers[i]" class="text-slate-900 flex items-center gap-1 w-full justify-between">
+                      <span class="truncate text-xs">{{ previewMatchAnswers[i] }}</span>
+                      <button (click)="clearPreviewSlot(i)" class="text-red-500 hover:text-red-600 cursor-pointer shrink-0 ml-1">
+                        <i class="pi pi-times text-xs"></i>
+                      </button>
+                    </span>
+                    <span *ngIf="!previewMatchAnswers[i]" class="text-slate-400 italic text-xs">Drop here</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col pt-9 gap-3">
+                <div *ngFor="let p of previewQuestion.answer_data?.pairs"
+                     class="h-[42px] flex items-center text-orange-400/40 text-sm">→</div>
+              </div>
+
+              <div class="flex flex-col gap-3">
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Column B</p>
+                <div *ngFor="let opt of previewShuffledRight"
+                     class="px-4 py-3 rounded-lg border text-sm font-semibold transition-all duration-200 select-none"
+                     [style.cursor]="isPreviewOptionUsed(opt) ? 'not-allowed' : 'grab'"
+                     [style.opacity]="isPreviewOptionUsed(opt) ? '0.45' : '1'"
+                     [style.background]="isPreviewOptionUsed(opt) ? 'rgba(203,213,225,0.4)' : 'rgba(59,130,246,0.1)'"
+                     [style.border-color]="isPreviewOptionUsed(opt) ? 'rgba(148,163,184,0.5)' : 'rgba(59,130,246,0.35)'"
+                     [style.color]="isPreviewOptionUsed(opt) ? 'rgba(71,85,105,0.8)' : '#1e3a8a'"
+                     [draggable]="!isPreviewOptionUsed(opt)"
+                     (dragstart)="onPreviewDragStart($event, opt)">
+                  {{ opt }}
+                </div>
+              </div>
+            </div>
+            <button (click)="resetPreviewMatch()"
+                    class="text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer flex items-center gap-1 w-fit">
+              <i class="pi pi-refresh"></i> Reset matches
+            </button>
+          </div>
         </div>
+      </div>
 
-        <!-- *** FIXED: position:relative on wrapper div, not inline-block *** -->
-        <div *ngIf="previewImageSrc; else noMapImg"
-             class="relative w-full rounded-xl overflow-hidden border border-white/10 select-none">
-
-          <img [src]="previewImageSrc"
-            alt="Map"
-            class="w-full block object-contain select-none"
-            style="max-height:380px;"
-            draggable="false"
-            (load)="onPreviewImageLoad($event)"
-            (error)="onPreviewImageError($event)"/>
-        </div>
-
-        <ng-template #noMapImg>
-          <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-8 text-center text-red-400 text-sm">
-            <i class="pi pi-image text-2xl mb-2 block"></i>
-            No map image attached to this question.
+      <p-dialog [(visible)]="previewMapDialogVisible"
+                [modal]="true" [closable]="true" [draggable]="false" [resizable]="false"
+                [style]="{ width: '80vw', maxWidth: '900px' }"
+                styleClass="!bg-white"
+                (onHide)="previewMapDialogVisible = false">
+        <ng-template pTemplate="header">
+          <div class="flex items-center gap-3">
+            <span class="font-bold text-lg text-slate-900">Map Preview</span>
           </div>
         </ng-template>
-
-        <p class="text-slate-400 text-xs">
-          <i class="pi pi-info-circle mr-1"></i>
-          Match items below exactly like Match Pairs.
-        </p>
-        <div class="grid grid-cols-[1fr_auto_1fr] gap-4 items-start">
-          <div class="flex flex-col gap-3">
-            <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Column A</p>
-            <div *ngFor="let pair of previewQuestion.answer_data?.pairs; let i=index"
-                 class="flex items-center gap-2">
-              <div class="flex-1 px-3 py-2.5 rounded-lg border border-white/10 bg-white/5 text-sm font-semibold text-white">
-                {{ i + 1 }}. {{ pair.left }}
-              </div>
-              <div class="w-32 min-h-[42px] rounded-lg border-2 border-dashed flex items-center
-                          justify-center px-2 py-1 text-xs font-medium transition-all duration-200 cursor-pointer"
-                   [style.border-color]="previewDragOverSlot === i ? '#f97316' : previewMatchAnswers[i] ? '#22c55e' : 'rgba(255,255,255,0.2)'"
-                   [style.background]="previewDragOverSlot === i ? 'rgba(249,115,22,0.1)' : previewMatchAnswers[i] ? 'rgba(34,197,94,0.1)' : 'transparent'"
-                   (dragover)="onPreviewDragOver($event, i)"
-                   (dragleave)="onPreviewDragLeave()"
-                   (drop)="onPreviewDrop($event, i)">
-                <span *ngIf="previewMatchAnswers[i]" class="text-green-300 flex items-center gap-1 w-full justify-between">
-                  <span class="truncate text-xs">{{ previewMatchAnswers[i] }}</span>
-                  <button (click)="clearPreviewSlot(i)" class="text-red-400 hover:text-red-300 cursor-pointer shrink-0 ml-1">
-                    <i class="pi pi-times text-xs"></i>
-                  </button>
-                </span>
-                <span *ngIf="!previewMatchAnswers[i]" class="text-white/25 italic text-xs">Drop here</span>
-              </div>
-            </div>
-          </div>
-          <div class="flex flex-col pt-9 gap-3">
-            <div *ngFor="let p of previewQuestion.answer_data?.pairs"
-                 class="h-[42px] flex items-center text-orange-400/40 text-sm">→</div>
-          </div>
-          <div class="flex flex-col gap-3">
-            <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Column B</p>
-            <div *ngFor="let opt of previewShuffledRight"
-                 class="px-3 py-2.5 rounded-lg border text-sm font-semibold transition-all duration-200 select-none"
-                 [style.cursor]="isPreviewOptionUsed(opt) ? 'not-allowed' : 'grab'"
-                 [style.opacity]="isPreviewOptionUsed(opt) ? '0.35' : '1'"
-                 [style.background]="isPreviewOptionUsed(opt) ? 'rgba(255,255,255,0.03)' : 'rgba(59,130,246,0.1)'"
-                 [style.border-color]="isPreviewOptionUsed(opt) ? 'rgba(255,255,255,0.1)' : 'rgba(59,130,246,0.5)'"
-                 [style.color]="isPreviewOptionUsed(opt) ? 'rgba(255,255,255,0.25)' : '#93c5fd'"
-                 [draggable]="!isPreviewOptionUsed(opt)"
-                 (dragstart)="onPreviewDragStart($event, opt)">
-              {{ opt }}
-            </div>
-          </div>
+        <div class="p-4">
+          <img [src]="previewImageSrc"
+               alt="Large map preview"
+               class="w-full h-auto rounded-xl object-contain"/>
         </div>
-        <button (click)="resetPreviewMatch()"
-                class="text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer flex items-center gap-1 w-fit">
-          <i class="pi pi-refresh"></i> Reset matches
-        </button>
-
-      </div>
+      </p-dialog>
 
       <!-- CHECK ANSWER + RESULT -->
       <div class="flex justify-end gap-3 pt-2 border-t border-white/10">

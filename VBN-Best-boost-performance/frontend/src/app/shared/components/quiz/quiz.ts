@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
@@ -14,7 +15,7 @@ import { MessageService } from 'primeng/api';
   standalone: true,
   imports: [
     CommonModule, FormsModule, ButtonModule,
-    RadioButtonModule, ProgressBarModule, ToastModule
+    DialogModule, RadioButtonModule, ProgressBarModule, ToastModule
   ],
   providers: [MessageService],
   templateUrl: './quiz.html'
@@ -42,16 +43,17 @@ export class Quiz implements OnInit, OnDestroy {
   scorePercent  = 0;
 
   // ── Match drag & drop state ──────────────────────────────────────────────
-  /** slotIndex → right-label the student dropped */
-  matchAnswers: Record<number, string> = {};
-  draggedValue  = '';
+  /** slotIndex → right-label the student dropped (stores {id,text}) */
+  matchAnswers: Record<number, { id: string; text: string }> = {};
+  draggedValue: { id: string; text: string } | null = null;
   dragOverSlot  = -1;
   /** Shuffled Column-B options, built once per question */
-  shuffledRight: string[] = [];
+  shuffledRight: Array<{ id: string; text: string }> = [];
 
   // ── Map pin state ────────────────────────────────────────────────────────
   mapPin: { xPct: number; yPct: number } | null = null;
   currentMapImageSrc: string | null = null;
+  mapPreviewDialogVisible = false;
   private currentMapImageObjectUrl: string | null = null;
   private readonly MAX_MAP_DATA_URL_LENGTH = 60000;
 
@@ -143,26 +145,42 @@ export class Quiz implements OnInit, OnDestroy {
 
     const saved = this.answers[this.currentIndex];
 
-    if (q.question_type === 'match') {
+    if (q.question_type === 'match' || q.question_type === 'map') {
       // Build shuffled Column B once per question (cache it)
       if (!this.shuffleCache[this.currentIndex]) {
-      const rights: string[] = [
-        ...(q.answer_data?.pairs ?? []).map((p: any) => p.right),
-        ...(q.answer_data?.options ?? [])
-      ];
-
-      this.shuffleCache[this.currentIndex] = this.shuffle([...new Set(rights)]);
-}
-      this.shuffledRight = this.shuffleCache[this.currentIndex];
-      // Restore saved match slots
-      this.matchAnswers  = saved ? { ...saved } : {};
+        const rights: string[] = [
+          ...(q.answer_data?.pairs ?? []).map((p: any) => p.right),
+          ...(q.answer_data?.options ?? [])
+        ];
+        // Create distinct instances for duplicate texts so UI treats them separately
+        const instances = rights.map((r: string, idx: number) => ({ id: `${q.id}_${idx}`, text: r }));
+        this.shuffleCache[this.currentIndex] = this.shuffle(instances as any) as any;
+        // Debug: expose original and shuffled counts for troubleshooting
+        console.debug('[Quiz] Column B rights (original count=%d, unique=%d):', rights.length, new Set(rights).size, rights);
+        console.debug('[Quiz] Shuffled Column B for question %s =>', q.id, this.shuffleCache[this.currentIndex]);
+      }
+      this.shuffledRight = this.shuffleCache[this.currentIndex] as any;
+      // Backwards-compat: saved matchAnswers may be plain strings from older versions.
+      if (saved) {
+        const restored: Record<number, { id: string; text: string }> = {};
+        Object.keys(saved).forEach(k => {
+          const v = (saved as any)[k];
+          if (v && typeof v === 'string') {
+            restored[+k] = { id: `${q.id}_restored_${k}`, text: v };
+          } else if (v && typeof v === 'object') {
+            restored[+k] = v;
+          }
+        });
+        this.matchAnswers = restored;
+      } else {
+        this.matchAnswers = {};
+      }
     } else {
       this.shuffledRight = [];
-      this.matchAnswers  = {};
+      this.matchAnswers = {};
     }
 
     if (q.question_type === 'map') {
-      this.mapPin = saved ?? null;
       this.currentMapImageSrc = this.normalizeMapImage(q.map_image);
       console.group('[Quiz] Current map question');
       console.log('question id:', q.id);
@@ -172,18 +190,16 @@ export class Quiz implements OnInit, OnDestroy {
       console.log('normalized map image src preview:', this.currentMapImageSrc ? this.currentMapImageSrc.slice(0, 80) : 'null');
       console.groupEnd();
     } else {
-      this.mapPin = null;
       this.currentMapImageSrc = null;
     }
 
-    // Restore selectedAnswer for MCQ / fill
     this.selectedAnswer = (q.question_type === 'match' || q.question_type === 'map')
-      ? null
+      ? (Object.keys(this.matchAnswers).length ? this.matchAnswers : null)
       : (saved ?? null);
   }
 
   // Cache so Column B doesn't re-shuffle when navigating back
-  private shuffleCache: Record<number, string[]> = {};
+  private shuffleCache: Record<number, any[]> = {};
 
   private shuffle<T>(arr: T[]): T[] {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -275,9 +291,13 @@ export class Quiz implements OnInit, OnDestroy {
 
   // ─── Match drag & drop ────────────────────────────────────────────────────
 
-  onDragStart(event: DragEvent, value: string) {
+  onDragStart(event: DragEvent, value: { id: string; text: string }) {
     this.draggedValue = value;
-    event.dataTransfer?.setData('text/plain', value);
+    try {
+      event.dataTransfer?.setData('application/json', JSON.stringify(this.draggedValue));
+    } catch {
+      event.dataTransfer?.setData('text/plain', this.draggedValue.text);
+    }
   }
 
   onDragOver(event: DragEvent, slotIndex: number) {
@@ -290,16 +310,18 @@ export class Quiz implements OnInit, OnDestroy {
   onDrop(event: DragEvent, slotIndex: number) {
     event.preventDefault();
     this.dragOverSlot = -1;
-    const value = event.dataTransfer?.getData('text/plain') || this.draggedValue;
-    if (!value) return;
+    const raw = event.dataTransfer?.getData('application/json') || event.dataTransfer?.getData('text/plain') || JSON.stringify(this.draggedValue || {});
+    let obj: { id: string; text: string } | null = null;
+    try { obj = JSON.parse(raw); } catch { obj = { id: `tmp_${Date.now()}`, text: raw } as any; }
+    if (!obj || !obj.text) return;
 
-    // Remove this label from any other slot first
+    // Remove same instance id from any other slot first
     Object.keys(this.matchAnswers).forEach(k => {
-      if (this.matchAnswers[+k] === value) delete this.matchAnswers[+k];
+      if (this.matchAnswers[+k]?.id === obj!.id) delete this.matchAnswers[+k];
     });
 
-    this.matchAnswers[slotIndex] = value;
-    this.draggedValue = '';
+    this.matchAnswers[slotIndex] = obj;
+    this.draggedValue = null;
 
     // Save a copy of current match state
     this.answers[this.currentIndex] = { ...this.matchAnswers };
@@ -321,7 +343,8 @@ export class Quiz implements OnInit, OnDestroy {
   }
 
   isOptionUsed(value: string): boolean {
-    return Object.values(this.matchAnswers).includes(value);
+    // value may be an id (preferred) or the label text; consider both
+    return Object.values(this.matchAnswers).some(v => v && (v.id === value || v.text === value));
   }
 
   /** True only when every pair slot is filled */
@@ -346,20 +369,26 @@ export class Quiz implements OnInit, OnDestroy {
     this.selectedAnswer = this.mapPin;   // truthy → Next won't block
   }
 
+  openMapPreviewDialog() {
+    if (this.currentMapImageSrc) {
+      this.mapPreviewDialogVisible = true;
+    }
+  }
+
+  clearMapPin() {
+    this.mapPin = null;
+    this.selectAnswer(null);
+  }
+
   // ─── Navigation ───────────────────────────────────────────────────────────
 
   next() {
     const q = this.currentQuestion;
 
     // Validate before advancing
-    if (q.question_type === 'match') {
+    if (q.question_type === 'match' || q.question_type === 'map') {
       if (!this.allMatchFilled()) {
         this.messageService.add({ severity: 'warn', summary: 'Incomplete', detail: 'Please match all items before continuing', life: 2500 });
-        return;
-      }
-    } else if (q.question_type === 'map') {
-      if (!this.mapPin) {
-        this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Please click on the map to place your pin', life: 2500 });
         return;
       }
     } else {
@@ -410,10 +439,10 @@ setTimeout(() => this.renderMath(), 50);
           break;
         }
         case 'match': {
-          // userAnswer is a Record<number, string>; every slot must match
+          // userAnswer is a Record<number, {id,text}>; every slot must match by text
           const pairs    = data?.pairs ?? [];
           const allRight = pairs.every((p: any, idx: number) =>
-            userAnswer && userAnswer[idx] === p.right
+            userAnswer && userAnswer[idx] && userAnswer[idx].text === p.right
           );
           if (allRight) this.correctCount++;
           break;
@@ -518,16 +547,39 @@ setTimeout(() => this.renderMath(), 50);
 
     case 'match':
       return data.pairs.every((p: any, idx: number) =>
-        userAnswer?.[idx] === p.right
+        (userAnswer?.[idx]?.text ?? userAnswer?.[idx]) === p.right
       );
 
-    case 'map':
-      return !!userAnswer; 
+    case 'map': {
+      const cp = data?.correct_pin;
+      const tol = data?.tolerance ?? 5;
+      if (!userAnswer || !cp) return false;
+      const dx = userAnswer.xPct - cp.xPct;
+      const dy = userAnswer.yPct - cp.yPct;
+      return Math.sqrt(dx * dx + dy * dy) <= tol;
+    }
 
     default:
       return false;
   }
 }
+
+  // Helper to detect if a value is an image URL or data URL
+  isImage(value: any): boolean {
+    if (!value || typeof value !== 'string') return false;
+    const v = value.trim();
+    if (v.startsWith('data:image')) return true;
+    if (/\.(png|jpe?g|gif|svg)(\?.*)?$/i.test(v)) return true;
+    if (/^https?:\/\/.+\.(png|jpe?g|gif|svg)(\?.*)?$/i.test(v)) return true;
+    return false;
+  }
+
+  // Compute Column B options for review (pairs' right values + any extra options)
+  reviewOptions(q: any): string[] {
+    const rights = (q?.answer_data?.pairs || []).map((p: any) => p.right || '');
+    const extras = q?.answer_data?.options || [];
+    return [...rights, ...extras];
+  }
 
 renderMath() {
   setTimeout(() => {

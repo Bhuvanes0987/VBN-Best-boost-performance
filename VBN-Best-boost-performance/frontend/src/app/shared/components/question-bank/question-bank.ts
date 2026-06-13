@@ -109,6 +109,7 @@ export class QuestionBank implements OnInit {
   previewShuffledRight: string[] = [];
   previewResult: boolean | null = null;
   previewCorrectDisplay = '';
+  previewMapDialogVisible = false;
 
   // ─── Timer configuration (persisted in localStorage) ──────────────────────
   timerDialogVisible = false;
@@ -543,11 +544,18 @@ export class QuestionBank implements OnInit {
   // revoke object URL when closing preview to avoid leaks
   closePreviewAndRevoke() {
     this.closePreview();
+    this.previewMapDialogVisible = false;
     if (this._previewObjectUrl) {
       try{ URL.revokeObjectURL(this._previewObjectUrl); }catch(e){}
       this._previewObjectUrl = null;
     }
     this.previewImageSrc = null;
+  }
+
+  openPreviewMapDialog() {
+    if (this.previewImageSrc) {
+      this.previewMapDialogVisible = true;
+    }
   }
 
   // revoke any object URL when preview modal closes
