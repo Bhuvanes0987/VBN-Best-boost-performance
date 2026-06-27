@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { AvatarModule } from 'primeng/avatar';
 import { SafeDataUrlPipe } from '../../pipes/safe-data-url.pipe';
@@ -17,7 +18,7 @@ import { MessageService } from 'primeng/api';
   standalone: true,
   imports: [
     CommonModule, FormsModule, ButtonModule,
-    InputTextModule, MultiSelectModule, ToastModule, AvatarModule,
+    InputTextModule, MultiSelectModule, SelectModule, ToastModule, AvatarModule,
     SafeDataUrlPipe
   ],
   providers: [MessageService],
@@ -33,6 +34,8 @@ export class Profile implements OnInit {
   phone = '';
   className = '';
   schoolName = '';
+  selectedSchoolId: number | null = null;
+  schools: any[] = [];
   profilePic: string | null = null;
   previewPic: string | null = null;
 
@@ -42,6 +45,10 @@ export class Profile implements OnInit {
 
   loading = false;
   saving = false;
+  isEditing = false;
+
+  // snapshot to restore on cancel
+  private _snapshot: any = {};
 
   constructor(
     private http: HttpClient,
@@ -50,7 +57,14 @@ export class Profile implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.loadSchools();
     this.loadProfile();
+  }
+
+  loadSchools() {
+    this.http.get(`${this.api}/schools`).subscribe({
+      next: (res: any) => this.schools = res.schools || []
+    });
   }
 
   loadProfile() {
@@ -66,6 +80,7 @@ export class Profile implements OnInit {
         this.phone = res.phone || '';
         this.className = res.class_name || '';
         this.schoolName = res.school_name || '';
+        this.selectedSchoolId = res.school_id || null;
         this.profilePic = res.profile_pic || null;
         this.previewPic = res.profile_pic || null;
 
@@ -111,23 +126,10 @@ export class Profile implements OnInit {
       return;
     }
 
-    // create an object URL for preview to avoid large data: URLs being assigned directly
-    try{
-      // revoke old preview if it was an object URL
-      if (this.previewPic && this.previewPic.startsWith('blob:')) {
-        try{ URL.revokeObjectURL(this.previewPic); }catch(e){}
-      }
-      const obj = URL.createObjectURL(file);
-      this.previewPic = obj;
-    }catch(e){
-      // fallback to FileReader if createObjectURL fails
-      this.previewPic = null;
-    }
-
-    // still read base64 for server payload, but do not assign it to preview
     const reader = new FileReader();
     reader.onload = (e: any) => {
       this.profilePic = e.target.result;
+      this.previewPic = e.target.result;
     };
     reader.readAsDataURL(file);
   }
@@ -145,6 +147,29 @@ export class Profile implements OnInit {
     return `${count} selected — ${remaining} more allowed`;
   }
 
+  startEdit() {
+    // snapshot current values so cancel can restore them
+    this._snapshot = {
+      name: this.name,
+      phone: this.phone,
+      selectedSchoolId: this.selectedSchoolId,
+      profilePic: this.profilePic,
+      previewPic: this.previewPic,
+      selectedSubjects: [...this.selectedSubjects]
+    };
+    this.isEditing = true;
+  }
+
+  cancelEdit() {
+    this.name = this._snapshot.name;
+    this.phone = this._snapshot.phone;
+    this.selectedSchoolId = this._snapshot.selectedSchoolId;
+    this.profilePic = this._snapshot.profilePic;
+    this.previewPic = this._snapshot.previewPic;
+    this.selectedSubjects = [...this._snapshot.selectedSubjects];
+    this.isEditing = false;
+  }
+
   saveProfile() {
     if (!this.name.trim()) {
       this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Name is required', life: 3000 });
@@ -155,6 +180,7 @@ export class Profile implements OnInit {
     const payload = {
       name: this.name,
       phone: this.phone,
+      school_id: this.selectedSchoolId,
       profile_pic: this.profilePic,
       selected_subjects: this.selectedSubjects.map(s => s.id)
     };
@@ -163,9 +189,15 @@ export class Profile implements OnInit {
       this.http.put(`${this.api}/profile/${userId}`, payload).subscribe({
     next: () => {
       this.saving = false;
+      this.previewPic = this.profilePic;
+      this.isEditing = false;
+      const school = this.schools.find(s => s.id === this.selectedSchoolId);
+      this.schoolName = school?.name || this.schoolName;
       const user = {
         ...this.currentUser,
         name: this.name,
+        school_id: this.selectedSchoolId,
+        profile_pic: this.profilePic,
         selectedSubjects: this.selectedSubjects.map(s => s.id)
       };
       localStorage.setItem('user', JSON.stringify(user));
