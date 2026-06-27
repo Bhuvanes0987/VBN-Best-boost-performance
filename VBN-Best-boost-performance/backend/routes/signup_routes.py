@@ -71,23 +71,25 @@ def login():
         allowed_pages = [p.page for p in all_perms]
         role_name = "admin"
 
-    elif position == 2:
-        allowed_pages = ["quiz"]
-        role_name = "student"
-
     else:
         user_role = UserRole.query.filter_by(user_id=user.id).first()
-        role = Role.query.get(position)
+        effective_role_id = user_role.role_id if user_role else position
+        role = Role.query.get(effective_role_id)
         if role:
             role_name = role.name
 
-        perms = db.session.query(Permission.page)\
-            .join(RolePermission, Permission.id == RolePermission.permission_id)\
-            .filter(RolePermission.role_id == position).all()
-        allowed_pages = [p[0] for p in perms]
-
-        class_id = user_role.class_id if user_role else None
-        subject_id = user_role.subject_id if user_role else None
+        if effective_role_id == 2 and not user_role:
+            # pure student with no custom role assigned
+            allowed_pages = ["quiz"]
+            role_name = "student"
+        else:
+            perms = db.session.query(Permission.page)\
+                .join(RolePermission, Permission.id == RolePermission.permission_id)\
+                .filter(RolePermission.role_id == effective_role_id).all()
+            allowed_pages = [p[0] for p in perms]
+            if not allowed_pages and effective_role_id == 2:
+                allowed_pages = ["quiz"]
+                role_name = "student"
 
     token = jwt.encode({
         "user_id": user.id,

@@ -28,7 +28,7 @@ def send_email(to, subject, html):
 def create_user():
     data = request.json
 
-    existing = User.query.filter_by(email=data["email"]).first()
+    existing = User.query.filter_by(email=data["email"], status=1).first()
     if existing:
         return jsonify({"message": "User with this email already exists"}), 400
 
@@ -131,10 +131,20 @@ def update_user(id):
     user = User.query.get_or_404(id)
     data = request.json
 
+    # Check email uniqueness (excluding the current user)
+    email_conflict = User.query.filter(
+        User.email == data["email"],
+        User.status == 1,
+        User.id != id
+    ).first()
+    if email_conflict:
+        return jsonify({"message": "Another user with this email already exists"}), 400
+
     user.name = data["fullName"]
     user.email = data["email"]
     user.phone = data.get("phone")
     user.student_class = data.get("selectedClass")
+    user.school_id = data.get("schoolId")
     user.selected_subjects = str(
     data.get("selectedSubject", "")
     )

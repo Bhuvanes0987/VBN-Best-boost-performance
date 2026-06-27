@@ -102,11 +102,11 @@
 
         <ng-template pTemplate="header">
           <tr>
-            <th class="px-4 py-3 text-left w-16">ID</th>
-            <th class="px-4 py-3 text-left">Question</th>
-            <th class="px-4 py-3 text-center w-32">Type</th>
+            <th class="px-4 py-3 text-left w-16 cursor-pointer select-none" pSortableColumn="id">ID <p-sortIcon field="id" /></th>
+            <th class="px-4 py-3 text-left cursor-pointer select-none" pSortableColumn="question_text">Question <p-sortIcon field="question_text" /></th>
+            <th class="px-4 py-3 text-center w-32 cursor-pointer select-none" pSortableColumn="question_type">Type <p-sortIcon field="question_type" /></th>
             <th class="px-4 py-3 text-left w-40">School</th>
-            <th class="px-4 py-3 text-left w-32">Unit</th>
+            <th class="px-4 py-3 text-left w-32 cursor-pointer select-none" pSortableColumn="unit_name">Unit <p-sortIcon field="unit_name" /></th>
             <th *ngIf="canEditQuestionBank" class="px-4 py-3 text-center w-36">Actions</th>
           </tr>
         </ng-template>
@@ -430,13 +430,17 @@
       <div *ngIf="previewQuestion.question_type === 'mcq'" class="flex flex-col gap-3">
         <button *ngFor="let opt of previewQuestion.answer_data?.options; let i=index"
                 (click)="selectPreviewMCQ(i)"
-                class="w-full text-left px-4 py-3 rounded-xl border font-medium text-sm
+                class="w-full text-left px-4 py-3 rounded-xl border-2 font-medium text-sm
                        transition-all duration-200 cursor-pointer flex items-center gap-3"
-                [style.background]="previewMCQSelected === i ? 'rgba(249,115,22,0.15)' : 'rgba(255,255,255,0.04)'"
-                [style.border-color]="previewMCQSelected === i ? '#f97316' : 'rgba(255,255,255,0.1)'"
-                [style.color]="previewMCQSelected === i ? '#fdba74' : 'rgba(255,255,255,0.7)'">
-          <span class="w-6 h-6 rounded-full border flex items-center justify-center text-xs font-black shrink-0"
-                [style.border-color]="previewMCQSelected === i ? '#f97316' : 'rgba(255,255,255,0.3)'">
+                [ngClass]="{
+                  'border-orange-500 bg-orange-50 text-orange-700': previewMCQSelected === i,
+                  'border-slate-200 bg-white text-slate-700 hover:border-orange-300 hover:bg-orange-50/50': previewMCQSelected !== i
+                }">
+          <span class="w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-black shrink-0"
+                [ngClass]="{
+                  'border-orange-500 bg-orange-500 text-white': previewMCQSelected === i,
+                  'border-slate-300 text-slate-500': previewMCQSelected !== i
+                }">
             {{ 'ABCD'[i] }}
           </span>
           {{ opt }}
@@ -445,64 +449,84 @@
 
       <!-- FILL -->
       <div *ngIf="previewQuestion.question_type === 'fill'" class="flex flex-col gap-2">
-        <label class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Your Answer</label>
+        <label class="text-slate-600 text-xs font-semibold uppercase tracking-wider">Your Answer</label>
         <input pInputText [(ngModel)]="previewFillAnswer"
           placeholder="Type your answer here…"
-          class="w-full bg-slate-800 text-white border-slate-600"/>
+          class="w-full"/>
       </div>
 
       <!-- MATCH -->
       <div *ngIf="previewQuestion.question_type === 'match'" class="flex flex-col gap-4">
-        <p class="text-slate-400 text-xs">
+        <p class="text-slate-500 text-xs">
           <i class="pi pi-info-circle mr-1"></i>
-          Drag items from <strong class="text-blue-400">Column B</strong> and drop them next to the matching item in Column A.
+          Drag items from <strong class="text-blue-600">Column B</strong> and drop them next to the matching item in Column A.
         </p>
-        <div class="grid gap-4 lg:grid-cols-[1fr_auto_1fr] items-start">
-          <div class="flex flex-col gap-3">
-            <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Column A</p>
-            <div *ngFor="let pair of previewQuestion.answer_data?.pairs; let i=index"
-                 class="flex items-center gap-2">
-              <div class="flex-1 px-3 py-2.5 rounded-lg border border-white/10 bg-white/5 text-sm font-semibold text-white">
-                {{ i + 1 }}. {{ pair.left }}
-              </div>
-              <div class="w-32 min-h-[42px] rounded-lg border-2 border-dashed flex items-center
-                          justify-center px-2 py-1 text-xs font-medium transition-all duration-200 cursor-pointer"
-                   [style.border-color]="previewDragOverSlot === i ? '#f97316' : previewMatchAnswers[i] ? '#22c55e' : 'rgba(255,255,255,0.2)'"
-                   [style.background]="previewDragOverSlot === i ? 'rgba(249,115,22,0.1)' : previewMatchAnswers[i] ? 'rgba(34,197,94,0.1)' : 'transparent'"
-                   (dragover)="onPreviewDragOver($event, i)"
-                   (dragleave)="onPreviewDragLeave()"
-                   (drop)="onPreviewDrop($event, i)">
-                <span *ngIf="previewMatchAnswers[i]" class="text-green-300 flex items-center gap-1 w-full justify-between">
-                  <span class="truncate text-xs">{{ previewMatchAnswers[i] }}</span>
-                  <button (click)="clearPreviewSlot(i)" class="text-red-400 hover:text-red-300 cursor-pointer shrink-0 ml-1">
-                    <i class="pi pi-times text-xs"></i>
-                  </button>
-                </span>
-                <span *ngIf="!previewMatchAnswers[i]" class="text-white/25 italic text-xs">Drop here</span>
-              </div>
-            </div>
-          </div>
-          <div class="flex flex-col pt-9 gap-3">
-            <div *ngFor="let p of previewQuestion.answer_data?.pairs"
-                 class="h-[42px] flex items-center text-orange-400/40 text-sm">→</div>
-          </div>
-          <div class="flex flex-col gap-3">
-            <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Column B</p>
+
+        <!-- Column B pool (always visible at top on mobile, hidden on lg where it sits beside) -->
+        <div class="lg:hidden flex flex-col gap-2">
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Column B — drag to match</p>
+          <div class="flex flex-wrap gap-2">
             <div *ngFor="let opt of previewShuffledRight"
-                 class="px-3 py-2.5 rounded-lg border text-sm font-semibold transition-all duration-200 select-none"
-                 [style.cursor]="isPreviewOptionUsed(opt) ? 'not-allowed' : 'grab'"
-                 [style.opacity]="isPreviewOptionUsed(opt) ? '0.35' : '1'"
-                 [style.background]="isPreviewOptionUsed(opt) ? 'rgba(255,255,255,0.03)' : 'rgba(59,130,246,0.1)'"
-                 [style.border-color]="isPreviewOptionUsed(opt) ? 'rgba(255,255,255,0.1)' : 'rgba(59,130,246,0.5)'"
-                 [style.color]="isPreviewOptionUsed(opt) ? 'rgba(255,255,255,0.25)' : '#93c5fd'"
+                 class="px-3 py-2 rounded-lg border text-sm font-semibold transition-all duration-200 select-none"
+                 [ngClass]="isPreviewOptionUsed(opt) ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed opacity-50' : 'border-blue-300 bg-blue-50 text-blue-800 cursor-grab hover:bg-blue-100'"
                  [draggable]="!isPreviewOptionUsed(opt)"
                  (dragstart)="onPreviewDragStart($event, opt)">
               {{ opt }}
             </div>
           </div>
         </div>
+
+        <!-- Main grid: on mobile = just Column A + drop slots; on desktop = A + arrow + B -->
+        <div class="grid gap-3 lg:grid-cols-[1fr_auto_1fr] items-start">
+
+          <!-- Column A with drop slots -->
+          <div class="flex flex-col gap-3">
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Column A</p>
+            <div *ngFor="let pair of previewQuestion.answer_data?.pairs; let i=index"
+                 class="flex items-center gap-2">
+              <div class="flex-1 px-3 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-800 min-w-0">
+                {{ i + 1 }}. {{ pair.left }}
+              </div>
+              <div class="w-28 sm:w-32 min-h-[42px] rounded-lg border-2 border-dashed flex items-center
+                          justify-center px-2 py-1 text-xs font-medium transition-all duration-200 shrink-0"
+                   [style.border-color]="previewDragOverSlot === i ? '#f97316' : previewMatchAnswers[i] ? '#16a34a' : '#cbd5e1'"
+                   [style.background]="previewDragOverSlot === i ? 'rgba(249,115,22,0.08)' : previewMatchAnswers[i] ? 'rgba(22,163,74,0.08)' : '#f8fafc'"
+                   (dragover)="onPreviewDragOver($event, i)"
+                   (dragleave)="onPreviewDragLeave()"
+                   (drop)="onPreviewDrop($event, i)">
+                <span *ngIf="previewMatchAnswers[i]" class="text-green-700 flex items-center gap-1 w-full justify-between">
+                  <span class="truncate text-xs">{{ previewMatchAnswers[i] }}</span>
+                  <button (click)="clearPreviewSlot(i)" class="text-red-500 hover:text-red-700 cursor-pointer shrink-0 ml-1">
+                    <i class="pi pi-times text-xs"></i>
+                  </button>
+                </span>
+                <span *ngIf="!previewMatchAnswers[i]" class="text-slate-400 italic text-xs">Drop here</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arrow column — desktop only -->
+          <div class="hidden lg:flex flex-col pt-9 gap-3">
+            <div *ngFor="let p of previewQuestion.answer_data?.pairs"
+                 class="h-[42px] flex items-center text-slate-400 text-sm">→</div>
+          </div>
+
+          <!-- Column B — desktop only (mobile uses the pool above) -->
+          <div class="hidden lg:flex flex-col gap-3">
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Column B</p>
+            <div *ngFor="let opt of previewShuffledRight"
+                 class="px-3 py-2.5 rounded-lg border text-sm font-semibold transition-all duration-200 select-none"
+                 [ngClass]="isPreviewOptionUsed(opt) ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed opacity-50' : 'border-blue-300 bg-blue-50 text-blue-800 cursor-grab hover:bg-blue-100'"
+                 [draggable]="!isPreviewOptionUsed(opt)"
+                 (dragstart)="onPreviewDragStart($event, opt)">
+              {{ opt }}
+            </div>
+          </div>
+
+        </div>
+
         <button (click)="resetPreviewMatch()"
-                class="text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer flex items-center gap-1 w-fit">
+                class="text-xs text-slate-500 hover:text-slate-700 transition-colors cursor-pointer flex items-center gap-1 w-fit">
           <i class="pi pi-refresh"></i> Reset matches
         </button>
       </div>
@@ -551,23 +575,38 @@
           </div>
 
           <div class="flex flex-col gap-4">
-            <p class="text-sm font-semibold text-slate-200">Match pairs</p>
-            <div class="grid grid-cols-[1.35fr_auto_1.15fr] gap-3 items-start">
+            <p class="text-sm font-semibold text-slate-700">Match pairs</p>
+
+            <!-- Column B pool on mobile -->
+            <div class="lg:hidden flex flex-col gap-2">
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Column B — drag to match</p>
+              <div class="flex flex-wrap gap-2">
+                <div *ngFor="let opt of previewShuffledRight"
+                     class="px-3 py-2 rounded-lg border text-sm font-semibold transition-all duration-200 select-none"
+                     [ngClass]="isPreviewOptionUsed(opt) ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed opacity-50' : 'border-blue-300 bg-blue-50 text-blue-800 cursor-grab hover:bg-blue-100'"
+                     [draggable]="!isPreviewOptionUsed(opt)"
+                     (dragstart)="onPreviewDragStart($event, opt)">
+                  {{ opt }}
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-[1fr_auto] lg:grid-cols-[1.35fr_auto_1.15fr] gap-3 items-start">
               <div class="flex flex-col gap-3">
                 <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Column A</p>
                 <div *ngFor="let pair of previewQuestion.answer_data?.pairs; let i=index"
-                     class="flex items-center gap-3">
-                  <div class="flex-1 px-3 py-3 rounded-lg border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-900">
+                     class="flex items-center gap-2">
+                  <div class="flex-1 px-3 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-800 min-w-0">
                     {{ i + 1 }}. {{ pair.left }}
                   </div>
-                  <div class="w-32 min-h-[46px] rounded-lg border-2 border-dashed flex items-center
-                              justify-center px-3 py-2 text-xs font-medium transition-all duration-200 cursor-pointer"
-                       [style.border-color]="previewDragOverSlot === i ? '#f97316' : previewMatchAnswers[i] ? '#22c55e' : 'rgba(148,163,184,0.5)'"
-                       [style.background]="previewDragOverSlot === i ? 'rgba(249,115,22,0.1)' : previewMatchAnswers[i] ? 'rgba(34,197,94,0.1)' : 'transparent'"
+                  <div class="w-24 sm:w-32 min-h-[42px] rounded-lg border-2 border-dashed flex items-center
+                              justify-center px-2 py-1 text-xs font-medium transition-all duration-200 shrink-0"
+                       [style.border-color]="previewDragOverSlot === i ? '#f97316' : previewMatchAnswers[i] ? '#16a34a' : '#cbd5e1'"
+                       [style.background]="previewDragOverSlot === i ? 'rgba(249,115,22,0.08)' : previewMatchAnswers[i] ? 'rgba(22,163,74,0.08)' : '#f8fafc'"
                        (dragover)="onPreviewDragOver($event, i)"
                        (dragleave)="onPreviewDragLeave()"
                        (drop)="onPreviewDrop($event, i)">
-                    <span *ngIf="previewMatchAnswers[i]" class="text-slate-900 flex items-center gap-1 w-full justify-between">
+                    <span *ngIf="previewMatchAnswers[i]" class="text-green-700 flex items-center gap-1 w-full justify-between">
                       <span class="truncate text-xs">{{ previewMatchAnswers[i] }}</span>
                       <button (click)="clearPreviewSlot(i)" class="text-red-500 hover:text-red-600 cursor-pointer shrink-0 ml-1">
                         <i class="pi pi-times text-xs"></i>
@@ -580,18 +619,14 @@
 
               <div class="flex flex-col pt-9 gap-3">
                 <div *ngFor="let p of previewQuestion.answer_data?.pairs"
-                     class="h-[42px] flex items-center text-orange-400/40 text-sm">→</div>
+                     class="h-[42px] flex items-center text-slate-400 text-sm">→</div>
               </div>
 
-              <div class="flex flex-col gap-3">
+              <div class="hidden lg:flex flex-col gap-3">
                 <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Column B</p>
                 <div *ngFor="let opt of previewShuffledRight"
-                     class="px-4 py-3 rounded-lg border text-sm font-semibold transition-all duration-200 select-none"
-                     [style.cursor]="isPreviewOptionUsed(opt) ? 'not-allowed' : 'grab'"
-                     [style.opacity]="isPreviewOptionUsed(opt) ? '0.45' : '1'"
-                     [style.background]="isPreviewOptionUsed(opt) ? 'rgba(203,213,225,0.4)' : 'rgba(59,130,246,0.1)'"
-                     [style.border-color]="isPreviewOptionUsed(opt) ? 'rgba(148,163,184,0.5)' : 'rgba(59,130,246,0.35)'"
-                     [style.color]="isPreviewOptionUsed(opt) ? 'rgba(71,85,105,0.8)' : '#1e3a8a'"
+                     class="px-3 py-2.5 rounded-lg border text-sm font-semibold transition-all duration-200 select-none"
+                     [ngClass]="isPreviewOptionUsed(opt) ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed opacity-50' : 'border-blue-300 bg-blue-50 text-blue-800 cursor-grab hover:bg-blue-100'"
                      [draggable]="!isPreviewOptionUsed(opt)"
                      (dragstart)="onPreviewDragStart($event, opt)">
                   {{ opt }}
@@ -599,7 +634,7 @@
               </div>
             </div>
             <button (click)="resetPreviewMatch()"
-                    class="text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer flex items-center gap-1 w-fit">
+                    class="text-xs text-slate-500 hover:text-slate-700 transition-colors cursor-pointer flex items-center gap-1 w-fit">
               <i class="pi pi-refresh"></i> Reset matches
             </button>
           </div>
@@ -646,8 +681,8 @@
              [class.text-green-400]="previewResult" [class.text-red-400]="!previewResult">
             {{ previewResult ? 'Correct! Well done.' : 'Incorrect.' }}
           </p>
-          <p *ngIf="!previewResult && previewCorrectDisplay" class="text-slate-300 text-xs mt-1">
-            Correct answer: <strong class="text-white">{{ previewCorrectDisplay }}</strong>
+        <p *ngIf="!previewResult && previewCorrectDisplay" class="text-slate-600 text-xs mt-1">
+            Correct answer: <strong class="text-slate-900 font-bold">{{ previewCorrectDisplay }}</strong>
           </p>
         </div>
       </div>

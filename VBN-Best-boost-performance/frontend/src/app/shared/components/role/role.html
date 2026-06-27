@@ -70,10 +70,10 @@
 
         <ng-template pTemplate="header">
           <tr>
-            <th>Role Name</th>
-            <th>Type</th>
+            <th pSortableColumn="name" class="cursor-pointer select-none">Role Name <p-sortIcon field="name" /></th>
+            <th pSortableColumn="role_type" class="cursor-pointer select-none">Type <p-sortIcon field="role_type" /></th>
             <th>School</th>
-            <th>Description</th>
+            <th pSortableColumn="description" class="cursor-pointer select-none">Description <p-sortIcon field="description" /></th>
             <th>Permissions</th>
             <th class="text-center">Actions</th>
           </tr>

@@ -22,9 +22,9 @@
 
         <ng-template pTemplate="header">
           <tr>
-            <th>ID</th>
-            <th>School Name</th>
-            <th>School Code</th>
+            <th pSortableColumn="id" class="cursor-pointer select-none">ID <p-sortIcon field="id" /></th>
+            <th pSortableColumn="name" class="cursor-pointer select-none">School Name <p-sortIcon field="name" /></th>
+            <th pSortableColumn="code" class="cursor-pointer select-none">School Code <p-sortIcon field="code" /></th>
             <th>Status</th>
             <th class="text-center">Actions</th>
           </tr>

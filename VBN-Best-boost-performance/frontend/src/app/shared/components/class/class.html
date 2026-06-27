@@ -18,9 +18,9 @@
       <p-table [value]="classes" styleClass="p-datatable-hoverable-rows" responsiveLayout="scroll">
         <ng-template pTemplate="header">
           <tr>
-            <th class="px-6 py-4">ID</th>
-            <th class="px-6 py-4">Class Name</th>
-            <th class="px-6 py-4">School</th>  
+            <th class="px-6 py-4 cursor-pointer select-none" pSortableColumn="id">ID <p-sortIcon field="id" /></th>
+            <th class="px-6 py-4 cursor-pointer select-none" pSortableColumn="name">Class Name <p-sortIcon field="name" /></th>
+            <th class="px-6 py-4">School</th>
             <th class="px-6 py-4 text-center">Actions</th>
           </tr>
         </ng-template>

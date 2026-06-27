@@ -10,14 +10,11 @@ function isTokenValid(token: string): boolean {
   }
 }
 
-export const authGuard: CanActivateFn = () => {
+export const noAuthGuard: CanActivateFn = () => {
   const router = inject(Router);
   const token = localStorage.getItem('token');
-  if (!token || !isTokenValid(token)) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('position');
-    return router.createUrlTree(['/login']);
+  if (token && isTokenValid(token)) {
+    return router.createUrlTree(['/home']);
   }
   return true;
 };
