@@ -21,6 +21,21 @@
   <main class="pf-main">
     <div class="pf-card" [class.has-success]="showSuccess">
 
+      <!-- ── Trial Notice ── -->
+      <div class="pf-trial-notice" *ngIf="!showQrView && !showSuccess">
+        <span style="margin-right: 8px; font-size: 16px;">⏱️</span>
+        <span>Your free trial has been exceeded, please upgrade to premium.</span>
+      </div>
+
+      <!-- ── Processing Overlay ── -->
+      <div class="pf-processing-overlay" *ngIf="isProcessing">
+        <div class="pf-p-ring">
+          <div class="pf-p-spinner"></div>
+        </div>
+        <div class="pf-p-title">Securely processing...</div>
+        <div class="pf-p-sub">Please do not close this window</div>
+      </div>
+
       <!-- ── Order summary ── -->
       <div class="pf-order-row" *ngIf="!showQrView && !showSuccess">
         <div class="pf-order-icon">🛒</div>
@@ -44,7 +59,7 @@
            QR VIEW OVERLAY (Replaces Methods completely)
            ══════════════════════════════════════════════════════ -->
       <div class="pf-qr-fullscreen-view" *ngIf="showQrView && !showSuccess">
-        
+
         <div class="pf-qr-view-header">
           <button class="pf-back-btn" (click)="cancelQrView()">
             <span>←</span> Back to methods
@@ -66,31 +81,68 @@
             </button>
           </div>
 
-          <!-- Active QR State -->
+          <!-- Active State (QR or UPI ID) -->
           <div class="pf-qr-active-box" *ngIf="!upiTimerExpired">
-            
-            <div class="pf-qr-timer-pill" [class.warning]="upiTimer <= 60" [class.danger]="upiTimer <= 30">
-              <span class="pf-pill-dot"></span>
-              Time remaining: {{ upiTimerDisplay }}
+
+            <!-- Toggle QR / ID -->
+            <div class="pf-upi-toggle">
+              <button class="pf-upi-toggle-btn" [class.active]="upiMode === 'qr'" (click)="setUpiMode('qr')">QR Code</button>
+              <button class="pf-upi-toggle-btn" [class.active]="upiMode === 'id'" (click)="setUpiMode('id')">UPI ID</button>
             </div>
 
-            <div class="pf-qr-image-wrapper">
-              <!-- REAL QR CODE IMAGE from API (Professional look) -->
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi%3A%2F%2Fpay%3Fpa%3Dvbn%40ybl%26pn%3DVBN%20Boost%20Performance%26am%3D1.00&color=202020&bgcolor=FFFFFF" 
-                   alt="Scan to Pay" class="pf-qr-real-img" />
-              
-              <div class="pf-qr-logo-center">
-                <div class="pf-qr-logo-inner">₹</div>
+            <!-- QR Mode -->
+            <ng-container *ngIf="upiMode === 'qr'">
+              <div class="pf-qr-timer-pill" [class.warning]="upiTimer <= 60" [class.danger]="upiTimer <= 30">
+                <span class="pf-pill-dot"></span>
+                Time remaining: {{ upiTimerDisplay }}
               </div>
-            </div>
 
-            <div class="pf-qr-scan-hint">Scan with any UPI app</div>
-            <div class="pf-upi-apps-row">
-              <span class="pf-upi-app-badge">GPay</span>
-              <span class="pf-upi-app-badge">PhonePe</span>
-              <span class="pf-upi-app-badge">Paytm</span>
-              <span class="pf-upi-app-badge">BHIM</span>
-            </div>
+              <div class="pf-qr-image-wrapper">
+                <!-- Loading Skeleton -->
+                <div class="pf-qr-loading-box" *ngIf="qrImageLoading && !qrImageError">
+                  <div class="pf-qr-spinner"></div>
+                  <p>Generating QR…</p>
+                </div>
+
+                <!-- Error State -->
+                <div class="pf-qr-error-box" *ngIf="qrImageError">
+                  <div class="pf-expired-icon">⚠️</div>
+                  <div class="pf-expired-title">QR Failed to Load</div>
+                  <div class="pf-expired-sub">Check connection & try again</div>
+                  <button class="pf-refresh-btn" (click)="refreshQr()">
+                    <span>↻</span> Retry
+                  </button>
+                </div>
+
+                <!-- QR Image -->
+                <img *ngIf="!qrImageError" [src]="qrImageUrl" alt="Scan to Pay" class="pf-qr-real-img"
+                  [style.display]="qrImageLoading ? 'none' : 'block'" (load)="onQrImageLoad()" (error)="onQrImageError()" />
+
+                <div class="pf-qr-logo-center" *ngIf="!qrImageLoading && !qrImageError">
+                  <div class="pf-qr-logo-inner">₹</div>
+                </div>
+              </div>
+
+              <div class="pf-qr-scan-hint" *ngIf="!qrImageLoading && !qrImageError">Scan with any UPI app</div>
+              <div class="pf-upi-apps-row" *ngIf="!qrImageLoading && !qrImageError">
+                <span class="pf-upi-app-badge">GPay</span>
+                <span class="pf-upi-app-badge">PhonePe</span>
+                <span class="pf-upi-app-badge">Paytm</span>
+                <span class="pf-upi-app-badge">BHIM</span>
+              </div>
+            </ng-container>
+
+            <!-- UPI ID Mode -->
+            <ng-container *ngIf="upiMode === 'id'">
+              <div class="pf-upi-id-box">
+                <p class="pf-upi-id-label">Enter your Virtual Payment Address (VPA)</p>
+                <input type="text" class="pf-upi-id-input" placeholder="e.g. 9876543210@ybl" [(ngModel)]="upiId" />
+                <button class="pf-pay-btn" (click)="payWithUpiId()" [disabled]="!isValidUpiId || isProcessing">
+                  <span class="pf-spinner" *ngIf="isProcessing"></span>
+                  <span *ngIf="!isProcessing">Pay {{ AMOUNT_DISPLAY }}</span>
+                </button>
+              </div>
+            </ng-container>
 
           </div>
         </div>
@@ -101,7 +153,7 @@
            STANDARD METHODS SELECTION
            ══════════════════════════════════════════════════════ -->
       <div *ngIf="!showSuccess && !showQrView">
-        
+
         <div class="pf-sec-label">Quick Pay</div>
 
         <!-- UPI Button (Now acts as standard radio) -->
@@ -115,36 +167,7 @@
           <span class="pf-check" *ngIf="activeMethod === 'upi'">✓</span>
         </button>
 
-        <!-- Wallet Button -->
-        <button class="pf-method-full" [class.active]="activeMethod === 'wallet'" (click)="selectMethod('wallet')"
-          [disabled]="isProcessing">
-          <span class="pf-mf-icon">👜</span>
-          <div class="pf-mf-text">
-            <div class="pf-mf-name">Wallets</div>
-            <div class="pf-mf-sub">Paytm, Amazon Pay, Mobikwik, Freecharge</div>
-          </div>
-          <span class="pf-check" *ngIf="activeMethod === 'wallet'">✓</span>
-        </button>
 
-        <!-- Wallet Expanded Panel -->
-        <div class="pf-wallet-panel" *ngIf="activeMethod === 'wallet'">
-          <div class="pf-wallet-grid">
-            <button class="pf-wallet-card" *ngFor="let w of wallets"
-              [class.selected]="selectedWallet === w.id"
-              (click)="selectWallet(w.id)">
-              <div class="pf-wallet-icon-wrap" [style.background]="w.color + '18'"
-                [style.border-color]="selectedWallet === w.id ? w.color : 'transparent'">
-                <span class="pf-wallet-emoji">{{ w.icon }}</span>
-              </div>
-              <span class="pf-wallet-name">{{ w.name }}</span>
-              <span class="pf-wallet-check" *ngIf="selectedWallet === w.id">✓</span>
-            </button>
-          </div>
-
-          <div class="pf-wallet-selected-info" *ngIf="selectedWallet">
-            <span>💳</span> Pay {{ AMOUNT_DISPLAY }} with <strong>{{ getSelectedWalletName() }}</strong>
-          </div>
-        </div>
 
         <!-- ── Divider ── -->
         <div class="pf-or-divider"><span>or pay with card</span></div>
@@ -175,15 +198,18 @@
                 <div class="pf-chip"></div>
                 <span class="pf-nfc">((·))</span>
               </div>
-              <input class="pf-card-num-input" [(ngModel)]="inputCardNumber" name="cardNumber" (click)="$event.stopPropagation()">
+              <input class="pf-card-num-input" [(ngModel)]="inputCardNumber" name="cardNumber"
+                (click)="$event.stopPropagation()">
               <div class="pf-card-bot">
                 <div>
                   <div class="pf-card-field-label">CARD HOLDER</div>
-                  <input class="pf-card-input-field" [(ngModel)]="inputCardHolder" name="cardHolder" (click)="$event.stopPropagation()">
+                  <input class="pf-card-input-field" [(ngModel)]="inputCardHolder" name="cardHolder"
+                    (click)="$event.stopPropagation()">
                 </div>
                 <div>
                   <div class="pf-card-field-label">EXPIRES</div>
-                  <input class="pf-card-input-field pf-expiry-input" [(ngModel)]="inputExpiry" name="expiry" (click)="$event.stopPropagation()">
+                  <input class="pf-card-input-field pf-expiry-input" [(ngModel)]="inputExpiry" name="expiry"
+                    (click)="$event.stopPropagation()">
                 </div>
                 <div class="pf-card-brand">{{ cardBrand }}</div>
               </div>
@@ -212,22 +238,16 @@
       </div>
 
       <!-- ── Pay button (for card methods) ── -->
-      <button class="pf-pay-btn" (click)="pay()" *ngIf="!showSuccess && !showQrView && isCardMethod" [disabled]="isProcessing">
+      <button class="pf-pay-btn" (click)="pay()" *ngIf="!showSuccess && !showQrView && isCardMethod"
+        [disabled]="isProcessing">
         <span class="pf-spinner" *ngIf="isProcessing"></span>
         <span *ngIf="!isProcessing">Pay {{ AMOUNT_DISPLAY }}</span>
         <span *ngIf="isProcessing">Opening Gateway…</span>
       </button>
 
-      <!-- ── Pay button (for Wallet) ── -->
-      <button class="pf-pay-btn" (click)="payWithWallet()" *ngIf="!showSuccess && !showQrView && activeMethod === 'wallet'" [disabled]="isProcessing || !selectedWallet">
-        <span class="pf-spinner" *ngIf="isProcessing"></span>
-        <span *ngIf="!isProcessing && selectedWallet">Pay {{ AMOUNT_DISPLAY }} with {{ getSelectedWalletName() }}</span>
-        <span *ngIf="!isProcessing && !selectedWallet">Select a wallet</span>
-        <span *ngIf="isProcessing">Opening Wallet Gateway…</span>
-      </button>
-
       <!-- ── Pay button (for UPI mode - opens QR View) ── -->
-      <button class="pf-pay-btn" (click)="generateQr()" *ngIf="!showSuccess && !showQrView && activeMethod === 'upi'" [disabled]="isProcessing">
+      <button class="pf-pay-btn" (click)="generateQr()" *ngIf="!showSuccess && !showQrView && activeMethod === 'upi'"
+        [disabled]="isProcessing">
         <span class="pf-spinner" *ngIf="isProcessing"></span>
         <span *ngIf="!isProcessing">Pay {{ AMOUNT_DISPLAY }} via UPI</span>
         <span *ngIf="isProcessing">Generating QR Code…</span>

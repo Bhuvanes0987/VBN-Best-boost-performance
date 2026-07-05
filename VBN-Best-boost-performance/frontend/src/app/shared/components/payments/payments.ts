@@ -8,14 +8,7 @@ import { environment } from '../../../Environment/Environment';
 
 declare var Razorpay: any;
 
-export type PaymentMethodType = 'upi' | 'wallet' | 'debit' | 'credit';
-
-interface WalletOption {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-}
+export type PaymentMethodType = 'upi' | 'debit' | 'credit';
 
 @Component({
   selector: 'app-payments',
@@ -42,7 +35,7 @@ export class Payments implements OnInit, OnDestroy {
   inputExpiry = '12/26';
   inputCVV = '123';
 
-  // ── UPI State ─────────────────────────────────────
+  // ── UPI State ─────────────────────────────────────────────────
   showQrView = false;
   upiMode: 'qr' | 'id' = 'qr';
   upiId = '';
@@ -52,18 +45,16 @@ export class Payments implements OnInit, OnDestroy {
   upiTimerExpired = false;
   private upiTimerInterval: any = null;
 
-  // ── Wallet State ──────────────────────────────────
-  selectedWallet: string | null = null;
-  walletProcessing = false;
+  // QR Image state
+  qrImageUrl = '';
+  qrImageLoading = true;
+  qrImageError = false;
 
-  wallets: WalletOption[] = [
-    { id: 'paytm', name: 'Paytm', icon: '💰', color: '#00BAF2' },
-    { id: 'amazonpay', name: 'Amazon Pay', icon: '🛒', color: '#FF9900' },
-    { id: 'mobikwik', name: 'Mobikwik', icon: '📲', color: '#E1173F' },
-    { id: 'freecharge', name: 'Freecharge', icon: '⚡', color: '#7B2D8E' },
-    { id: 'phonepe', name: 'PhonePe', icon: '📱', color: '#5F259F' },
-    { id: 'jiomoney', name: 'Jio Money', icon: '🔵', color: '#0A3B87' },
-  ];
+  // Your UPI VPA — update this to your real UPI ID
+  private readonly UPI_VPA = 'vbnboostperformance@oksbi';
+  private readonly UPI_MERCHANT_NAME = 'VBN+Boost+Performance';
+
+
 
   // ── Order config ──────────────────────────────────
   readonly AMOUNT = 100;      // ₹1 in paise (for testing)
@@ -103,7 +94,6 @@ export class Payments implements OnInit, OnDestroy {
     this.activeMethod = m;
     this.cardFlipped = false;
     this.clearAlerts();
-    this.selectedWallet = null;
     this.cancelQrView();
   }
 
@@ -127,17 +117,28 @@ export class Payments implements OnInit, OnDestroy {
     return this.activeMethod === 'debit' ? 'VISA' : 'MASTERCARD';
   }
 
-  // ── UPI Methods ───────────────────────────────────
+  // ── UPI Methods ───────────────────────────────────────────────
+  buildQrUrl(): string {
+    const amountRs = (this.AMOUNT / 100).toFixed(2);
+    const upiData = `upi://pay?pa=${this.UPI_VPA}&pn=${this.UPI_MERCHANT_NAME}&am=${amountRs}&cu=INR&tn=VBN+Boost+Performance`;
+    const encoded = encodeURIComponent(upiData);
+    const cacheBust = Date.now();
+    // Primary: qrserver.com (free, reliable, no key needed)
+    return `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encoded}&_=${cacheBust}`;
+  }
+
   generateQr(): void {
     if (this.isProcessing) return;
     this.clearAlerts();
     this.isProcessing = true;
+    this.qrImageLoading = true;
+    this.qrImageError = false;
 
-    // Simulate opening the QR code screen
     setTimeout(() => {
       this.isProcessing = false;
       this.showQrView = true;
       this.upiMode = 'qr';
+      this.qrImageUrl = this.buildQrUrl();
       this.startUpiTimer();
     }, 600);
   }
@@ -190,33 +191,34 @@ export class Payments implements OnInit, OnDestroy {
 
   refreshQr(): void {
     this.upiTimerExpired = false;
+    this.qrImageLoading = true;
+    this.qrImageError = false;
+    this.qrImageUrl = this.buildQrUrl();
     this.startUpiTimer();
+  }
+
+  onQrImageLoad(): void {
+    this.qrImageLoading = false;
+    this.qrImageError = false;
+  }
+
+  onQrImageError(): void {
+    this.qrImageLoading = false;
+    this.qrImageError = true;
   }
 
   get isValidUpiId(): boolean {
     return /^[\w.\-]+@[\w]+$/.test(this.upiId.trim());
   }
 
-  // ── Wallet Methods ────────────────────────────────
-  selectWallet(walletId: string): void {
-    this.selectedWallet = walletId;
-  }
 
-  getSelectedWalletName(): string {
-    const w = this.wallets.find(x => x.id === this.selectedWallet);
-    return w ? w.name : '';
-  }
 
   // ── Payment flow ──────────────────────────────────
   async pay(): Promise<void> {
     this.clearAlerts();
     this.isProcessing = true;
 
-    // Validation for wallet
-    if (this.activeMethod === 'wallet' && !this.selectedWallet) {
-      this.showErr('Please select a wallet to continue.');
-      return;
-    }
+
 
     try {
       await this.loadRazorpayScript();
@@ -225,11 +227,20 @@ export class Payments implements OnInit, OnDestroy {
       return;
     }
 
+    const userStr = sessionStorage.getItem('user');
+    let userId = null;
+    if (userStr) {
+      try {
+        userId = JSON.parse(userStr).id;
+      } catch (e) {}
+    }
+
     // Step 1 – create order on backend
     this.paymentService.createOrder({
       amount: this.AMOUNT,
       description: this.DESCRIPTION,
       payment_method: this.activeMethod,
+      user_id: userId
     }).subscribe({
       next: (orderRes) => this.openRazorpay(orderRes),
       error: (err) => {
@@ -247,13 +258,7 @@ export class Payments implements OnInit, OnDestroy {
     this.pay();
   }
 
-  payWithWallet(): void {
-    if (!this.selectedWallet) {
-      this.showErr('Please select a wallet first.');
-      return;
-    }
-    this.pay();
-  }
+
 
   private openRazorpay(orderRes: { order_id: string; amount: number; currency: string }): void {
     this.stopUpiTimer();
@@ -332,21 +337,7 @@ export class Payments implements OnInit, OnDestroy {
             preferences: { show_default_blocks: false },
           },
         };
-      case 'wallet':
-        return {
-          display: {
-            blocks: {
-              wallet: {
-                name: 'Pay via Wallet',
-                instruments: [
-                  { method: 'wallet', wallets: [this.selectedWallet || 'paytm'] },
-                ],
-              },
-            },
-            sequence: ['block.wallet'],
-            preferences: { show_default_blocks: false },
-          },
-        };
+
       default:
         return {
           display: {
@@ -385,7 +376,6 @@ export class Payments implements OnInit, OnDestroy {
     this.stopUpiTimer();
     this.upiTimerExpired = false;
     this.upiId = '';
-    this.selectedWallet = null;
     this.upiMode = 'qr';
   }
 }

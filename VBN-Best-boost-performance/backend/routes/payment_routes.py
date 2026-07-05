@@ -80,6 +80,13 @@ def verify_payment():
                 payment.payment_id = razorpay_payment_id
                 payment.signature = razorpay_signature
                 payment.status = 'paid'
+                
+                from models.user_model import User
+                if payment.user_id:
+                    user = User.query.get(payment.user_id)
+                    if user:
+                        user.payment_status = 'paid'
+
                 db.session.commit()
                 
                 return jsonify({

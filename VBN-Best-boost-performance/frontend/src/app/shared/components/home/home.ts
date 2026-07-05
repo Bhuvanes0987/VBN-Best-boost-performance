@@ -83,6 +83,11 @@ canEditHomeTable = this.isAdmin;
   customTableFileStore: { [rowIndex: number]: CustomFileItem[] } = {};
   private _customFileActiveRow: number | null = null;
   dailyQuizTaken = false;
+
+  // ─── Terms & Conditions dialog ───────────────────────────────────────────
+  termsDialogVisible = false;
+  termsAccepted = false;
+
   // ─── Lifecycle ────────────────────────────────────────────────────────────
 
   ngOnInit() {
@@ -93,7 +98,22 @@ canEditHomeTable = this.isAdmin;
     this.dailyQuizTaken =
       localStorage.getItem('dailyQuizTaken') === 'true';
     this.checkDailyQuizStatus();
-}
+
+    // Show T&C dialog once per login session
+    const userId = this.currentUser?.id;
+    const termsKey = `terms_accepted_${userId}`;
+    if (userId && !sessionStorage.getItem(termsKey)) {
+      this.termsDialogVisible = true;
+    }
+  }
+
+  acceptTerms() {
+    const userId = this.currentUser?.id;
+    if (userId) {
+      sessionStorage.setItem(`terms_accepted_${userId}`, 'true');
+    }
+    this.termsDialogVisible = false;
+  }
   // ─── Stats ────────────────────────────────────────────────────────────────
 
   loadStats() {

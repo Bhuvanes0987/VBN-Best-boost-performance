@@ -57,6 +57,14 @@ def login():
     from models.permission_model import Permission
     from models.role_model import Role
     from models.school_model import School
+    from datetime import date
+
+    # Trial tracking logic
+    today = date.today()
+    if user.last_login_date != today:
+        user.login_count = (user.login_count or 0) + 1
+        user.last_login_date = today
+        db.session.commit()
 
     position = user.position if user.position is not None else 2
     allowed_pages = []
@@ -77,8 +85,10 @@ def login():
         user_role = UserRole.query.filter_by(user_id=user.id).first()
         effective_role_id = user_role.role_id if user_role else position
         role = Role.query.get(effective_role_id)
+        requires_payment = False
         if role:
             role_name = role.name
+            requires_payment = getattr(role, 'requires_payment', False)
 
         if effective_role_id == 2 and not user_role:
             # pure student with no custom role assigned
@@ -122,7 +132,10 @@ def login():
             "schoolName": school_name,
             "studentClass": user.student_class,
             "selectedSubjects": selected_subjects_list,
-            "allowedPages": allowed_pages
+            "allowedPages": allowed_pages,
+            "payment_status": getattr(user, 'payment_status', 'unpaid'),
+            "login_count": getattr(user, 'login_count', 0),
+            "requires_payment": requires_payment if position != 1 else False
         }
     })
 

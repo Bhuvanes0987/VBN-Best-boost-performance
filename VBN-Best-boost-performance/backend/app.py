@@ -29,6 +29,7 @@ from routes.school_routes import school_bp
 from routes.result_routes import result_bp
 from routes.profile_routes import profile_bp
 from routes.payment_routes import payment_bp
+from routes.admin_payment_routes import admin_payment_bp
 from routes.custom_table_routes import custom_table_bp
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
@@ -134,6 +135,7 @@ app.register_blueprint(school_bp)
 app.register_blueprint(result_bp)  
 app.register_blueprint(profile_bp)
 app.register_blueprint(payment_bp)
+app.register_blueprint(admin_payment_bp)
 app.register_blueprint(custom_table_bp)
 
 
@@ -167,7 +169,42 @@ with app.app_context():
             ))
             print('Upgraded questions.map_image to MEDIUMTEXT')
     except Exception as e:
+        db.session.rollback()
         print('Could not verify/upgrade questions.map_image type:', e)
+
+    # Safe Alters for New Columns (User & Role)
+    try:
+        # User payment status, login count, last login date
+        db.session.execute(db.text(
+            "ALTER TABLE users ADD COLUMN payment_status VARCHAR(50) DEFAULT 'unpaid'"
+        ))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    
+    try:
+        db.session.execute(db.text(
+            "ALTER TABLE users ADD COLUMN login_count INT DEFAULT 0"
+        ))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        
+    try:
+        db.session.execute(db.text(
+            "ALTER TABLE users ADD COLUMN last_login_date DATE NULL"
+        ))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        
+    try:
+        db.session.execute(db.text(
+            "ALTER TABLE roles ADD COLUMN requires_payment BOOLEAN DEFAULT FALSE"
+        ))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
     db.session.execute(db.text("SET SESSION sql_mode = ''"))
     db.session.commit()

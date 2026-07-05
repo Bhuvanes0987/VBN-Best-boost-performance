@@ -1,5 +1,102 @@
 <p-toast position="top-right" />
 
+<!-- ═══════════════ Terms & Conditions Dialog ═══════════════ -->
+<p-dialog
+  [(visible)]="termsDialogVisible"
+  [modal]="true"
+  [closable]="false"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="terms-dialog"
+  [style]="{ width: '95vw', maxWidth: '680px' }">
+
+  <ng-template pTemplate="header">
+    <div class="terms-dialog-header">
+      <div class="terms-icon">
+        <i class="pi pi-file-check"></i>
+      </div>
+      <div>
+        <h2>Terms &amp; Conditions</h2>
+        <p>Please read and accept before continuing</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="terms-body">
+
+    <!-- Section 1: Trial Policy -->
+    <div class="terms-section">
+      <h3><i class="pi pi-clock"></i> 30-Day Free Trial Policy</h3>
+      <ul>
+        <li>All users (Students, Teachers &amp; Principals) are granted a <strong>30-day free trial</strong> upon registration.</li>
+        <li>The trial is tracked by <strong>daily login count</strong>. Each unique day you log in counts as one trial day.</li>
+        <li>After 30 login days, access to the application will be restricted until payment is completed.</li>
+        <li>The admin may manually extend or reset your trial period at any time.</li>
+        <li>Teachers and Principals may be exempt from payment requirements as configured by the Admin.</li>
+      </ul>
+    </div>
+
+    <!-- Section 2: Daily Quiz Rules -->
+    <div class="terms-section">
+      <h3><i class="pi pi-calendar"></i> Daily Quiz Rules</h3>
+      <ul>
+        <li>The <strong>Daily Quiz</strong> can be attempted <strong>only once per day</strong>. Once submitted, you cannot retake it on the same day.</li>
+        <li>A new quiz becomes available at <strong>12:00 AM</strong> every day.</li>
+        <li>Skipping a day does not carry over — each day's quiz is independent.</li>
+        <li>Your daily quiz score is reflected immediately in the Leaderboard.</li>
+      </ul>
+    </div>
+
+    <!-- Section 3: Question Timing -->
+    <div class="terms-section">
+      <h3><i class="pi pi-stopwatch"></i> Question &amp; Test Timing</h3>
+      <ul>
+        <li>Each question has a <strong>fixed time limit</strong>. Once the timer runs out, the question is automatically skipped.</li>
+        <li>The overall quiz has a <strong>total time limit</strong> based on the number of questions selected.</li>
+        <li>You cannot go back to a previous question once you have moved forward.</li>
+        <li>If the browser tab is closed or refreshed mid-quiz, the quiz session may be lost.</li>
+        <li>Ensure a stable internet connection before starting any quiz.</li>
+      </ul>
+    </div>
+
+    <!-- Section 4: General Rules -->
+    <div class="terms-section">
+      <h3><i class="pi pi-info-circle"></i> General Rules &amp; Usage Policy</h3>
+      <ul>
+        <li>Your account is personal and must not be shared with others.</li>
+        <li>Any attempt to manipulate scores or the leaderboard may result in account suspension.</li>
+        <li>All data submitted is stored securely and used only for educational performance tracking.</li>
+        <li>The platform is intended for educational use within registered schools only.</li>
+      </ul>
+    </div>
+
+    <!-- Accept Checkbox -->
+    <div class="terms-accept-row">
+      <label class="terms-checkbox-label" [class.checked]="termsAccepted">
+        <input type="checkbox" [(ngModel)]="termsAccepted" id="acceptTerms">
+        <span class="custom-checkbox">
+          <i class="pi pi-check" *ngIf="termsAccepted"></i>
+        </span>
+        <span>I have read and agree to all the <strong>Terms &amp; Conditions</strong>, including the 30-day free trial policy.</span>
+      </label>
+    </div>
+
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="terms-footer">
+      <button
+        class="terms-accept-btn"
+        [disabled]="!termsAccepted"
+        (click)="acceptTerms()">
+        <i class="pi pi-check-circle"></i>
+        Accept &amp; Continue
+      </button>
+    </div>
+  </ng-template>
+
+</p-dialog>
+
 <div class="min-h-screen flex flex-col bg-slate-50">
   <main class="flex-1 flex flex-col lg:flex-row items-start justify-between px-8 lg:px-20 py-10 gap-10">
 

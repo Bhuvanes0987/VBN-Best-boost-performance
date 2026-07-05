@@ -9,6 +9,7 @@ class Role(db.Model):
     description = db.Column(db.String(255))
     school_id = db.Column(db.Integer, db.ForeignKey("schools.id"), nullable=True)
     role_type = db.Column(db.String(50), default='custom')
+    requires_payment = db.Column(db.Boolean, default=False)
 
     status = db.Column(db.Integer, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

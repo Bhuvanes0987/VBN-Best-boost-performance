@@ -21,8 +21,7 @@ import { Results } from './shared/components/results/results';
 import { Payments } from './shared/components/payments/payments';
 import { Profile } from './shared/components/profile/profile';
 import { StudentResult } from './shared/components/student-result/student-result';
-
-
+import { AdminPaymentsDashboard } from './shared/components/admin-payments-dashboard/admin-payments-dashboard';
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login, canActivate: [noAuthGuard] },
@@ -65,6 +64,11 @@ export const routes: Routes = [
   component: Profile,
   canActivate: [authGuard]
 },
+  {
+    path: 'admin-payments',
+    component: AdminPaymentsDashboard,
+    canActivate: [authGuard, adminGuard]
+  },
 
   { path: '**', redirectTo: 'login' }
 ];

@@ -23,3 +23,8 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime)
     profile_pic = db.Column(db.Text)       
     selected_subjects = db.Column(db.Text)   
+
+    # Payment and Trial Logic
+    payment_status = db.Column(db.String(50), default='unpaid')
+    login_count = db.Column(db.Integer, default=0)
+    last_login_date = db.Column(db.Date, nullable=True)

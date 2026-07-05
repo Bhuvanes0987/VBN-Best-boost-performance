@@ -61,14 +61,17 @@
                    text-slate-300 hover:bg-slate-700 hover:text-white transition">
             <i class="pi pi-lock"></i><span>Manage Roles</span>
           </li>
+          <li (click)="goTo('/admin-payments')"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer
+                   text-slate-300 hover:bg-slate-700 hover:text-white transition">
+            <i class="pi pi-credit-card"></i><span>Payments Management</span>
+          </li>
+        }
           <li (click)="goTo('/user')"
             class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer
                    text-slate-300 hover:bg-slate-700 hover:text-white transition">
             <i class="pi pi-users"></i><span>Manage Users</span>
           </li>
-         
-        }
-
         @if (isAdmin() || canAccess('classes')) {
           <li (click)="goTo('/classes')"
             class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer

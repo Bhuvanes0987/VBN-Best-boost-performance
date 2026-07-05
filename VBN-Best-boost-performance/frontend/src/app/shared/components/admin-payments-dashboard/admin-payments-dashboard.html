@@ -1,0 +1,167 @@
+<div class="admin-payments-container">
+
+  <!-- Header -->
+  <div class="header-section">
+    <div class="header-title-row">
+      <div>
+        <h1>Payments Management</h1>
+        <p>Manage roles, view dashboard metrics, and audit user payments.</p>
+      </div>
+      <button class="btn btn-refresh" (click)="refreshAll()" [disabled]="isLoading">
+        <i class="pi pi-refresh" [class.pi-spin]="isLoading"></i>
+        <span>{{ isLoading ? 'Refreshing...' : 'Refresh' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Top Section: Dashboard -->
+  <div class="dashboard-cards">
+    <div class="card revenue-card">
+      <div class="card-icon-wrap revenue">
+        <i class="pi pi-indian-rupee"></i>
+      </div>
+      <div class="card-content">
+        <h3>Total Revenue</h3>
+        <p>₹{{ totalRevenue | number:'1.2-2' }}</p>
+      </div>
+    </div>
+
+    <div class="card users-paid-card">
+      <div class="card-icon-wrap paid">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <div class="card-content">
+        <h3>Paid Users</h3>
+        <p>{{ totalPaidUsers }}</p>
+      </div>
+    </div>
+
+    <div class="card users-unpaid-card">
+      <div class="card-icon-wrap unpaid">
+        <i class="pi pi-clock"></i>
+      </div>
+      <div class="card-content">
+        <h3>Unpaid Users</h3>
+        <p>{{ totalUnpaidUsers }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Middle Section: Roles Config -->
+  <div class="config-section card-box">
+    <h2><i class="pi pi-shield"></i> Role Payment Configuration</h2>
+    <p class="subtitle">Select which roles require payment after the 30-day free trial.</p>
+
+    <div class="roles-grid" *ngIf="roles.length > 0; else rolesLoading">
+      <div class="role-item" *ngFor="let role of roles">
+        <label class="role-label" [class.active]="role.requiresPayment">
+          <div class="role-toggle-wrap">
+            <input type="checkbox" [(ngModel)]="role.requiresPayment" (change)="updateRoleConfig(role)" [id]="'role-' + role.id">
+            <div class="toggle-track">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+          <div class="role-info">
+            <i class="pi pi-users"></i>
+            <span class="role-name">{{ role.name }}</span>
+          </div>
+          <span class="role-status-badge" [class.requires]="role.requiresPayment">
+            {{ role.requiresPayment ? 'Payment Required' : 'Not Required' }}
+          </span>
+        </label>
+      </div>
+    </div>
+    <ng-template #rolesLoading>
+      <p class="loading-text"><i class="pi pi-spin pi-spinner"></i> Loading roles...</p>
+    </ng-template>
+  </div>
+
+  <!-- Bottom Section: Audit Table -->
+  <div class="audit-section card-box">
+    <div class="audit-header">
+      <h2><i class="pi pi-table"></i> Users Audit Table</h2>
+      <div class="actions">
+        <button class="btn btn-outline" (click)="exportPDF()">
+          <i class="pi pi-file-pdf"></i> Export PDF
+        </button>
+        <button class="btn btn-outline" (click)="exportExcel()">
+          <i class="pi pi-file-excel"></i> Export Excel
+        </button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="search-wrap">
+        <i class="pi pi-search search-icon"></i>
+        <input type="text" placeholder="Search by name or email..." [(ngModel)]="searchQuery" (keyup)="loadUsers()" class="search-input">
+      </div>
+      <select [(ngModel)]="filterStatus" (change)="loadUsers()" class="status-select">
+        <option value="">All Statuses</option>
+        <option value="paid">Paid</option>
+        <option value="unpaid">Unpaid</option>
+      </select>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>School</th>
+            <th>Trial Logins</th>
+            <th>Payment Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users">
+            <td>{{ user.id }}</td>
+            <td>
+              <div class="user-name-cell">
+                <div class="user-avatar">{{ user.name?.charAt(0) | uppercase }}</div>
+                <span>{{ user.name }}</span>
+              </div>
+            </td>
+            <td class="email-cell">{{ user.email }}</td>
+            <td>{{ user.schoolName }}</td>
+            <td>
+              <div class="login-progress">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width]="((user.loginCount / 30) * 100) + '%'"></div>
+                </div>
+                <span>{{ user.loginCount }} / 30</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="{'paid': user.paymentStatus === 'paid', 'unpaid': user.paymentStatus !== 'paid'}">
+                <i class="pi" [ngClass]="user.paymentStatus === 'paid' ? 'pi-check' : 'pi-times'"></i>
+                {{ user.paymentStatus | uppercase }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn btn-sm" [ngClass]="user.paymentStatus === 'paid' ? 'btn-danger' : 'btn-success'" (click)="toggleUserStatus(user)">
+                  <i class="pi" [ngClass]="user.paymentStatus === 'paid' ? 'pi-times-circle' : 'pi-check-circle'"></i>
+                  {{ user.paymentStatus === 'paid' ? 'Mark Unpaid' : 'Mark as Paid' }}
+                </button>
+                <button class="btn btn-sm btn-warning" (click)="resetTrial(user)" title="Reset 30-day trial to 0">
+                  <i class="pi pi-replay"></i>
+                  Reset Trial
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="users.length === 0">
+            <td colspan="7" class="text-center">
+              <i class="pi pi-inbox" style="font-size: 2rem; color: #ccc;"></i>
+              <p>No users found.</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

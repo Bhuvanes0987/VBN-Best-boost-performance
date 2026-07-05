@@ -63,3 +63,147 @@
 	justify-content: center;
 	width: 1rem;
 }
+
+/* ══════════════════ Terms & Conditions Dialog ══════════════════ */
+.terms-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  .terms-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #F97316, #ea6c05);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    i { color: white; font-size: 1.4rem; }
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  p { margin: 0; font-size: 0.8rem; color: #888; }
+}
+
+.terms-body {
+  max-height: 55vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+  &::-webkit-scrollbar-thumb { background: #F97316; border-radius: 4px; }
+}
+
+.terms-section {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: #fafafa;
+  border-radius: 10px;
+  border-left: 3px solid #F97316;
+
+  h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    i { color: #F97316; }
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    li {
+      font-size: 0.85rem;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 0.35rem;
+      &:last-child { margin-bottom: 0; }
+    }
+  }
+}
+
+.terms-accept-row {
+  padding: 1rem 1.25rem;
+  background: #FFF7ED;
+  border-radius: 10px;
+  border: 1.5px solid #FED7AA;
+  margin-top: 0.5rem;
+}
+
+.terms-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #444;
+  line-height: 1.5;
+
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .custom-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    border: 2px solid #d1d5db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.2s;
+    background: white;
+    i { color: white; font-size: 0.7rem; }
+  }
+
+  &.checked .custom-checkbox {
+    background: #F97316;
+    border-color: #F97316;
+  }
+}
+
+.terms-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+.terms-accept-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.75rem;
+  background: linear-gradient(135deg, #F97316, #ea6c05);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  i { font-size: 1rem; }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4);
+  }
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}

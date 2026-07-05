@@ -38,6 +38,7 @@ export class PaymentService {
         customer_name?: string;
         customer_email?: string;
         customer_contact?: string;
+        user_id?: number | string | null;
     }): Observable<CreateOrderResponse> {
          return this.http.post<CreateOrderResponse>(`${this.api}/api/payment/create-order`, payload);
     }
