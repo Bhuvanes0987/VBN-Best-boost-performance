@@ -84,7 +84,9 @@ export class Signup {
       password: this.password
     }
 
-    this.http.post(`${this.api}/api/signup`, payload)
+        this.http.post(`${this.api}/api/signup`, payload)
+// production
+    // this.http.post(`${this.api}/signup`, payload)
       .subscribe({
         next: () => {
           this.loading = false

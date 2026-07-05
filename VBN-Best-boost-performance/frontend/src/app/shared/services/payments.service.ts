@@ -39,11 +39,16 @@ export class PaymentService {
         customer_email?: string;
         customer_contact?: string;
     }): Observable<CreateOrderResponse> {
-        return this.http.post<CreateOrderResponse>(`${this.api}/api/payment/create-order`, payload);
+         return this.http.post<CreateOrderResponse>(`${this.api}/api/payment/create-order`, payload);
     }
+    // production
+    //     return this.http.post<CreateOrderResponse>(`${this.api}/payment/create-order`, payload);
+    // }
 
     verifyPayment(payload: VerifyPaymentRequest): Observable<VerifyPaymentResponse> {
-        return this.http.post<VerifyPaymentResponse>(`${this.api}/api/payment/verify`, payload);
+         return this.http.post<VerifyPaymentResponse>(`${this.api}/api/payment/verify`, payload);
+        //  production
+        // return this.http.post<VerifyPaymentResponse>(`${this.api}/payment/verify`, payload);
     }
 
     recordFailure(payload: {
@@ -54,8 +59,14 @@ export class PaymentService {
     }): Observable<any> {
         return this.http.post(`${this.api}/api/payment/failed`, payload);
     }
+    // production
+    //     return this.http.post(`${this.api}/payment/failed`, payload);
+    // }
 
     getOrderStatus(orderId: string): Observable<any> {
-        return this.http.get(`${this.api}/api/payment/status/${orderId}`);
+               return this.http.get(`${this.api}/api/payment/status/${orderId}`);
     }
+    // production
+    //     return this.http.get(`${this.api}/payment/status/${orderId}`);
+    // }
 }

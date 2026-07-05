@@ -23,6 +23,8 @@ import { MessageService } from 'primeng/api';
 export class Quiz implements OnInit, OnDestroy {
 
   private api = 'http://127.0.0.1:8900';
+  // production
+  // private api = '/api';
   currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
   questions:     any[]  = [];

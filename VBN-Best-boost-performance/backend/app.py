@@ -136,6 +136,21 @@ app.register_blueprint(profile_bp)
 app.register_blueprint(payment_bp)
 app.register_blueprint(custom_table_bp)
 
+
+# production
+# app.register_blueprint(question_bp, url_prefix="/api")
+# app.register_blueprint(user_bp, url_prefix="/api")
+# app.register_blueprint(class_bp, url_prefix="/api")
+# app.register_blueprint(subject_bp, url_prefix="/api")
+# app.register_blueprint(auth_bp)
+# app.register_blueprint(role_bp, url_prefix="/api")
+# app.register_blueprint(user_role_bp, url_prefix="/api")
+# app.register_blueprint(school_bp, url_prefix="/api")
+# app.register_blueprint(result_bp, url_prefix="/api")
+# app.register_blueprint(profile_bp, url_prefix="/api")
+# app.register_blueprint(payment_bp, url_prefix="/api")
+# app.register_blueprint(custom_table_bp, url_prefix="/api")
+
 with app.app_context():
     db.create_all()
 

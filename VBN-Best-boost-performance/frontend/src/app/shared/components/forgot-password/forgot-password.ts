@@ -30,7 +30,9 @@ export class ForgotPassword {
     }
 
     this.loading = true
-    this.http.post(`${environment.apiUrl}/api/forgot-password`, { email: this.email })
+      this.http.post(`${environment.apiUrl}/api/forgot-password`, { email: this.email })
+    // production
+    // this.http.post(`${environment.apiUrl}/forgot-password`, { email: this.email })
       .subscribe({
         next: (res: any) => {
           this.loading = false

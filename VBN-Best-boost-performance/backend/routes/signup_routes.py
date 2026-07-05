@@ -7,8 +7,9 @@ from flask_mail import Message
 import jwt, secrets
 
 auth_bp = Blueprint("auth", __name__)
-
 @auth_bp.route("/api/signup", methods=["POST"])
+# production
+# @auth_bp.route("/signup", methods=["POST"])
 def signup():
     data = request.json
 
@@ -34,8 +35,9 @@ def signup():
     db.session.commit()
     return jsonify({"success": True, "message": "Account created successfully."})
 
-
 @auth_bp.route("/api/login", methods=["POST"])
+# production
+# @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.json
 
@@ -115,8 +117,9 @@ def login():
 
 
 reset_tokens = {}
-
 @auth_bp.route("/api/forgot-password", methods=["POST"])
+# production
+# @auth_bp.route("/forgot-password", methods=["POST"])
 def forgot_password():
     data = request.json
     email = data.get("email")
@@ -150,6 +153,8 @@ def forgot_password():
 
 
 @auth_bp.route("/api/reset-password", methods=["POST"])
+# production
+# @auth_bp.route("/reset-password", methods=["POST"])
 def reset_password():
     data = request.json
     token = data.get("token")

@@ -53,6 +53,8 @@ export class ResetPassword implements OnInit {
 
     this.loading = true
     this.http.post(`${environment.apiUrl}/api/reset-password`, {
+    // production
+    // this.http.post(`${environment.apiUrl}/reset-password`, {
       token: this.token,
       password: this.password
     }).subscribe({

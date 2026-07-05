@@ -47,8 +47,9 @@ export class Login {
     
   }
   const credentials = { email: this.email, password: this.password };
-
-  this.http.post(`${environment.apiUrl}/api/login`, credentials)
+ this.http.post(`${environment.apiUrl}/api/login`, credentials)
+// production
+  // this.http.post(`${environment.apiUrl}/login`, credentials)
     .subscribe({
       next: (res: any) => {
       if (res.success) {

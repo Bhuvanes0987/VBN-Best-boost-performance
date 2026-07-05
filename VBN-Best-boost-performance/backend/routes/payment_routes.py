@@ -11,8 +11,9 @@ def get_razorpay_client():
     return razorpay.Client(
         auth=(current_app.config['RAZORPAY_KEY_ID'], current_app.config['RAZORPAY_KEY_SECRET'])
     )
-
 @payment_bp.route('/api/payment/create-order', methods=['POST'])
+# production
+# @payment_bp.route('/payment/create-order', methods=['POST'])
 def create_order():
     try:
         data = request.get_json()
@@ -53,6 +54,8 @@ def create_order():
         return jsonify({"error": str(e)}), 500
 
 @payment_bp.route('/api/payment/verify', methods=['POST'])
+# production
+# @payment_bp.route('/payment/verify', methods=['POST'])
 def verify_payment():
     try:
         data = request.get_json()
@@ -101,6 +104,8 @@ def verify_payment():
         return jsonify({"error": str(e)}), 500
 
 @payment_bp.route('/api/payment/failed', methods=['POST'])
+# production
+# @payment_bp.route('/payment/failed', methods=['POST'])
 def payment_failed():
     try:
         data = request.get_json()
@@ -122,6 +127,8 @@ def payment_failed():
         return jsonify({"error": str(e)}), 500
 
 @payment_bp.route('/api/payment/status/<order_id>', methods=['GET'])
+# production
+# @payment_bp.route('/payment/status/<order_id>', methods=['GET'])
 def get_status(order_id):
     try:
         payment = Payment.query.filter_by(order_id=order_id).first()
