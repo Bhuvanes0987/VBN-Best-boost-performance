@@ -14,6 +14,7 @@ import { UnitComponent } from './shared/components/unit/unit';
 import { authGuard } from './shared/services/auth-guard';
 import { adminGuard } from './shared/services/admin-guard';
 import { permissionGuard } from './shared/services/permission-guard';
+import { noAuthGuard } from './shared/services/no-auth-guard';
 import { ResetPassword } from './shared/components/reset-password/reset-password';
 import { ForgotPassword } from './shared/components/forgot-password/forgot-password';
 import { Results } from './shared/components/results/results';
@@ -24,9 +25,9 @@ import { StudentResult } from './shared/components/student-result/student-result
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', component: Login },
-  { path: 'signup', component: Signup },
-  { path: 'forgot-password', component: ForgotPassword },
+  { path: 'login', component: Login, canActivate: [noAuthGuard] },
+  { path: 'signup', component: Signup, canActivate: [noAuthGuard] },
+  { path: 'forgot-password', component: ForgotPassword, canActivate: [noAuthGuard] },
   { path: 'reset-password', component: ResetPassword },
 
   { path: 'home', component: Home, canActivate: [authGuard] },

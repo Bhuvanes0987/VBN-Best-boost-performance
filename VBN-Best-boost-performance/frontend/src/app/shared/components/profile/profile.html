@@ -10,8 +10,13 @@
         <h1 class="text-3xl font-extrabold text-white">My Profile</h1>
         <p class="text-orange-100 text-sm">Manage your info and subject preferences</p>
       </div>
-      <p-button label="← Back" severity="secondary" (click)="router.navigate(['/home'])">
-      </p-button>
+      <div class="flex gap-2">
+        <p-button *ngIf="!isEditing && !loading"
+          label="Edit" icon="pi pi-pencil"
+          styleClass="bg-white text-orange-600 border-none shadow"
+          (click)="startEdit()" />
+        <p-button label="← Back" severity="secondary" (click)="router.navigate(['/home'])" />
+      </div>
     </div>
 
     <div *ngIf="loading" class="bg-white rounded-3xl shadow-xl p-12 text-center">
@@ -34,7 +39,8 @@
                   {{ getUserInitials() }}
                 </span>
               </div>
-              <label class="absolute bottom-0 right-0 w-8 h-8 bg-orange-500 text-white
+              <label *ngIf="isEditing"
+                class="absolute bottom-0 right-0 w-8 h-8 bg-orange-500 text-white
                              rounded-full flex items-center justify-center cursor-pointer
                              shadow-lg hover:bg-orange-600 transition">
                 <i class="pi pi-camera text-xs"></i>
@@ -66,7 +72,10 @@
             <div class="flex flex-col gap-1">
               <label class="text-sm font-semibold text-gray-700">Full Name *</label>
               <input pInputText [(ngModel)]="name"
-                placeholder="Your full name" class="w-full"/>
+                placeholder="Your full name" class="w-full"
+                [readonly]="!isEditing"
+                [class.bg-slate-50]="!isEditing"
+                [class.cursor-default]="!isEditing"/>
             </div>
 
             <div class="flex flex-col gap-1">
@@ -75,7 +84,24 @@
                 <span class="text-gray-400 font-normal text-xs ml-1">(optional)</span>
               </label>
               <input pInputText [(ngModel)]="phone"
-                placeholder="Your phone number" class="w-full"/>
+                placeholder="Your phone number" class="w-full"
+                [readonly]="!isEditing"
+                [class.bg-slate-50]="!isEditing"
+                [class.cursor-default]="!isEditing"/>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold text-gray-700">School</label>
+              <p-select
+                [options]="schools"
+                [(ngModel)]="selectedSchoolId"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Select school"
+                [showClear]="isEditing"
+                [disabled]="!isEditing"
+                appendTo="body"
+                class="w-full" />
             </div>
 
           </div>
@@ -103,13 +129,15 @@
 
         <div *ngIf="availableSubjects.length > 0" class="flex flex-wrap gap-3 mb-4">
           <div *ngFor="let subject of availableSubjects"
-            class="flex items-center gap-2 px-4 py-2 rounded-xl border-2 cursor-pointer transition font-medium text-sm"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition font-medium text-sm"
             [ngClass]="{
               'border-orange-500 bg-orange-50 text-orange-700': isSelected(subject),
-              'border-slate-200 text-slate-600 hover:border-orange-300': !isSelected(subject),
-              'opacity-40 cursor-not-allowed': !isSelected(subject) && selectedSubjects.length >= maxSubjects
+              'border-slate-200 text-slate-600 hover:border-orange-300 cursor-pointer': !isSelected(subject) && isEditing,
+              'border-slate-200 text-slate-600': !isSelected(subject) && !isEditing,
+              'opacity-40 cursor-not-allowed': !isSelected(subject) && selectedSubjects.length >= maxSubjects && isEditing,
+              'cursor-default': !isEditing
             }"
-            (click)="toggleSubject(subject)">
+            (click)="isEditing && toggleSubject(subject)">
             <i class="pi text-xs"
               [ngClass]="isSelected(subject) ? 'pi-check-circle' : 'pi-circle'"></i>
             {{ subject.subject_name }}
@@ -130,8 +158,10 @@
               class="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold
                      flex items-center gap-1">
               {{ s.subject_name }}
-              <i class="pi pi-times text-xs cursor-pointer hover:opacity-70"
-                (click)="toggleSubject(s)"></i>
+              <i class="pi pi-times text-xs hover:opacity-70"
+                [class.cursor-pointer]="isEditing"
+                [class.cursor-default]="!isEditing"
+                (click)="isEditing && toggleSubject(s)"></i>
             </span>
           </div>
         </div>
@@ -146,9 +176,9 @@
 
       </div>
 
-      <div class="flex justify-end gap-3 pb-8">
+      <div *ngIf="isEditing" class="flex justify-end gap-3 pb-8">
         <p-button label="Cancel" severity="secondary"
-          (click)="router.navigate(['/home'])">
+          (click)="cancelEdit()">
         </p-button>
         <p-button
           [label]="saving ? 'Saving...' : 'Save Profile'"

@@ -18,9 +18,9 @@
       <p-table [value]="classes" styleClass="p-datatable-hoverable-rows" responsiveLayout="scroll">
         <ng-template pTemplate="header">
           <tr>
-            <th class="px-6 py-4">ID</th>
-            <th class="px-6 py-4">Class Name</th>
-            <th class="px-6 py-4">School</th>  
+            <th class="px-6 py-4 cursor-pointer select-none" pSortableColumn="id">ID <p-sortIcon field="id" /></th>
+            <th class="px-6 py-4 cursor-pointer select-none" pSortableColumn="name">Class Name <p-sortIcon field="name" /></th>
+            <th class="px-6 py-4">School</th>
             <th class="px-6 py-4 text-center">Actions</th>
           </tr>
         </ng-template>
@@ -61,30 +61,17 @@
 
       <div class="flex flex-col gap-1">
         <label class="text-sm font-semibold text-gray-700">School *</label>
-        <p-select 
-  *ngIf="editMode"
-  [options]="schools"
-  [(ngModel)]="selectedSchools[0]"
-  optionLabel="name"
-  optionValue="id"
-  placeholder="Select School"
+        <p-multiSelect
+          [options]="schools"
+          [(ngModel)]="selectedSchools"
+          optionLabel="name"
+          optionValue="id"
+          [placeholder]="editMode ? 'Select School(s)' : 'Select Schools'"
+          display="chip"
           scrollHeight="220px"
           appendTo="body"
-  class="w-full">
-</p-select>
-
-<p-multiSelect 
-  *ngIf="!editMode"
-  [options]="schools"
-  [(ngModel)]="selectedSchools"
-  optionLabel="name"
-  optionValue="id"
-  placeholder="Select Schools"
-  display="chip"
-  scrollHeight="220px"
-          appendTo="body"
-  class="w-full">
-</p-multiSelect>
+          class="w-full">
+        </p-multiSelect>
       </div>
 
       <div class="flex flex-col gap-1">

@@ -87,32 +87,40 @@ saveClass() {
 
   // 🔥 EDIT MODE
   if (this.editMode && this.selectedId) {
-    // ⚠️ only allow ONE school during edit (important)
-    const schoolId = this.selectedSchools[0];
+    const [firstSchool, ...extraSchools] = this.selectedSchools;
 
-    this.classService.updateClass(this.selectedId, {
+    // Update the existing class with the first selected school
+    const updateReq = this.classService.updateClass(this.selectedId, {
       name: this.className,
-      school_id: schoolId
-    }).subscribe({
-      next: () => {
+      school_id: firstSchool
+    }).toPromise();
+
+    // Create new class entries for any additional schools selected
+    const createReqs = extraSchools.map(schoolId =>
+      this.classService.createClass({ name: this.className, school_id: schoolId }).toPromise()
+    );
+
+    Promise.all([updateReq, ...createReqs])
+      .then(() => {
         this.showDialog = false;
         this.loadClasses();
         this.messageService.add({
           severity: 'success',
           summary: 'Updated',
-          detail: 'Class updated successfully',
+          detail: extraSchools.length
+            ? 'Class updated and added to additional schools'
+            : 'Class updated successfully',
           life: 3000
         });
-      },
-      error: (err) => {
+      })
+      .catch((err) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: err.error?.message || 'Update failed',
+          detail: err?.error?.message || 'Update failed',
           life: 3000
         });
-      }
-    });
+      });
 
   } else {
     // 🔥 CREATE MODE (multi-school)

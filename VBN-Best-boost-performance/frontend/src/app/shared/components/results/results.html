@@ -24,13 +24,13 @@
 
         <ng-template pTemplate="header">
           <tr>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Subject</th>
-            <th>Unit</th>
-            <th>Score</th>
-            <th>Total</th>
-            <th>Percentage</th>
+            <th pSortableColumn="taken_at" class="cursor-pointer select-none">Date <p-sortIcon field="taken_at" /></th>
+            <th pSortableColumn="test_type" class="cursor-pointer select-none">Type <p-sortIcon field="test_type" /></th>
+            <th pSortableColumn="subject_name" class="cursor-pointer select-none">Subject <p-sortIcon field="subject_name" /></th>
+            <th pSortableColumn="unit_name" class="cursor-pointer select-none">Unit <p-sortIcon field="unit_name" /></th>
+            <th pSortableColumn="correct_answers" class="cursor-pointer select-none">Score <p-sortIcon field="correct_answers" /></th>
+            <th pSortableColumn="total_questions" class="cursor-pointer select-none">Total <p-sortIcon field="total_questions" /></th>
+            <th pSortableColumn="score_percent" class="cursor-pointer select-none">Percentage <p-sortIcon field="score_percent" /></th>
           </tr>
         </ng-template>
 

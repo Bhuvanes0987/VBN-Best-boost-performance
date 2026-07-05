@@ -49,15 +49,20 @@
 
     <div class="flex gap-3 mt-6">
       <button pButton *ngIf="!editingUserId"
-        label="Create User" class="bg-orange-500 border-none"
+        [label]="submitting ? 'Creating...' : 'Create User'"
+        class="bg-orange-500 border-none"
+        [disabled]="submitting"
         (click)="createUser()">
       </button>
       <button pButton *ngIf="editingUserId"
-        label="Update User" class="bg-green-500 border-none"
+        [label]="submitting ? 'Updating...' : 'Update User'"
+        class="bg-green-500 border-none"
+        [disabled]="submitting"
         (click)="updateUser()">
       </button>
       <button pButton *ngIf="editingUserId"
         label="Cancel" class="p-button-text border-none"
+        [disabled]="submitting"
         (click)="resetForm()">
       </button>
     </div>
@@ -68,11 +73,11 @@
 
     <ng-template pTemplate="header">
       <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Class</th>
+        <th pSortableColumn="name" class="cursor-pointer select-none">Name <p-sortIcon field="name" /></th>
+        <th pSortableColumn="email" class="cursor-pointer select-none">Email <p-sortIcon field="email" /></th>
+        <th pSortableColumn="studentClassName" class="cursor-pointer select-none">Class <p-sortIcon field="studentClassName" /></th>
         <th>Role</th>
-        <th>School</th>
+        <th pSortableColumn="schoolName" class="cursor-pointer select-none">School <p-sortIcon field="schoolName" /></th>
         <th>Actions</th>
       </tr>
     </ng-template>

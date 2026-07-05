@@ -36,6 +36,7 @@ export class User implements OnInit {
   selectedRole: any = null;
   selectedSubject: any = null;  
   editingUserId: number | null = null;
+  submitting = false;
 
   users: any[] = [];
   roles: any[] = [];
@@ -126,6 +127,7 @@ export class User implements OnInit {
   }
 
   createUser() {
+    if (this.submitting) return;
     if (!this.selectedSchool)  { this.toast('warn', 'Validation', 'Please select a school'); return; }
     if (!this.selectedRole)    { this.toast('warn', 'Validation', 'Please select a role'); return; }
     if (!this.fullName.trim()) { this.toast('warn', 'Validation', 'Full name is required'); return; }
@@ -143,13 +145,18 @@ export class User implements OnInit {
       selectedSubject: this.isTeacherRole() ? this.selectedSubject : null  
     };
 
+    this.submitting = true;
     this.userService.createUser(payload).subscribe({
       next: () => {
+        this.submitting = false;
         this.toast('success', 'Created', 'User created and role assigned!');
         this.resetForm();
         this.loadUsers();
       },
-      error: (err) => this.toast('error', 'Error', err.error?.message || "Failed to create user")
+      error: (err) => {
+        this.submitting = false;
+        this.toast('error', 'Error', err.error?.message || "Failed to create user");
+      }
     });
   }
 
@@ -159,6 +166,8 @@ export class User implements OnInit {
     this.email = user.email;
     this.selectedSchool = user.schoolId;
     this.selectedRole = user.roleId || null;
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     if (user.schoolId) {
       const school = this.schools.find(s => s.id === user.schoolId);
@@ -181,6 +190,7 @@ export class User implements OnInit {
   }
 
   updateUser() {
+    if (this.submitting) return;
     if (!this.fullName.trim()) { this.toast('warn', 'Validation', 'Full name is required'); return; }
     if (!this.email.trim())    { this.toast('warn', 'Validation', 'Email is required'); return; }
 
@@ -193,13 +203,18 @@ export class User implements OnInit {
       selectedSubject: this.isTeacherRole() ? this.selectedSubject : null
     };
 
+    this.submitting = true;
     this.userService.updateUser(this.editingUserId!, payload).subscribe({
       next: () => {
+        this.submitting = false;
         this.toast('success', 'Updated', 'User updated successfully');
         this.resetForm();
         this.loadUsers();
       },
-      error: (err) => this.toast('error', 'Error', err.error?.message || "Update failed")
+      error: (err) => {
+        this.submitting = false;
+        this.toast('error', 'Error', err.error?.message || "Update failed");
+      }
     });
   }
 
@@ -234,5 +249,6 @@ export class User implements OnInit {
     this.classes = [];
     this.subjects = [];
     this.editingUserId = null;
+    this.submitting = false;
   }
 }

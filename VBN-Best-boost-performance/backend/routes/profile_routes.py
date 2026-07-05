@@ -61,7 +61,9 @@ def update_profile(user_id):
     if data.get("phone"):
         user.phone = data["phone"]
     if data.get("profile_pic"):
-        user.profile_pic = data["profile_pic"] 
+        user.profile_pic = data["profile_pic"]
+    if "school_id" in data:
+        user.school_id = data["school_id"] if data["school_id"] else None
     if "selected_subjects" in data:
         subject_ids = data["selected_subjects"]
         if len(subject_ids) > 5:
