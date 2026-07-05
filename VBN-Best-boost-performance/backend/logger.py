@@ -32,3 +32,4 @@ if not logger.handlers:
     logger.addHandler(file_handler)
 
 logger.debug("Logger initialized. Logs will be written to %s", LOG_FILE)
+
