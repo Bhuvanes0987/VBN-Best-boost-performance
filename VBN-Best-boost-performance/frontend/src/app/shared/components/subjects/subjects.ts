@@ -41,7 +41,7 @@ export class Subjects implements OnInit {
   submitted = false;
   showDialog = false;
 
-  units: Array<{ unit_name: string; unit_number: number }> = [
+  units: Array<{ id?: number; unit_name: string; unit_number: number }> = [
     { unit_name: '', unit_number: 1 }
   ];
 
@@ -192,6 +192,7 @@ export class Subjects implements OnInit {
 
     this.units = s.units?.length
       ? s.units.map((u: any) => ({
+          id: u.id,
           unit_name: u.unit_name,
           unit_number: u.unit_number
         }))

@@ -77,16 +77,38 @@ def update_subject(id):
     class_ids = data.get("class_ids", [])
     subject.classes = Class.query.filter(Class.id.in_(class_ids)).all()
 
-    Unit.query.filter_by(subject_id=id).delete()
-    for u in data.get("units", []):
-        db.session.add(Unit(
-            unit_name=u["unit_name"],
-            unit_number=u.get("unit_number"),
-            subject_id=id,
-            school_id=data.get("school_id", subject.school_id),
-            status=1,
-            created_by="admin"
-        ))
+    # Update units without hard-deleting to preserve foreign key constraints
+    existing_units = {u.id: u for u in Unit.query.filter_by(subject_id=id).all()}
+    payload_units = data.get("units", [])
+    payload_unit_ids = set()
+
+    for u in payload_units:
+        unit_id = u.get("id")
+        if unit_id and unit_id in existing_units:
+            existing_unit = existing_units[unit_id]
+            existing_unit.unit_name = u["unit_name"]
+            existing_unit.unit_number = u.get("unit_number")
+            existing_unit.school_id = data.get("school_id", subject.school_id)
+            existing_unit.status = 1  # reactivate if previously soft-deleted
+            existing_unit.updated_at = datetime.utcnow()
+            payload_unit_ids.add(unit_id)
+        else:
+            new_unit = Unit(
+                unit_name=u["unit_name"],
+                unit_number=u.get("unit_number"),
+                subject_id=id,
+                school_id=data.get("school_id", subject.school_id),
+                status=1,
+                created_by="admin",
+                created_at=datetime.utcnow()
+            )
+            db.session.add(new_unit)
+
+    # Soft-delete (set status=0) any existing units not in the request payload
+    for existing_id, existing_unit in existing_units.items():
+        if existing_id not in payload_unit_ids:
+            existing_unit.status = 0
+            existing_unit.updated_at = datetime.utcnow()
 
     db.session.commit()
     return jsonify({"message": "Subject updated"})

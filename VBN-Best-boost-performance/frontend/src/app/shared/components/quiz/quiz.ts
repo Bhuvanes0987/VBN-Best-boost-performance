@@ -25,7 +25,7 @@ export class Quiz implements OnInit, OnDestroy {
   private api = 'http://127.0.0.1:8900';
   // production
   // private api = '/api';
-  currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
 
   questions:     any[]  = [];
   currentIndex   = 0;
@@ -97,7 +97,7 @@ export class Quiz implements OnInit, OnDestroy {
     this.loading     = true;
     this.noQuestions = false;
 
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
     const selectedSubjectIds: number[] = user?.selectedSubjects || [];
 
     let url = '';

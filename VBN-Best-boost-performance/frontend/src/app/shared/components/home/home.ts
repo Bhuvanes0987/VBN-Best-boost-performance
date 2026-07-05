@@ -37,8 +37,8 @@ export class Home implements OnInit {
     private messageService: MessageService
   ) {}
 
-  currentUser    = JSON.parse(localStorage.getItem('user') || '{}');
-  userPosition   = parseInt(localStorage.getItem('position') || '2');
+  currentUser    = JSON.parse(sessionStorage.getItem('user') || '{}');
+  userPosition   = parseInt(sessionStorage.getItem('position') || '2');
   isStudent      = this.userPosition === 2;
   isTeacher = this.userPosition === 3;
   isAdmin = this.userPosition === 1;
@@ -178,7 +178,16 @@ canEditHomeTable = this.isAdmin;
     this.subjects = []; this.units = [];
     if (!this.selectedClass) return;
     this.questionService.getSubjectsByClass(this.selectedClass.id)
-      .subscribe((res: any) => this.subjects = res.subjects);
+      .subscribe((res: any) => {
+        let allSubjects = res.subjects || [];
+        if (this.isStudent) {
+          const selectedSubjectIds: number[] = this.currentUser?.selectedSubjects || [];
+          if (selectedSubjectIds.length > 0) {
+            allSubjects = allSubjects.filter((s: any) => selectedSubjectIds.includes(s.id));
+          }
+        }
+        this.subjects = allSubjects;
+      });
   }
 
   onSubjectChange() {

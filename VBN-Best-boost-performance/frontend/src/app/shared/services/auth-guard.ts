@@ -12,11 +12,11 @@ function isTokenValid(token: string): boolean {
 
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (!token || !isTokenValid(token)) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('position');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('position');
     return router.createUrlTree(['/login']);
   }
   return true;

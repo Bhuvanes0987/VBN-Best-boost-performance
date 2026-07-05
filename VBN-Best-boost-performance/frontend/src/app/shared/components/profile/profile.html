@@ -114,7 +114,10 @@
           <div>
             <h2 class="text-xl font-bold text-slate-800">My Subjects</h2>
             <p class="text-sm text-slate-500">
-              Select up to 5 subjects to focus your quizzes on
+              Select up to {{ maxSubjects }} subjects to focus your quizzes on
+            </p>
+            <p *ngIf="!isEditing" class="text-xs text-orange-600 font-semibold mt-1 flex items-center gap-1">
+              <i class="pi pi-info-circle"></i> Click the "Edit" button at the top right of the page to add, remove, or change subjects.
             </p>
           </div>
           <span class="px-3 py-1 rounded-full text-xs font-bold"
@@ -132,12 +135,13 @@
             class="flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition font-medium text-sm"
             [ngClass]="{
               'border-orange-500 bg-orange-50 text-orange-700': isSelected(subject),
-              'border-slate-200 text-slate-600 hover:border-orange-300 cursor-pointer': !isSelected(subject) && isEditing,
+              'border-slate-200 text-slate-600 hover:border-orange-300': !isSelected(subject) && isEditing,
               'border-slate-200 text-slate-600': !isSelected(subject) && !isEditing,
-              'opacity-40 cursor-not-allowed': !isSelected(subject) && selectedSubjects.length >= maxSubjects && isEditing,
+              'cursor-pointer': isEditing && (isSelected(subject) || selectedSubjects.length < maxSubjects),
+              'opacity-40 cursor-not-allowed': isEditing && !isSelected(subject) && selectedSubjects.length >= maxSubjects,
               'cursor-default': !isEditing
             }"
-            (click)="isEditing && toggleSubject(subject)">
+            (click)="toggleSubject(subject)">
             <i class="pi text-xs"
               [ngClass]="isSelected(subject) ? 'pi-check-circle' : 'pi-circle'"></i>
             {{ subject.subject_name }}
@@ -161,7 +165,7 @@
               <i class="pi pi-times text-xs hover:opacity-70"
                 [class.cursor-pointer]="isEditing"
                 [class.cursor-default]="!isEditing"
-                (click)="isEditing && toggleSubject(s)"></i>
+                (click)="toggleSubject(s)"></i>
             </span>
           </div>
         </div>

@@ -27,7 +27,7 @@ import { MessageService } from 'primeng/api';
 export class Profile implements OnInit {
 
   private api = environment.apiUrl;
-  currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
 
   name = '';
   email = '';
@@ -84,6 +84,10 @@ export class Profile implements OnInit {
         this.profilePic = res.profile_pic || null;
         this.previewPic = res.profile_pic || null;
 
+        // Dynamic subject limit based on class name
+        const isClass12 = this.className.toLowerCase().includes('12');
+        this.maxSubjects = isClass12 ? 6 : 5;
+
         this.loadAvailableSubjects(res.selected_subjects || []);
       },
       error: () => this.loading = false
@@ -108,7 +112,7 @@ export class Profile implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Limit Reached',
-        detail: 'You can select maximum 5 subjects only',
+        detail: `You can select maximum ${this.maxSubjects} subjects only`,
         life: 3000
       });
     }
@@ -143,7 +147,7 @@ export class Profile implements OnInit {
     const count = this.selectedSubjects.length;
     const remaining = this.maxSubjects - count;
     if (count === 0) return 'No subjects selected';
-    if (remaining === 0) return '✅ Maximum 5 subjects selected';
+    if (remaining === 0) return `✅ Maximum ${this.maxSubjects} subjects selected`;
     return `${count} selected — ${remaining} more allowed`;
   }
 
@@ -200,7 +204,7 @@ export class Profile implements OnInit {
         profile_pic: this.profilePic,
         selectedSubjects: this.selectedSubjects.map(s => s.id)
       };
-      localStorage.setItem('user', JSON.stringify(user));
+      sessionStorage.setItem('user', JSON.stringify(user));
 
       this.messageService.add({
         severity: 'success', summary: 'Saved',
@@ -214,13 +218,14 @@ export class Profile implements OnInit {
 }
 
 toggleSubject(subject: any) {
+  if (!this.isEditing) return;
   if (this.isSelected(subject)) {
     this.selectedSubjects = this.selectedSubjects.filter(s => s.id !== subject.id);
   } else {
     if (this.selectedSubjects.length >= this.maxSubjects) {
       this.messageService.add({
         severity: 'warn', summary: 'Limit Reached',
-        detail: 'You can select maximum 5 subjects only', life: 3000
+        detail: `You can select maximum ${this.maxSubjects} subjects only`, life: 3000
       });
       return;
     }

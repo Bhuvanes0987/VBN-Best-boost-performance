@@ -101,6 +101,14 @@ def login():
         "exp": datetime.utcnow() + timedelta(hours=8)
     }, current_app.config["SECRET_KEY"], algorithm="HS256")
 
+    import json
+    selected_subjects_list = []
+    if user.selected_subjects:
+        try:
+            selected_subjects_list = json.loads(user.selected_subjects)
+        except Exception:
+            selected_subjects_list = []
+
     return jsonify({
         "success": True,
         "token": token,
@@ -113,6 +121,7 @@ def login():
             "schoolId": school_id,
             "schoolName": school_name,
             "studentClass": user.student_class,
+            "selectedSubjects": selected_subjects_list,
             "allowedPages": allowed_pages
         }
     })

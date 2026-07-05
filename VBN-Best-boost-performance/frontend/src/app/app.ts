@@ -22,16 +22,16 @@ export class App {
 
   sidebarVisible = signal(false);
   currentRoute = signal('');
-  userPosition = signal<number>(parseInt(localStorage.getItem('position') ?? '2'));
-  userData = signal<any>(JSON.parse(localStorage.getItem('user') || '{}'));
+  userPosition = signal<number>(parseInt(sessionStorage.getItem('position') ?? '2'));
+  userData = signal<any>(JSON.parse(sessionStorage.getItem('user') || '{}'));
 
   constructor() {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: any) => {
         this.currentRoute.set(e.urlAfterRedirects);
-        this.userPosition.set(parseInt(localStorage.getItem('position') ?? '2'));
-        this.userData.set(JSON.parse(localStorage.getItem('user') || '{}'));
+        this.userPosition.set(parseInt(sessionStorage.getItem('position') ?? '2'));
+        this.userData.set(JSON.parse(sessionStorage.getItem('user') || '{}'));
       });
   }
 
@@ -81,6 +81,7 @@ export class App {
     rejectButtonStyleClass: 'p-button-text p-button-sm',
     accept: () => {
       localStorage.clear();
+      sessionStorage.clear();
       this.userPosition.set(2);  
       this.userData.set({});
       this.router.navigate(['/login']);
@@ -90,6 +91,7 @@ export class App {
 
 logout() {
   localStorage.clear();
+  sessionStorage.clear();
   this.userPosition.set(2);  
   this.userData.set({});
   this.router.navigate(['/login']);

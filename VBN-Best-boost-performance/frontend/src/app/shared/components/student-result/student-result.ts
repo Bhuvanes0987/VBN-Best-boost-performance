@@ -33,7 +33,7 @@ export class StudentResult {
  subjects:any[]=[];
 
  currentUser=
- JSON.parse(localStorage.getItem('user')||'{}');
+ JSON.parse(sessionStorage.getItem('user')||'{}');
 
  constructor(
   private http:HttpClient

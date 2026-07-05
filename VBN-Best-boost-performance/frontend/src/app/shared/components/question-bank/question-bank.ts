@@ -46,8 +46,8 @@ export class QuestionBank implements OnInit {
   ) {}
 
   private api = environment.apiUrl;
-  currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  userPosition = Number(localStorage.getItem('position') || this.currentUser?.position || 0);
+  currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+  userPosition = Number(sessionStorage.getItem('position') || this.currentUser?.position || 0);
   canEditQuestionBank = this.userPosition === 1;
 
   // ─── Drawer ───────────────────────────────────────────────────────────────

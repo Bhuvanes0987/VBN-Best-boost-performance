@@ -12,7 +12,7 @@ function isTokenValid(token: string): boolean {
 
 export const noAuthGuard: CanActivateFn = () => {
   const router = inject(Router);
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (token && isTokenValid(token)) {
     return router.createUrlTree(['/home']);
   }

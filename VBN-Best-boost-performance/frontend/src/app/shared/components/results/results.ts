@@ -17,7 +17,7 @@ export class Results implements OnInit {
   results: any[] = [];
   loading = true;
   private api = environment.apiUrl;
-  currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
 
   constructor(
     private http: HttpClient,

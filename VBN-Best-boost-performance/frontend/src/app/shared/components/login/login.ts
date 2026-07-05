@@ -53,9 +53,9 @@ export class Login {
     .subscribe({
       next: (res: any) => {
       if (res.success) {
-        localStorage.setItem("token", res.token);
-        localStorage.setItem("position", res.user.position);
-        localStorage.setItem("user", JSON.stringify(res.user)); 
+        sessionStorage.setItem("token", res.token);
+        sessionStorage.setItem("position", res.user.position);
+        sessionStorage.setItem("user", JSON.stringify(res.user)); 
         this.router.navigate(['/home']);
       }
     },

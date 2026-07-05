@@ -66,8 +66,13 @@ def update_profile(user_id):
         user.school_id = data["school_id"] if data["school_id"] else None
     if "selected_subjects" in data:
         subject_ids = data["selected_subjects"]
-        if len(subject_ids) > 5:
-            return jsonify({"message": "You can select maximum 5 subjects only"}), 400
+        max_subjects = 5
+        if user.student_class:
+            cls = Class.query.get(user.student_class)
+            if cls and cls.class_name and "12" in cls.class_name:
+                max_subjects = 6
+        if len(subject_ids) > max_subjects:
+            return jsonify({"message": f"You can select maximum {max_subjects} subjects only"}), 400
         user.selected_subjects = json.dumps(subject_ids)
 
     user.updated_at = datetime.now(timezone.utc)

@@ -51,7 +51,7 @@ export class ContentTableService {
     headers: TableHeader[],
     cells: TableCell[],
   ): Observable<any> {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
     const payload = {
       school_id: schoolId,
       table_rows: rows,
