@@ -21,7 +21,7 @@ export class ForgotPassword {
   loading = false
   sent = false
 
-  constructor(private http: HttpClient, private messageService: MessageService) {}
+  constructor(private http: HttpClient, private messageService: MessageService) { }
 
   submit() {
     if (!this.email.trim()) {
@@ -30,9 +30,7 @@ export class ForgotPassword {
     }
 
     this.loading = true
-      this.http.post(`${environment.apiUrl}/api/forgot-password`, { email: this.email })
-    // production
-    // this.http.post(`${environment.apiUrl}/forgot-password`, { email: this.email })
+    this.http.post(`${environment.apiUrl}/forgot-password`, { email: this.email })
       .subscribe({
         next: (res: any) => {
           this.loading = false

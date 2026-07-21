@@ -46,7 +46,7 @@ export class AdminPaymentsDashboard implements OnInit {
     let done = 0;
     const checkDone = () => { done++; if (done === 3) this.isLoading = false; };
 
-    this.http.get<any>(`${environment.apiUrl}/api/admin/payments/dashboard`).subscribe(res => {
+    this.http.get<any>(`${environment.apiUrl}/admin/payments/dashboard`).subscribe(res => {
       if (res.success) {
         this.totalRevenue = res.totalRevenue;
         this.totalPaidUsers = res.totalPaidUsers;
@@ -61,7 +61,7 @@ export class AdminPaymentsDashboard implements OnInit {
   }
 
   loadUsers(callback?: () => void) {
-    let url = `${environment.apiUrl}/api/admin/payments/users?search=${this.searchQuery}`;
+    let url = `${environment.apiUrl}/admin/payments/users?search=${this.searchQuery}`;
     if (this.filterStatus) {
       url += `&payment_status=${this.filterStatus}`;
     }
@@ -74,7 +74,7 @@ export class AdminPaymentsDashboard implements OnInit {
   }
 
   loadRoles(callback?: () => void) {
-    this.http.get<any>(`${environment.apiUrl}/api/admin/payments/roles`).subscribe(res => {
+    this.http.get<any>(`${environment.apiUrl}/admin/payments/roles`).subscribe(res => {
       if (res.success) {
         this.roles = res.roles;
       }
@@ -84,12 +84,12 @@ export class AdminPaymentsDashboard implements OnInit {
 
   toggleUserStatus(user: any) {
     const newStatus = user.paymentStatus === 'paid' ? 'unpaid' : 'paid';
-    this.http.put<any>(`${environment.apiUrl}/api/admin/payments/users/${user.id}/status`, { status: newStatus })
+    this.http.put<any>(`${environment.apiUrl}/admin/payments/users/${user.id}/status`, { status: newStatus })
       .subscribe(res => {
         if (res.success) {
           user.paymentStatus = newStatus;
           // Refresh dashboard stats to reflect change
-          this.http.get<any>(`${environment.apiUrl}/api/admin/payments/dashboard`).subscribe(r => {
+          this.http.get<any>(`${environment.apiUrl}/admin/payments/dashboard`).subscribe(r => {
             if (r.success) {
               this.totalRevenue = r.totalRevenue;
               this.totalPaidUsers = r.totalPaidUsers;
@@ -101,7 +101,7 @@ export class AdminPaymentsDashboard implements OnInit {
   }
 
   updateRoleConfig(role: any) {
-    this.http.put<any>(`${environment.apiUrl}/api/admin/payments/roles/${role.id}`, { requiresPayment: role.requiresPayment })
+    this.http.put<any>(`${environment.apiUrl}/admin/payments/roles/${role.id}`, { requiresPayment: role.requiresPayment })
       .subscribe(res => {
         if (!res.success) {
           // Revert checkbox if failed
@@ -117,7 +117,7 @@ export class AdminPaymentsDashboard implements OnInit {
 
   resetTrial(user: any) {
     if (!confirm(`Reset the 30-day trial for "${user.name}"? Their login count will go back to 0.`)) return;
-    this.http.put<any>(`${environment.apiUrl}/api/admin/payments/users/${user.id}/reset-trial`, {})
+    this.http.put<any>(`${environment.apiUrl}/admin/payments/users/${user.id}/reset-trial`, {})
       .subscribe(res => {
         if (res.success) {
           user.loginCount = 0;

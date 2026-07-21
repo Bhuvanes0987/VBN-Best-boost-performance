@@ -9,7 +9,7 @@ from datetime import datetime
 
 admin_payment_bp = Blueprint('admin_payment_bp', __name__)
 
-@admin_payment_bp.route('/api/admin/payments/dashboard', methods=['GET'])
+@admin_payment_bp.route('/admin/payments/dashboard', methods=['GET'])
 def get_dashboard_stats():
     try:
         # Total Collected (from successful payments)
@@ -43,7 +43,7 @@ def get_dashboard_stats():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@admin_payment_bp.route('/api/admin/payments/users', methods=['GET'])
+@admin_payment_bp.route('/admin/payments/users', methods=['GET'])
 def get_users_payment_data():
     try:
         search = request.args.get('search', '').lower()
@@ -87,7 +87,7 @@ def get_users_payment_data():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@admin_payment_bp.route('/api/admin/payments/users/<int:user_id>/status', methods=['PUT'])
+@admin_payment_bp.route('/admin/payments/users/<int:user_id>/status', methods=['PUT'])
 def update_user_payment_status(user_id):
     try:
         data = request.json
@@ -103,7 +103,7 @@ def update_user_payment_status(user_id):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@admin_payment_bp.route('/api/admin/payments/roles', methods=['GET'])
+@admin_payment_bp.route('/admin/payments/roles', methods=['GET'])
 def get_roles_config():
     try:
         roles = Role.query.filter(Role.id != 1).all()
@@ -112,7 +112,7 @@ def get_roles_config():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@admin_payment_bp.route('/api/admin/payments/roles/<int:role_id>', methods=['PUT'])
+@admin_payment_bp.route('/admin/payments/roles/<int:role_id>', methods=['PUT'])
 def update_role_config(role_id):
     try:
         data = request.json
@@ -126,7 +126,7 @@ def update_role_config(role_id):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@admin_payment_bp.route('/api/admin/payments/users/<int:user_id>/reset-trial', methods=['PUT'])
+@admin_payment_bp.route('/admin/payments/users/<int:user_id>/reset-trial', methods=['PUT'])
 def reset_user_trial(user_id):
     try:
         user = User.query.get_or_404(user_id)

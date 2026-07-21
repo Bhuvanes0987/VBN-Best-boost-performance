@@ -15,7 +15,7 @@ import { MessageService } from 'primeng/api';
   selector: 'app-signup',
   standalone: true,
   imports: [FormsModule, CommonModule, RouterModule, InputTextModule,
-            PasswordModule, ButtonModule, SelectModule, ToastModule],
+    PasswordModule, ButtonModule, SelectModule, ToastModule],
   providers: [MessageService],
   templateUrl: './signup.html'
 })
@@ -25,13 +25,13 @@ export class Signup {
   email = ""
   password = ""
   confirmPassword = ""
-  schoolId: any = null   
+  schoolId: any = null
   selectedClass: any = null
   errors: any = {}
   loading = false
 
-  schools: any[] = []     
-  classes: any[] = []      
+  schools: any[] = []
+  classes: any[] = []
 
   private api = environment.apiUrl;
 
@@ -58,17 +58,17 @@ export class Signup {
 
   validate(): boolean {
     this.errors = {}
-    if (!this.fullName.trim())    this.errors.fullName = "Full name is required"
-    if (!this.email.trim())       this.errors.email = "Email is required"
+    if (!this.fullName.trim()) this.errors.fullName = "Full name is required"
+    if (!this.email.trim()) this.errors.email = "Email is required"
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email))
-                                  this.errors.email = "Enter a valid email"
-    if (!this.schoolId)           this.errors.schoolId = "Please select a school"
-    if (!this.selectedClass)      this.errors.selectedClass = "Please select a class"
-    if (!this.password)           this.errors.password = "Password is required"
+      this.errors.email = "Enter a valid email"
+    if (!this.schoolId) this.errors.schoolId = "Please select a school"
+    if (!this.selectedClass) this.errors.selectedClass = "Please select a class"
+    if (!this.password) this.errors.password = "Password is required"
     else if (this.password.length < 6) this.errors.password = "Minimum 6 characters"
-    if (!this.confirmPassword)    this.errors.confirmPassword = "Please confirm your password"
+    if (!this.confirmPassword) this.errors.confirmPassword = "Please confirm your password"
     else if (this.password !== this.confirmPassword)
-                                  this.errors.confirmPassword = "Passwords do not match"
+      this.errors.confirmPassword = "Passwords do not match"
     return Object.keys(this.errors).length === 0
   }
 
@@ -79,14 +79,12 @@ export class Signup {
     const payload = {
       fullName: this.fullName,
       email: this.email,
-      schoolId: this.schoolId,     
+      schoolId: this.schoolId,
       selectedClass: this.selectedClass,
       password: this.password
     }
 
-        this.http.post(`${this.api}/api/signup`, payload)
-// production
-    // this.http.post(`${this.api}/signup`, payload)
+    this.http.post(`${this.api}/signup`, payload)
       .subscribe({
         next: () => {
           this.loading = false

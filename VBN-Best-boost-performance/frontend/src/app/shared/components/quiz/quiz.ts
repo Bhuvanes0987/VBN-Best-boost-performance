@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../Environment/Environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -22,9 +23,9 @@ import { MessageService } from 'primeng/api';
 })
 export class Quiz implements OnInit, OnDestroy {
 
-  private api = 'http://127.0.0.1:8900';
+  private api = environment.apiUrl;
   // production
-  // private api = '/api';
+  // private api = environment.apiUrl;
   currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
 
   questions:     any[]  = [];

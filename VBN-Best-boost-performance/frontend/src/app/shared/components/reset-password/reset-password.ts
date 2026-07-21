@@ -28,7 +28,7 @@ export class ResetPassword implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private messageService: MessageService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.token = this.route.snapshot.queryParamMap.get('token') || ''
@@ -52,9 +52,7 @@ export class ResetPassword implements OnInit {
     }
 
     this.loading = true
-    this.http.post(`${environment.apiUrl}/api/reset-password`, {
-    // production
-    // this.http.post(`${environment.apiUrl}/reset-password`, {
+    this.http.post(`${environment.apiUrl}/reset-password`, {
       token: this.token,
       password: this.password
     }).subscribe({
