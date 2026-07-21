@@ -6,6 +6,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { TooltipModule } from 'primeng/tooltip';
 import { ToastModule } from 'primeng/toast';
@@ -18,7 +19,7 @@ import { HttpClient } from '@angular/common/http';
   standalone: true,
   imports: [
     CommonModule, FormsModule, InputTextModule,
-    SelectModule, ButtonModule, TableModule,
+    SelectModule, MultiSelectModule, ButtonModule, TableModule,
     ConfirmPopupModule, TooltipModule, ToastModule
   ],
   providers: [ConfirmationService, MessageService],
@@ -34,7 +35,7 @@ export class User implements OnInit {
   selectedSchool: any = null;
   selectedClass: any = null;
   selectedRole: any = null;
-  selectedSubject: any = null;  
+  selectedSubject: any[] = [];  
   editingUserId: number | null = null;
   submitting = false;
 
@@ -76,7 +77,7 @@ export class User implements OnInit {
 
   onSchoolChange() {
     this.selectedClass = null;
-    this.selectedSubject = null;
+    this.selectedSubject = [];
     this.classes = [];
     this.subjects = [];
     this.schoolCode = "";
@@ -90,7 +91,7 @@ export class User implements OnInit {
   }
 
   onClassChange() {
-    this.selectedSubject = null;
+    this.selectedSubject = [];
     this.subjects = [];
     if (!this.selectedClass) return;
     this.http.get(`${this.api}/subjects/by-class/${this.selectedClass}`)
@@ -132,8 +133,8 @@ export class User implements OnInit {
     if (!this.selectedRole)    { this.toast('warn', 'Validation', 'Please select a role'); return; }
     if (!this.fullName.trim()) { this.toast('warn', 'Validation', 'Full name is required'); return; }
     if (!this.email.trim())    { this.toast('warn', 'Validation', 'Email is required'); return; }
-    if (this.isTeacherRole() && !this.selectedSubject) {
-      this.toast('warn', 'Validation', 'Please select a subject for teacher'); return;
+    if (this.isTeacherRole() && (!this.selectedSubject || this.selectedSubject.length === 0)) {
+      this.toast('warn', 'Validation', 'Please select at least one subject for teacher'); return;
     }
 
     const payload = {
@@ -142,7 +143,7 @@ export class User implements OnInit {
       schoolId: this.selectedSchool,
       selectedClass: this.selectedClass,
       selectedRole: this.selectedRole,
-      selectedSubject: this.isTeacherRole() ? this.selectedSubject : null  
+      selectedSubject: this.isTeacherRole() ? this.selectedSubject : []  
     };
 
     this.submitting = true;
@@ -182,7 +183,7 @@ export class User implements OnInit {
             this.http.get(`${this.api}/subjects/by-class/${this.selectedClass}`)
               .subscribe((res2: any) => {
                 this.subjects = res2.subjects;
-                this.selectedSubject = user.subjectScope || null;
+                this.selectedSubject = user.subjectScope || [];
               });
           }
         });
@@ -200,7 +201,7 @@ export class User implements OnInit {
       schoolId: this.selectedSchool,
       selectedClass: this.selectedClass,
       selectedRole: this.selectedRole,
-      selectedSubject: this.isTeacherRole() ? this.selectedSubject : null
+      selectedSubject: this.isTeacherRole() ? this.selectedSubject : []
     };
 
     this.submitting = true;
@@ -245,7 +246,7 @@ export class User implements OnInit {
     this.selectedSchool = null;
     this.selectedClass = null;
     this.selectedRole = null;
-    this.selectedSubject = null;
+    this.selectedSubject = [];
     this.classes = [];
     this.subjects = [];
     this.editingUserId = null;

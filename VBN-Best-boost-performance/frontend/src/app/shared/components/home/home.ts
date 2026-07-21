@@ -111,6 +111,7 @@ canEditHomeTable = this.isAdmin;
     const userId = this.currentUser?.id;
     if (userId) {
       sessionStorage.setItem(`terms_accepted_${userId}`, 'true');
+      window.dispatchEvent(new Event('terms_accepted'));
     }
     this.termsDialogVisible = false;
   }
@@ -130,7 +131,7 @@ canEditHomeTable = this.isAdmin;
   loadLeaderboard() {
   this.leaderboardLoading = true;
 
-  const url = `${this.api}/results/leaderboard?limit=5`;
+  const url = `${this.api}/results/leaderboard?limit=3`;
 
   this.http.get(url).subscribe({
     next: (res: any) => {

@@ -11,6 +11,7 @@ from sqlalchemy import func, desc
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from models.class_model import Class
+from utils.email_logger import log_email
 
 result_bp = Blueprint("results", __name__)
 
@@ -184,12 +185,14 @@ Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}
             )
 
             mail.send(msg)
+            log_email(teacher_email, "Student Test Result", "Success")
         else:
             logger.info("No teacher email available for result notification for result_id=%s", result.id)
 
     except Exception as e:
         email_error = str(e)
         logger.exception("Email sending failed while saving result")
+        log_email(teacher_email, "Student Test Result", "Failed", error=str(e))
 
     response = {
         "message": "Result saved",

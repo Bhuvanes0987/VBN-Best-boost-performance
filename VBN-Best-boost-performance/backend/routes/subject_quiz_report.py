@@ -8,6 +8,7 @@ from models.school_model import School
 from datetime import datetime
 import os
 import json
+from utils.email_logger import log_email
 
 
 def _parse_subject_ids(selected_subjects):
@@ -142,11 +143,14 @@ def send_subject_quiz_report(app):
                     "Student"
                 ])
 
-                students=User.query.filter_by(
-                    school_id=
-                    teacher.school_id,
-
-                    position=2
+                subject_class_ids = [c.id for c in subject.classes]
+                if not subject_class_ids:
+                    continue
+                
+                students = User.query.filter(
+                    User.school_id == teacher.school_id,
+                    User.position == 2,
+                    User.student_class.in_(subject_class_ids)
                 ).all()
 
                 for s in students:
@@ -259,6 +263,7 @@ VBN Boost Performance Team
                         "subject:",
                         subject_id
                     )
+                    log_email(teacher.email, "Subject Test Report", "Success")
 
                 except Exception as e:
                     print(
@@ -269,6 +274,7 @@ VBN Boost Performance Team
                         "subject:",
                         subject_id
                     )
+                    log_email(teacher.email, "Subject Test Report", "Failed", error=str(e))
 
                 finally:
                     if os.path.exists(filename):

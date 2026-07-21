@@ -24,6 +24,7 @@ export class App {
   currentRoute = signal('');
   userPosition = signal<number>(parseInt(sessionStorage.getItem('position') ?? '2'));
   userData = signal<any>(JSON.parse(sessionStorage.getItem('user') || '{}'));
+  termsAccepted = signal<boolean>(false);
 
   constructor() {
     this.router.events
@@ -31,8 +32,16 @@ export class App {
       .subscribe((e: any) => {
         this.currentRoute.set(e.urlAfterRedirects);
         this.userPosition.set(parseInt(sessionStorage.getItem('position') ?? '2'));
-        this.userData.set(JSON.parse(sessionStorage.getItem('user') || '{}'));
+        const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+        this.userData.set(user);
+        if (user?.id) {
+          this.termsAccepted.set(sessionStorage.getItem(`terms_accepted_${user.id}`) === 'true');
+        }
       });
+      
+    window.addEventListener('terms_accepted', () => {
+      this.termsAccepted.set(true);
+    });
   }
 
   hideLayout = computed(() => {
@@ -53,6 +62,10 @@ export class App {
   }
 
   showSettings = computed(() => {
+    if (!this.termsAccepted()) {
+      return false;
+    }
+    
     return this.isAdmin() || this.allowedPages().length > 0;
   });
 

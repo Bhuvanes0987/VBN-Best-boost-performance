@@ -90,18 +90,13 @@ def login():
             role_name = role.name
             requires_payment = getattr(role, 'requires_payment', False)
 
-        if effective_role_id == 2 and not user_role:
-            # pure student with no custom role assigned
+        perms = db.session.query(Permission.page)\
+            .join(RolePermission, Permission.id == RolePermission.permission_id)\
+            .filter(RolePermission.role_id == effective_role_id).all()
+        allowed_pages = [p[0] for p in perms]
+        if not allowed_pages and effective_role_id == 2:
             allowed_pages = ["quiz"]
             role_name = "student"
-        else:
-            perms = db.session.query(Permission.page)\
-                .join(RolePermission, Permission.id == RolePermission.permission_id)\
-                .filter(RolePermission.role_id == effective_role_id).all()
-            allowed_pages = [p[0] for p in perms]
-            if not allowed_pages and effective_role_id == 2:
-                allowed_pages = ["quiz"]
-                role_name = "student"
 
     token = jwt.encode({
         "user_id": user.id,
@@ -170,8 +165,10 @@ def forgot_password():
             <p>This link expires in 30 minutes.</p>
         </div>"""
         mail.send(msg)
+        log_email(data.get("email"), "Password Reset", "Success")
     except Exception as e:
-        print(f"Mail failed: {e}")
+        logger.exception("Email sending failed during password reset")
+        log_email(data.get("email"), "Password Reset", "Failed", error=str(e))
 
     return jsonify({"success": True, "message": "Reset link sent."})
 

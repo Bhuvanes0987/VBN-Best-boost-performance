@@ -75,6 +75,11 @@ export class Role implements OnInit {
   }
 
   getRoleType(): string {
+    const nameStr = (this.roleName || '').toLowerCase();
+    if (nameStr.includes('teacher')) return 'teacher';
+    if (nameStr.includes('principal') || nameStr.includes('admin')) return 'principal';
+    if (nameStr.includes('student')) return 'student';
+
     const selectedPages = this.selectedPermissions.map((p: any) => {
       const perm = this.permissions.find((x: any) => x.id === p.id);
       return perm?.page || '';

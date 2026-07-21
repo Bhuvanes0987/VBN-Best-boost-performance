@@ -7,6 +7,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash
 from flask_mail import Message
 import random, string
+from utils.email_logger import log_email
 
 user_bp = Blueprint("users", __name__)
 
@@ -20,8 +21,10 @@ def send_email(to, subject, html):
                       sender=current_app.config["MAIL_USERNAME"])
         msg.html = html
         mail.send(msg)
+        log_email(to, subject, "Success")
     except Exception as e:
         print(f"Mail failed: {e}")
+        log_email(to, subject, "Failed", error=str(e))
 
 
 @user_bp.route("/users", methods=["POST"])
@@ -35,6 +38,14 @@ def create_user():
     temp_password = generate_temp_password()
     assigned_role = int(data.get("selectedRole", 2))
 
+    subj_data = data.get("selectedSubject", [])
+    if isinstance(subj_data, list):
+        subj_str = ",".join(map(str, subj_data))
+        ur_subj = subj_data[0] if subj_data else None
+    else:
+        subj_str = str(subj_data) if subj_data else ""
+        ur_subj = subj_data
+
     user = User(
     name=data["fullName"],
     email=data["email"],
@@ -42,7 +53,7 @@ def create_user():
     position=assigned_role,
     student_class=data.get("selectedClass"),
     school_id=data.get("schoolId"),
-    selected_subjects=str(data.get("selectedSubject", "")),
+    selected_subjects=subj_str,
     status=1,
     created_by="admin",
     created_at=datetime.utcnow()
@@ -56,7 +67,7 @@ def create_user():
         role_id=assigned_role,
         school_id=data.get("schoolId"),
         class_id=data.get("selectedClass"),
-        subject_id=data.get("selectedSubject") 
+        subject_id=ur_subj
     )
     db.session.add(ur)
     db.session.commit()
@@ -118,7 +129,7 @@ def get_users():
             "schoolName": school_name,
             "roleId": user_role.role_id if user_role else None,
             "classScope": user_role.class_id if user_role else None,
-            "subjectScope": user_role.subject_id if user_role else None,
+            "subjectScope": [int(x.strip()) for x in u.selected_subjects.split(",") if x.strip() and x.strip().lstrip('-').isdigit()] if u.selected_subjects else [],
             "created_at": u.created_at
         })
     return jsonify({"users": result})
@@ -145,9 +156,15 @@ def update_user(id):
     user.phone = data.get("phone")
     user.student_class = data.get("selectedClass")
     user.school_id = data.get("schoolId")
-    user.selected_subjects = str(
-    data.get("selectedSubject", "")
-    )
+    subj_data = data.get("selectedSubject", [])
+    if isinstance(subj_data, list):
+        subj_str = ",".join(map(str, subj_data))
+        ur_subj = subj_data[0] if subj_data else None
+    else:
+        subj_str = str(subj_data) if subj_data else ""
+        ur_subj = subj_data
+
+    user.selected_subjects = subj_str
     user.updated_by = "admin"
     user.updated_at = datetime.utcnow()
 
@@ -160,7 +177,7 @@ def update_user(id):
             role_id=new_role,
             school_id=data.get("schoolId"),
             class_id=data.get("selectedClass"),
-            subject_id=data.get("selectedSubject")
+            subject_id=ur_subj
         ))
 
     db.session.commit()

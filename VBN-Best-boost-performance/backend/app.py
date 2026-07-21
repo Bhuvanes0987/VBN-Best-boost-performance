@@ -17,6 +17,7 @@ from models.question_model import Question
 from models.test_result_model import TestResult  
 from models.payment_model import Payment
 from models.custom_table_model import CustomTableHeader, CustomTableRow, CustomTableFile
+from models.email_log_model import EmailLog
 
 from routes.question_routes import question_bp
 from routes.user_routes import user_bp
@@ -31,6 +32,7 @@ from routes.profile_routes import profile_bp
 from routes.payment_routes import payment_bp
 from routes.admin_payment_routes import admin_payment_bp
 from routes.custom_table_routes import custom_table_bp
+from routes.email_logs_routes import email_logs_bp
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
 
@@ -137,6 +139,7 @@ app.register_blueprint(profile_bp)
 app.register_blueprint(payment_bp)
 app.register_blueprint(admin_payment_bp)
 app.register_blueprint(custom_table_bp)
+app.register_blueprint(email_logs_bp)
 
 
 # production

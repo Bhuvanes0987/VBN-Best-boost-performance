@@ -110,7 +110,7 @@
           <span *ngIf="currentUser?.schoolName"> · {{ currentUser.schoolName }}</span>
         </span>
       </div>
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden mb-8">
 
         <!-- Header -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
@@ -141,104 +141,64 @@
         <!-- Top 3 podium -->
         <div *ngIf="!leaderboardLoading && leaderboard.length > 0">
 
+          <!-- Professional Top 3 Podium -->
           <div class="flex items-end justify-center gap-4 px-6 pt-6 pb-4">
 
             <!-- 2nd place -->
-            <div *ngIf="leaderboard[1]" class="flex flex-col items-center gap-1 flex-1">
+            <div *ngIf="leaderboard[1]" class="flex flex-col items-center gap-1 flex-1 max-w-[120px] transition-transform hover:-translate-y-1">
               <div class="relative">
-                <div class="w-14 h-14 rounded-full flex items-center justify-center text-lg font-black text-white shadow-lg"
-                     [style.background]="'linear-gradient(135deg,#94a3b8,#64748b)'">
+                <div class="w-14 h-14 rounded-full flex items-center justify-center text-lg font-black text-white shadow-md border-2 border-white"
+                     style="background: linear-gradient(135deg,#94a3b8,#64748b);">
                   {{ getInitials(leaderboard[1].name) }}
                 </div>
                 <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-slate-400 text-white
-                             text-xs font-black flex items-center justify-center shadow">2</span>
+                             text-xs font-black flex items-center justify-center shadow-sm border border-white">2</span>
               </div>
-              <p class="text-xs font-bold text-slate-700 text-center max-w-[80px] truncate mt-2">
+              <p class="text-xs font-bold text-slate-700 text-center truncate w-full mt-2">
                 {{ leaderboard[1].name }}
               </p>
               <p class="text-lg font-black text-slate-600">{{ leaderboard[1].best_score }}%</p>
-              <div class="w-full bg-slate-200 rounded-t-lg" style="height:48px;"></div>
+              <div class="w-full bg-slate-200 rounded-t-lg transition-all" style="height:48px;"></div>
             </div>
 
             <!-- 1st place -->
-            <div *ngIf="leaderboard[0]" class="flex flex-col items-center gap-1 flex-1">
+            <div *ngIf="leaderboard[0]" class="flex flex-col items-center gap-1 flex-1 max-w-[140px] z-10 transition-transform hover:-translate-y-1">
               <span class="text-2xl mb-1">👑</span>
               <div class="relative">
-                <div class="w-18 h-18 rounded-full flex items-center justify-center text-xl font-black text-white shadow-xl"
+                <div class="w-18 h-18 rounded-full flex items-center justify-center text-xl font-black text-white shadow-lg border-2 border-white"
                      style="width:72px;height:72px;background:linear-gradient(135deg,#f97316,#ea580c);">
                   {{ getInitials(leaderboard[0].name) }}
                 </div>
-                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-orange-500 text-white
-                             text-xs font-black flex items-center justify-center shadow">1</span>
+                <span class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-orange-500 text-white
+                             text-xs font-black flex items-center justify-center shadow-sm border border-white">1</span>
               </div>
-              <p class="text-sm font-bold text-slate-800 text-center max-w-[90px] truncate mt-2">
+              <p class="text-sm font-bold text-slate-800 text-center truncate w-full mt-2">
                 {{ leaderboard[0].name }}
               </p>
               <p class="text-xl font-black text-orange-500">{{ leaderboard[0].best_score }}%</p>
-              <div class="w-full bg-orange-400 rounded-t-lg" style="height:72px;"></div>
+              <div class="w-full bg-orange-400 rounded-t-lg transition-all" style="height:72px;"></div>
             </div>
 
             <!-- 3rd place -->
-            <div *ngIf="leaderboard[2]" class="flex flex-col items-center gap-1 flex-1">
+            <div *ngIf="leaderboard[2]" class="flex flex-col items-center gap-1 flex-1 max-w-[120px] transition-transform hover:-translate-y-1">
               <div class="relative">
-                <div class="w-14 h-14 rounded-full flex items-center justify-center text-lg font-black text-white shadow-lg"
+                <div class="w-14 h-14 rounded-full flex items-center justify-center text-lg font-black text-white shadow-md border-2 border-white"
                      style="background:linear-gradient(135deg,#f59e0b,#d97706);">
                   {{ getInitials(leaderboard[2].name) }}
                 </div>
                 <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-white
-                             text-xs font-black flex items-center justify-center shadow">3</span>
+                             text-xs font-black flex items-center justify-center shadow-sm border border-white">3</span>
               </div>
-              <p class="text-xs font-bold text-slate-700 text-center max-w-[80px] truncate mt-2">
+              <p class="text-xs font-bold text-slate-700 text-center truncate w-full mt-2">
                 {{ leaderboard[2].name }}
               </p>
               <p class="text-lg font-black text-amber-600">{{ leaderboard[2].best_score }}%</p>
-              <div class="w-full bg-amber-300 rounded-t-lg" style="height:32px;"></div>
+              <div class="w-full bg-amber-300 rounded-t-lg transition-all" style="height:32px;"></div>
             </div>
 
-          </div><!-- /podium -->
+          </div><!-- /Professional Top 3 Podium -->
 
-          <!-- Rank list (4th+) -->
-          <div class="divide-y divide-slate-100" *ngIf="leaderboard.length > 3">
-            <div *ngFor="let entry of leaderboard.slice(3)"
-                 class="flex items-center gap-4 px-6 py-3 hover:bg-slate-50 transition"
-                 [class.bg-orange-50]="entry.user_id === currentUser?.id">
 
-              <!-- Rank badge -->
-              <span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0"
-                    [class.bg-orange-100]="entry.user_id === currentUser?.id"
-                    [class.text-orange-600]="entry.user_id === currentUser?.id"
-                    [class.bg-slate-100]="entry.user_id !== currentUser?.id"
-                    [class.text-slate-500]="entry.user_id !== currentUser?.id">
-                {{ entry.rank }}
-              </span>
-
-              <!-- Avatar -->
-              <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black text-white shrink-0"
-                   [style.background]="avatarColor(entry.rank)">
-                {{ getInitials(entry.name) }}
-              </div>
-
-              <!-- Name + school -->
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-slate-800 truncate">
-                  {{ entry.name }}
-                  <span *ngIf="entry.user_id === currentUser?.id"
-                        class="ml-1 text-xs text-orange-500 font-semibold">(You)</span>
-                </p>
-              <p class="text-xs text-slate-400 truncate">
-              <span *ngIf="entry.school_name">{{ entry.school_name }}</span>
-              <span *ngIf="entry.class_name"> · {{ entry.class_name }}</span>
-            </p>
-              </div>
-
-              <!-- Score + tests -->
-              <div class="text-right shrink-0">
-                <p class="text-sm font-black text-slate-800">{{ entry.best_score }}%</p>
-                <p class="text-xs text-slate-400">{{ entry.tests_taken }} test{{ entry.tests_taken !== 1 ? 's' : '' }}</p>
-              </div>
-
-            </div>
-          </div>
 
           <!-- Current user's rank if outside top 10 -->
           <div *ngIf="myRankEntry && !isInLeaderboard()"

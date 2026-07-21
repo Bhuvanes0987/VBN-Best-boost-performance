@@ -135,8 +135,27 @@ export class QuestionBank implements OnInit {
   loadQuestions() {
     const params: string[] = [];
     if (this.filterSchools.length)          params.push(`school_id=${this.filterSchools.join(',')}`);
-    if (this.filterSelectedClasses.length)  params.push(`class_id=${this.filterSelectedClasses.join(',')}`);
-    if (this.filterSelectedSubjects.length) params.push(`subject_id=${this.filterSelectedSubjects.join(',')}`);
+    
+    // Automatically filter by student's class if they are a student
+    if (this.userPosition === 2 && this.currentUser?.studentClass) {
+      params.push(`class_id=${this.currentUser.studentClass}`);
+    } else if (this.filterSelectedClasses.length) {
+      params.push(`class_id=${this.filterSelectedClasses.join(',')}`);
+    }
+    
+    // Automatically filter by teacher's selected subjects if they are a teacher
+    if (this.userPosition === 3 && this.currentUser?.selectedSubjects && this.currentUser.selectedSubjects.length > 0) {
+      // If the teacher has also used the UI filter, intersect them or just use the UI filter?
+      // For simplicity, if they haven't explicitly filtered by subjects in the UI, apply their assigned subjects.
+      if (this.filterSelectedSubjects.length === 0) {
+        params.push(`subject_id=${this.currentUser.selectedSubjects.join(',')}`);
+      } else {
+        params.push(`subject_id=${this.filterSelectedSubjects.join(',')}`);
+      }
+    } else if (this.filterSelectedSubjects.length) {
+      params.push(`subject_id=${this.filterSelectedSubjects.join(',')}`);
+    }
+    
     if (this.filterSelectedUnits.length)    params.push(`unit_id=${this.filterSelectedUnits.join(',')}`);
 
     const url = params.length

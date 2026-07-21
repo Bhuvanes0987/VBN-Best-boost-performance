@@ -37,12 +37,12 @@
         <label class="text-xs text-orange-500 font-bold uppercase tracking-widest block mb-1">
           Subject * <span class="text-gray-400 normal-case font-normal">(required for Teacher)</span>
         </label>
-        <p-select [options]="subjects" [(ngModel)]="selectedSubject"
+        <p-multiSelect [options]="subjects" [(ngModel)]="selectedSubject"
           optionLabel="subject_name" optionValue="id"
-          placeholder="Select Subject for this Teacher"
+          placeholder="Select Subject(s) for this Teacher"
           [disabled]="!selectedClass"
           styleClass="w-full">
-        </p-select>
+        </p-multiSelect>
       </div>
 
     </div>

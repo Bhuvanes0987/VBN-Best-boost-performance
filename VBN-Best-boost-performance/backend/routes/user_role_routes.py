@@ -4,6 +4,7 @@ from models.user_role_model import UserRole
 from models.user_model import User
 from models.role_model import Role
 from flask_mail import Message
+from utils.email_logger import log_email
 
 user_role_bp = Blueprint("user_roles", __name__)
 
@@ -21,8 +22,10 @@ def send_role_email(user, role_name):
             <p><a href="http://localhost:4200/login" style="color:#f97316;">Login here</a></p>
         </div>"""
         mail.send(msg)
+        log_email(user.email, "Role Assignment", "Success")
     except Exception as e:
         print(f"Role email failed: {e}")
+        log_email(user.email, "Role Assignment", "Failed", error=str(e))
 
 @user_role_bp.route("/users/<int:user_id>/role", methods=["POST"])
 def assign_role(user_id):

@@ -85,13 +85,13 @@ def update_profile(user_id):
 def get_available_subjects(user_id):
     user = User.query.get_or_404(user_id)
 
-    if not user.student_class:
+    if not user.student_class and user.position not in [3, 4]:
         return jsonify({"subjects": []})
 
     subjects = Subject.query.filter_by(status=1).all()
     result = []
     for s in subjects:
-        if any(c.id == user.student_class for c in s.classes):
+        if user.position in [3, 4] or any(c.id == user.student_class for c in s.classes):
             result.append({
                 "id": s.id,
                 "subject_name": s.subject_name

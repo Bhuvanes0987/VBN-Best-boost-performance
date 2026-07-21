@@ -9,7 +9,7 @@ role_bp = Blueprint("roles", __name__)
 @role_bp.route("/roles", methods=["GET"])
 def get_roles():
     school_id = request.args.get("school_id")
-    query = Role.query.filter(Role.status == 1, Role.id > 2)
+    query = Role.query.filter(Role.status == 1, Role.id > 1)
     if school_id:
         query = query.filter(
             db.or_(Role.school_id == int(school_id), Role.school_id == None)
@@ -53,7 +53,7 @@ def create_role():
         return jsonify({"success": False, "message": "Role already exists"}), 400
 
     deleted = Role.query.filter(
-        Role.name == data["name"], Role.status == 0, Role.id > 2
+        Role.name == data["name"], Role.status == 0, Role.id > 1
     ).first()
     if deleted:
         deleted.status = 1
@@ -86,7 +86,7 @@ def create_role():
 
 @role_bp.route("/roles/<int:role_id>", methods=["PUT"])
 def update_role(role_id):
-    if role_id in [1, 2]:
+    if role_id == 1:
         return jsonify({"success": False, "message": "Cannot modify default roles"}), 403
     role = Role.query.get_or_404(role_id)
     data = request.json
@@ -103,7 +103,7 @@ def update_role(role_id):
 
 @role_bp.route("/roles/<int:role_id>", methods=["DELETE"])
 def delete_role(role_id):
-    if role_id in [1, 2]:
+    if role_id == 1:
         return jsonify({"success": False, "message": "Cannot delete default roles"}), 403
     role = Role.query.get_or_404(role_id)
     role.status = 0

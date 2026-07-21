@@ -6,6 +6,7 @@ from models.user_model import User
 from models.school_model import School
 from models.test_result_model import TestResult
 import os
+from utils.email_logger import log_email
 
 
 def send_daily_quiz_report(app):
@@ -156,17 +157,42 @@ def send_daily_quiz_report(app):
                     filename
                 )
 
-                teachers = User.query.filter_by(
+                # Find teachers who teach at least one subject in this class
+                all_teachers = User.query.filter_by(
                     school_id=school.id,
-                    student_class=class_id,
                     position=3
                 ).all()
 
-                emails = [
-                    t.email
-                    for t in teachers
-                    if t.email
-                ]
+                subjects_in_class = db.session.execute(
+                    db.text("SELECT subject_id FROM subject_classes WHERE class_id=:c"),
+                    {"c": class_id}
+                ).fetchall()
+                subject_ids_in_class = {row[0] for row in subjects_in_class}
+
+                emails = []
+                for t in all_teachers:
+                    if not t.email:
+                        continue
+                    
+                    try:
+                        teacher_subjects_json = str(t.selected_subjects).strip()
+                        if not teacher_subjects_json:
+                            continue
+                            
+                        import json
+                        try:
+                            parsed = json.loads(teacher_subjects_json)
+                            if isinstance(parsed, list):
+                                teacher_subject_ids = {int(x) for x in parsed if str(x).strip()}
+                            else:
+                                teacher_subject_ids = {int(x.strip()) for x in str(teacher_subjects_json).split(",") if x.strip().isdigit()}
+                        except json.JSONDecodeError:
+                            teacher_subject_ids = {int(x.strip()) for x in teacher_subjects_json.split(",") if x.strip().isdigit()}
+                    except Exception:
+                        teacher_subject_ids = set()
+
+                    if teacher_subject_ids.intersection(subject_ids_in_class):
+                        emails.append(t.email)
 
                 try:
 
@@ -215,6 +241,7 @@ VBN Boost Performance Team
                             "Mail sent:",
                             emails
                         )
+                        log_email(emails, "Daily Test Report", "Success")
 
                 except Exception as e:
 
@@ -222,6 +249,7 @@ VBN Boost Performance Team
                         "Mail error:",
                         str(e)
                     )
+                    log_email(emails, "Daily Test Report", "Failed", error=str(e))
 
                 finally:
 

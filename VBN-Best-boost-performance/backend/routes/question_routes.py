@@ -242,12 +242,20 @@ def subject_test():
     school_id  = request.args.get("school_id")
     limit      = int(request.args.get("limit", 20))
 
+    if not class_id or class_id == "undefined" or class_id == "null":
+        return jsonify({"error": "class_id required"}), 400
+
     query = Question.query.filter_by(status=1)
-    if class_id:   query = query.filter_by(class_id=int(class_id))
-    if subject_id: query = query.filter_by(subject_id=int(subject_id))
-    if unit_id and unit_id != "all":
+    query = query.filter_by(class_id=int(class_id))
+    
+    if subject_id and subject_id != "undefined" and subject_id != "null" and subject_id != "all": 
+        query = query.filter_by(subject_id=int(subject_id))
+        
+    if unit_id and unit_id != "all" and unit_id != "undefined" and unit_id != "null":
         query = query.filter_by(unit_id=int(unit_id))
-    if school_id:  query = query.filter_by(school_id=int(school_id))
+        
+    if school_id and school_id != "undefined" and school_id != "null" and school_id != "None":  
+        query = query.filter_by(school_id=int(school_id))
 
     questions = query.all()
     if not questions:
